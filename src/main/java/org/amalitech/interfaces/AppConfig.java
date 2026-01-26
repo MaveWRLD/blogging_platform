@@ -1,4 +1,4 @@
-package org.amalitech.config;
+package org.amalitech.interfaces;
 
 /**
  * Configuration interface for application settings.
