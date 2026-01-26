@@ -1,5 +1,7 @@
 package org.amalitech.config;
 
+import org.amalitech.interfaces.AppConfig;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
@@ -22,9 +24,6 @@ public class PropertiesConfig implements AppConfig {
         }
     }
 
-    /**
-     * Initialize default values.
-     */
     private void initializeDefaults() {
         props.setProperty("cache.max.size", "100");
         props.setProperty("cache.search.size", "50");

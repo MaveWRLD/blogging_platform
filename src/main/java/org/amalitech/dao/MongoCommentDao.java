@@ -124,7 +124,6 @@ public class MongoCommentDao implements CommentRepository {
                     .atZone(java.time.ZoneId.systemDefault())
                     .toLocalDateTime());
         } else {
-            // Set to current time if not available
             comment.setCreatedAt(LocalDateTime.now());
         }
 
@@ -134,10 +133,8 @@ public class MongoCommentDao implements CommentRepository {
                     .atZone(java.time.ZoneId.systemDefault())
                     .toLocalDateTime());
         } else {
-            // Set to current time if not available
             comment.setUpdatedAt(LocalDateTime.now());
         }
-
         return comment;
     }
 }
