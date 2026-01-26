@@ -47,13 +47,6 @@ public class PostTagService {
         return postTagDao.findTagsByPostId(postId);
     }
 
-    public List<Integer> getPostsForTag(int tagId) {
-        if (tagId <= 0) {
-            throw new ValidationException("Invalid tag ID");
-        }
-        return postTagDao.findPostsByTagId(tagId);
-    }
-
     private void validateIds(int postId, int tagId) {
         if (postId <= 0) throw new ValidationException("Invalid post ID");
         if (tagId <= 0) throw new ValidationException("Invalid tag ID");

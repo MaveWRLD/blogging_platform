@@ -77,18 +77,6 @@ public class PostService {
     }
 
     /**
-     * Count posts matching search criteria.
-     * @param query search query string
-     * @param tagIds set of tag IDs to filter by
-     * @param statuses set of post statuses to filter by
-     * @param authorId user ID of the post author (optional)
-     * @return count of matching posts
-     */
-    public int countSearch(String query, Set<Integer> tagIds, Set<String> statuses, Integer authorId) {
-        return postRepository.countSearch(query, tagIds, statuses, authorId);
-    }
-
-    /**
      * Create a new post.
      * @param post the post to create
      * @param tagIds list of tag IDs to associate
@@ -144,14 +132,6 @@ public class PostService {
     }
 
     /**
-     * Count all posts.
-     * @return total number of posts
-     */
-    public int countAllPosts() {
-        return postRepository.countAll();
-    }
-
-    /**
      * Get all tags for a post.
      * @param postId the post ID
      * @return list of tag IDs
@@ -168,7 +148,6 @@ public class PostService {
      */
     public org.amalitech.models.User getUserById(int userId) {
         if (userId <= 0) throw new ValidationException("Invalid user ID");
-        // Get the UserService from the ServiceContainer to avoid circular dependencies
         UserService userService = org.amalitech.config.ServiceContainer.getInstance().getUserService();
         return userService.findByUserId(userId);
     }

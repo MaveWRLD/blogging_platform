@@ -41,33 +41,27 @@ public class PostSearchService {
      */
     public List<Post> search(String query, Set<Integer> tagIds, Set<String> statuses,
                             Integer authorId, SortOrder order, int page, int size) {
-        // Normalize query
         String normalizedQuery = normalizeQuery(query);
 
-        // Check cache
         String cacheKey = buildSearchCacheKey(normalizedQuery, tagIds, statuses, authorId, order);
         List<Integer> cachedPostIds = searchCache.get(cacheKey);
 
         List<Post> results;
 
         if (cachedPostIds != null) {
-            // Use cached results
             results = cachedPostIds.stream()
                     .map(postRepository::findById)
                     .collect(Collectors.toList());
         } else {
-            // Execute search
             results = postRepository.search(normalizedQuery, tagIds, statuses,
                                           authorId, order, page, size);
 
-            // Cache the post IDs
             List<Integer> postIds = results.stream()
                     .map(Post::getId)
                     .collect(Collectors.toList());
             searchCache.put(cacheKey, postIds);
         }
 
-        // Apply pagination to cached results
         if (cachedPostIds != null) {
             int start = page * size;
             int end = Math.min(start + size, results.size());
@@ -78,47 +72,6 @@ public class PostSearchService {
         }
 
         return results;
-    }
-
-    /**
-     * Count posts matching search criteria.
-     * @param query search query string
-     * @param tagIds set of tag IDs to filter by
-     * @param statuses set of post statuses to filter by
-     * @param authorId user ID of the post author (optional)
-     * @return count of matching posts
-     */
-    public int countSearch(String query, Set<Integer> tagIds, Set<String> statuses,
-                          Integer authorId) {
-        String normalizedQuery = normalizeQuery(query);
-        return postRepository.countSearch(normalizedQuery, tagIds, statuses, authorId);
-    }
-
-    /**
-     * Find posts by a specific tag.
-     * @param tagId the tag ID
-     * @param page page number (0-indexed)
-     * @param size page size
-     * @return list of posts with the tag
-     */
-    public List<Post> findByTag(int tagId, int page, int size) {
-        return postRepository.findByTag(tagId, page, size);
-    }
-
-    /**
-     * Count posts with a specific tag.
-     * @param tagId the tag ID
-     * @return count of posts
-     */
-    public int countByTag(int tagId) {
-        return postRepository.countByTag(tagId);
-    }
-
-    /**
-     * Clear the search cache.
-     */
-    public void clearCache() {
-        searchCache.clear();
     }
 
     /**
