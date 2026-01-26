@@ -10,7 +10,7 @@ import java.util.Random;
 public class CommentGenerator {
 
     private static final int MIN_COMMENTS_PER_POST = 0;
-    private static final int MAX_COMMENTS_PER_POST = 10;  // Average ~5 per post → ~1M comments total
+    private static final int MAX_COMMENTS_PER_POST = 10;
     private static final int TOTAL_POSTS = 200000;
 
     private static final String[] USER_NAMES = {
@@ -49,7 +49,6 @@ public class CommentGenerator {
                 comment.setUserName(USER_NAMES[random.nextInt(USER_NAMES.length)]);
                 comment.setBody(generateRandomComment(random));
                 comment.setParentCommentId(null);
-                comment.setCreatedAt(LocalDateTime.now().minusDays(random.nextInt(365)));  // Random past date
 
                 commentDao.save(comment);
             }

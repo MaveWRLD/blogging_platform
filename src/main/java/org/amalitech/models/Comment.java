@@ -10,7 +10,6 @@ public class Comment {
     private Integer parentCommentId;
     private String body;
     private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     public Comment() {}
 
@@ -43,14 +42,6 @@ public class Comment {
 
 
     public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 
     @Override
     public String toString() {
