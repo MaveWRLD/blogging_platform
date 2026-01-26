@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressBar?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+
+<!-- Reading View: Distraction-Free, Content-First -->
+<StackPane xmlns="http://javafx.com/javafx/21"
+           xmlns:fx="http://javafx.com/fxml/1"
+           fx:controller="org.amalitech.ui.controller.ReadingViewController"
+           styleClass="reading-view">
+
+    <ProgressBar fx:id="readingProgress"
+                 progress="0"
+                 maxWidth="Infinity"
+                 styleClass="reading-progress"
+                 StackPane.alignment="TOP_CENTER"/>
+
+    <ScrollPane fx:id="contentScroll"
+                fitToWidth="true"
+                hbarPolicy="NEVER"
+                vbarPolicy="AS_NEEDED"
+                styleClass="reading-scroll">
+
+        <VBox spacing="0" styleClass="reading-column" maxWidth="720" alignment="TOP_CENTER">
+            <padding>
+                <Insets top="64" right="32" bottom="64" left="32"/>
+            </padding>
+
+            <!-- Back Navigation (Subtle) -->
+            <HBox spacing="8" alignment="CENTER_LEFT">
+                <padding>
+                    <Insets bottom="32"/>
+                </padding>
+                <Button text="← Back to feed"
+                        onAction="#onBack"
+                        styleClass="ghost-button"/>
+            </HBox>
+
+            <!-- Article Header -->
+            <VBox spacing="20" styleClass="article-header">
+                <padding>
+                    <Insets bottom="32"/>
+                </padding>
+
+                <!-- Title: Large, Bold, Negative Letter Spacing -->
+                <Label fx:id="postTitle"
+                       text="The Art of Modern Blog Design"
+                       wrapText="true"
+                       styleClass="post-detail-title"/>
+
+                <!-- Metadata: Author, Date, Reading Time -->
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <Label fx:id="authorName" text="John Doe" styleClass="body"/>
+                    <Label text="•" styleClass="caption"/>
+                    <Label fx:id="publishDate" text="Jan 23, 2026" styleClass="caption"/>
+                    <Label text="•" styleClass="caption"/>
+                    <Label fx:id="readingTime" text="8 min read" styleClass="caption"/>
+                </HBox>
+
+                <!-- CRUD Actions (Visible to author) -->
+                <HBox fx:id="authorActions" spacing="12" alignment="CENTER_LEFT" managed="false" visible="false">
+                    <Button text="Edit Post" onAction="#onEditPost" styleClass="secondary-button"/>
+                    <Button text="Delete Post" onAction="#onDeletePost" styleClass="danger-button"/>
+                </HBox>
+
+                <!-- Tags -->
+                <HBox fx:id="tagsContainer" spacing="8" alignment="CENTER_LEFT">
+                    <!-- Tag pills dynamically added -->
+                </HBox>
+            </VBox>
+
+            <!-- Divider -->
+            <Separator styleClass="divider">
+                <padding>
+                    <Insets bottom="32"/>
+                </padding>
+            </Separator>
+
+            <!-- Article Body: Comfortable Reading -->
+            <TextFlow fx:id="articleBody"
+                      lineSpacing="6"
+                      styleClass="article-body">
+                <Text text="Content goes here..." styleClass="body-large"/>
+            </TextFlow>
+
+            <!-- Spacer -->
+            <Region minHeight="48"/>
+
+            <!-- Comments Section: Progressive Disclosure -->
+            <VBox spacing="24" styleClass="comments-section">
+
+                <!-- Comments Header -->
+                <HBox spacing="16" alignment="CENTER_LEFT">
+                    <Label fx:id="commentsHeader"
+                           text="Comments (12)"
+                           styleClass="post-detail-comments-header"/>
+
+                    <Region HBox.hgrow="ALWAYS"/>
+
+                    <Button text="Top" onAction="#onSortTop" styleClass="ghost-button"/>
+                    <Button text="Newest" onAction="#onSortNewest" styleClass="ghost-button"/>
+                </HBox>
+
+                <VBox spacing="12" styleClass="add-comment-box">
+                    <javafx.scene.control.TextArea fx:id="commentInput"
+                                                    promptText="Share your thoughts..."
+                                                    prefRowCount="3"
+                                                    wrapText="true"
+                                                    styleClass="text-area"/>
+
+                    <HBox spacing="12" alignment="CENTER_RIGHT">
+                        <Button text="Cancel"
+                                onAction="#onCancelComment"
+                                styleClass="secondary-button"/>
+                        <Button text="Post Comment"
+                                onAction="#onPostComment"
+                                styleClass="primary-button"/>
+                    </HBox>
+                </VBox>
+
+                <VBox fx:id="commentsList" spacing="20">
+                    <!-- Comments will be dynamically loaded -->
+                    <!-- Each comment:
+                         - Author avatar and name
+                         - Comment text
+                         - Like • Reply • Date
+                         - Nested replies (max depth 2)
+                    -->
+                </VBox>
+
+                <Button fx:id="loadMoreComments"
+                        text="Load more comments"
+                        onAction="#onLoadMoreComments"
+                        styleClass="ghost-button"
+                        maxWidth="Infinity"
+                        managed="false"
+                        visible="false"/>
+
+            </VBox>
+
+        </VBox>
+
+    </ScrollPane>
+
+    <HBox fx:id="floatingActions"
+          spacing="12"
+          alignment="CENTER"
+          styleClass="floating-actions"
+          managed="false"
+          visible="false"
+          StackPane.alignment="BOTTOM_CENTER">
+        <padding>
+            <Insets bottom="24"/>
+        </padding>
+    </HBox>
+
+</StackPane>

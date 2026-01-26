@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+
+<ScrollPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.amalitech.ui.controller.PerformanceTestController"
+            fitToWidth="true" fitToHeight="true" hbarPolicy="NEVER" styleClass="root-scroll-pane">
+    <VBox spacing="15" maxWidth="1200" alignment="TOP_CENTER">
+        <VBox spacing="15" alignment="TOP_LEFT" maxWidth="1000">
+            <padding>
+                <Insets top="20" right="20" bottom="20" left="20"/>
+            </padding>
+
+            <!-- Header -->
+            <HBox alignment="CENTER_LEFT" spacing="10">
+                <Label text="Query Performance Testing" styleClass="header-title">
+                    <font>
+                        <Font name="System Bold" size="24"/>
+                    </font>
+                </Label>
+            </HBox>
+
+            <Separator/>
+
+            <!-- Configuration Panel -->
+            <VBox spacing="10" styleClass="config-panel">
+                <Label text="Test Configuration" styleClass="section-title">
+                    <font>
+                        <Font name="System Bold" size="14"/>
+                    </font>
+                </Label>
+
+                <GridPane hgap="15" vgap="10">
+                    <columnConstraints>
+                        <ColumnConstraints minWidth="120" prefWidth="120"/>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="150" prefWidth="300"/>
+                        <ColumnConstraints minWidth="120" prefWidth="120"/>
+                        <ColumnConstraints hgrow="ALWAYS" minWidth="150" prefWidth="300"/>
+                    </columnConstraints>
+
+                    <!-- Row 1 -->
+                    <Label text="Search Query:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
+                    <TextField fx:id="searchQueryField" promptText="e.g., java" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
+
+                    <Label text="Tag IDs:" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
+                    <TextField fx:id="tagIdsField" promptText="e.g., 1,2,3" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
+
+                    <!-- Row 2 -->
+                    <Label text="Author ID:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
+                    <TextField fx:id="authorIdField" promptText="e.g., 1" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
+
+                    <Label text="Post ID:" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
+                    <TextField fx:id="postIdField" promptText="e.g., 1" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
+
+                    <!-- Row 3 -->
+                    <Label text="Test Phase:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
+                    <ComboBox fx:id="testPhaseCombo" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.columnSpan="3"/>
+                </GridPane>
+            </VBox>
+
+            <!-- Action Buttons -->
+            <HBox spacing="10" alignment="CENTER_LEFT">
+                <Button fx:id="startTestButton" text="Start Test" onAction="#handleStartTest" styleClass="primary-button">
+                    <font>
+                        <Font name="System Bold" size="12"/>
+                    </font>
+                </Button>
+                <Button fx:id="applyIndexesButton" text="Apply Indexes (Instructions)" onAction="#handleApplyIndexes" styleClass="secondary-button" disable="true">
+                    <font>
+                        <Font size="12"/>
+                    </font>
+                </Button>
+                <Button fx:id="generateReportButton" text="Generate Report" onAction="#handleGenerateReport" styleClass="success-button" disable="true">
+                    <font>
+                        <Font name="System Bold" size="12"/>
+                    </font>
+                </Button>
+            </HBox>
+
+            <!-- Progress Section -->
+            <VBox spacing="5" styleClass="progress-panel">
+                <Label fx:id="statusLabel" text="Status: Ready" styleClass="status-label">
+                    <font>
+                        <Font size="12"/>
+                    </font>
+                </Label>
+                <ProgressBar fx:id="progressBar" maxWidth="Infinity" prefHeight="25"/>
+            </VBox>
+
+            <!-- Results Section -->
+            <VBox fx:id="resultsContainer" spacing="15" VBox.vgrow="ALWAYS" visible="false">
+                <Separator/>
+
+                <!-- Summary -->
+                <VBox spacing="5">
+                    <Label text="Test Summary" styleClass="section-title">
+                        <font>
+                            <Font name="System Bold" size="14"/>
+                        </font>
+                    </Label>
+                    <Label fx:id="summaryLabel" styleClass="summary-label">
+                        <font>
+                            <Font name="System Bold" size="13"/>
+                        </font>
+                    </Label>
+                </VBox>
+
+                <!-- Chart -->
+                <BarChart fx:id="performanceChart" title="Query Performance Comparison"
+                          legendVisible="true" animated="true" minHeight="300" prefHeight="400">
+                    <xAxis>
+                        <CategoryAxis fx:id="xAxis" label="Query" side="BOTTOM"/>
+                    </xAxis>
+                    <yAxis>
+                        <NumberAxis fx:id="yAxis" label="Execution Time (ms)" side="LEFT" autoRanging="true"/>
+                    </yAxis>
+                </BarChart>
+
+                <!-- Detailed Findings -->
+                <VBox spacing="5" VBox.vgrow="ALWAYS">
+                    <Label text="Detailed Findings" styleClass="section-title">
+                        <font>
+                            <Font name="System Bold" size="14"/>
+                        </font>
+                    </Label>
+                    <TextArea fx:id="findingsArea" editable="false" wrapText="true"
+                              styleClass="findings-area" VBox.vgrow="ALWAYS" minHeight="150" prefHeight="200">
+                        <font>
+
+                            <Font name="Consolas" size="11"/>
+                        </font>
+                    </TextArea>
+                </VBox>
+            </VBox>
+
+            <!-- Log Console -->
+            <VBox spacing="5" VBox.vgrow="SOMETIMES">
+                <HBox alignment="CENTER_LEFT">
+                    <Label text="Test Log" styleClass="section-title">
+                        <font>
+                            <Font name="System Bold" size="12"/>
+                        </font>
+                    </Label>
+                </HBox>
+                <TextArea fx:id="logArea" editable="false" wrapText="false"
+                          styleClass="log-area" minHeight="100" prefHeight="150">
+                    <font>
+                        <Font name="Consolas" size="11"/>
+                    </font>
+                </TextArea>
+            </VBox>
+        </VBox>
+    </VBox>
+</ScrollPane>

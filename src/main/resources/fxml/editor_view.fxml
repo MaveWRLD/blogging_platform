@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TextArea?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.amalitech.ui.controller.EditorViewController"
+      spacing="0"
+      styleClass="editor-view">
+
+    <!-- Editor Toolbar -->
+    <HBox spacing="16" alignment="CENTER_LEFT" styleClass="editor-toolbar">
+        <padding>
+            <Insets top="12" right="24" bottom="12" left="24"/>
+        </padding>
+
+        <Button text="←" onAction="#onBack" styleClass="icon-button"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Label fx:id="saveStatus" text="All changes saved" styleClass="caption"/>
+        <Button fx:id="editorModeButton" text="Fullscreen" onAction="#onToggleEditorMode" styleClass="ghost-button"/>
+        <Button text="Save Draft" onAction="#onSaveDraft" styleClass="secondary-button"/>
+        <Button text="Publish" onAction="#onPublish" styleClass="primary-button"/>
+    </HBox>
+
+    <StackPane VBox.vgrow="ALWAYS" styleClass="editor-content">
+
+        <VBox fx:id="regularEditorView" spacing="0" VBox.vgrow="ALWAYS">
+            <VBox spacing="0" styleClass="editor-pane" VBox.vgrow="ALWAYS">
+                <padding>
+                    <Insets top="32" right="48" bottom="32" left="48"/>
+                </padding>
+
+                <VBox spacing="16" styleClass="post-metadata">
+                    <padding>
+                        <Insets bottom="24"/>
+                    </padding>
+
+                    <TextField fx:id="titleField"
+                               promptText="Post title..."
+                               styleClass="title-input"/>
+
+                    <HBox spacing="12" alignment="CENTER_LEFT">
+                        <TextField fx:id="tagsField"
+                                   promptText="Add tags (comma separated)"
+                                   prefWidth="300"
+                                   styleClass="text-field"/>
+                        <ComboBox fx:id="statusCombo"
+                                  promptText="Status"
+                                  prefWidth="140"
+                                  styleClass="combo-box"/>
+                    </HBox>
+                </VBox>
+
+                <TextArea fx:id="contentEditor"
+                          promptText="Start writing your post...&#10;&#10;Supports Markdown:&#10;# Heading 1&#10;## Heading 2&#10;**Bold** *Italic*&#10;- List item"
+                          wrapText="true"
+                          styleClass="content-editor"
+                          VBox.vgrow="ALWAYS">
+                    <VBox.margin>
+                        <Insets top="24"/>
+                    </VBox.margin>
+                </TextArea>
+
+                <HBox spacing="12" alignment="CENTER_LEFT" styleClass="editor-footer">
+                    <padding>
+                        <Insets top="16"/>
+                    </padding>
+                    <Label fx:id="wordCount" text="0 words" styleClass="caption"/>
+                    <Label text="•" styleClass="caption"/>
+                    <Label fx:id="charCount" text="0 characters" styleClass="caption"/>
+                    <Label text="•" styleClass="caption"/>
+                    <Label fx:id="readTimeEstimate" text=" &amp;lt 1 min read" styleClass="caption"/>
+                </HBox>
+            </VBox>
+        </VBox>
+
+        <VBox fx:id="editorOnlyView" spacing="0" managed="false" visible="false" styleClass="editor-only">
+            <padding>
+                <Insets top="48" right="80" bottom="48" left="80"/>
+            </padding>
+
+            <VBox spacing="16" styleClass="post-metadata">
+                <padding>
+                    <Insets bottom="24"/>
+                </padding>
+
+                <TextField fx:id="titleFieldFullscreen"
+                           promptText="Post title..."
+                           styleClass="title-input"/>
+
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <TextField fx:id="tagsFieldFullscreen"
+                               promptText="Add tags"
+                               prefWidth="300"
+                               styleClass="text-field"/>
+                    <ComboBox fx:id="statusComboFullscreen"
+                              promptText="Status"
+                              prefWidth="140"
+                              styleClass="combo-box"/>
+                </HBox>
+            </VBox>
+
+            <TextArea fx:id="contentEditorFullscreen"
+                      promptText="Start writing..."
+                      wrapText="true"
+                      styleClass="content-editor-fullscreen"
+                      VBox.vgrow="ALWAYS">
+                <VBox.margin>
+                    <Insets top="24"/>
+                </VBox.margin>
+            </TextArea>
+
+            <HBox spacing="12" alignment="CENTER_LEFT">
+                <padding>
+                    <Insets top="16"/>
+                </padding>
+                <Label fx:id="wordCountFullscreen" text="0 words" styleClass="caption"/>
+                <Label text="•" styleClass="caption"/>
+                <Label fx:id="readTimeFullscreen" text="  &amp;lt 1 min read" styleClass="caption"/>
+            </HBox>
+        </VBox>
+
+    </StackPane>
+
+</VBox>

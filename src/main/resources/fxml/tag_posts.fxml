@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Pagination?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.amalitech.ui.controller.TagPostsController"
+            styleClass="root">
+    <center>
+        <VBox spacing="14.0" styleClass="page content-card">
+            <padding>
+                <Insets bottom="16.0" left="24.0" right="24.0" top="16.0" />
+            </padding>
+
+            <HBox alignment="CENTER_LEFT" spacing="10.0" styleClass="page-header">
+                <Label fx:id="titleLabel" text="Posts tagged: …" styleClass="page-title" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Button text="Back to all" onAction="#onBack" styleClass="secondary-button" />
+            </HBox>
+
+            <ListView fx:id="postsTable" styleClass="modern-list" VBox.vgrow="ALWAYS" />
+
+            <HBox alignment="CENTER" spacing="10.0">
+                <Pagination fx:id="pagination" maxPageIndicatorCount="7" pageCount="1" />
+            </HBox>
+        </VBox>
+    </center>
+</BorderPane>
