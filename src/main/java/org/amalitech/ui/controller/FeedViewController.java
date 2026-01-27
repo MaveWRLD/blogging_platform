@@ -17,6 +17,7 @@ import org.amalitech.ui.util.ControllerUtils;
 import org.amalitech.ui.util.DbTask;
 
 import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -45,6 +46,8 @@ public class FeedViewController {
     private boolean hasMorePosts = true;
 
     private Integer selectedTagId = null;
+    private SortOrder currentSortOrder = SortOrder.NEWEST;
+    private String currentTimeFilter = "All time";
 
 
 
@@ -52,6 +55,7 @@ public class FeedViewController {
     @FXML
     public void initialize() {
 
+        sortFilter.getItems().addAll("Latest", "Oldest", "Most commented");
         sortFilter.setValue("Latest");
         sortFilter.setOnAction(e -> onSortChanged());
 
@@ -85,11 +89,22 @@ public class FeedViewController {
     }
 
     private void onSortChanged() {
-
+        String selectedSort = sortFilter.getValue();
+        if ("Latest".equals(selectedSort)) {
+            currentSortOrder = SortOrder.NEWEST;
+        } else if ("Oldest".equals(selectedSort)) {
+            currentSortOrder = SortOrder.OLDEST;
+        } else if ("Most commented".equals(selectedSort)) {
+            currentSortOrder = SortOrder.MOST_COMMENTED;
+        }
         refreshFeed();
     }
 
     private void onTimeFilterChanged() {
+        String selectedTime = timeFilter.getValue();
+        if (selectedTime != null) {
+            currentTimeFilter = selectedTime;
+        }
         refreshFeed();
     }
 
@@ -107,13 +122,19 @@ public class FeedViewController {
         showLoading();
 
         final int pageToLoad = currentPage;
+        final LocalDateTime cutoffDate = getTimeFilterCutoffDate();
+        final SortOrder sortOrder = currentSortOrder;
+        final Integer tagId = selectedTagId;
 
         DbTask<List<Post>> task = new DbTask<>(() -> {
-            if (selectedTagId != null) {
-                return postService.listByTag(selectedTagId, pageToLoad, pageSize);
+            List<Post> posts;
+            if (tagId != null) {
+                posts = postService.listByTag(tagId, pageToLoad, pageSize, sortOrder, cutoffDate);
             } else {
-                return postService.getAllPosts(pageToLoad, pageSize);
+                posts = postService.getAllPosts(pageToLoad, pageSize, sortOrder, cutoffDate);
             }
+
+            return posts;
         });
 
         task.setOnSucceeded(event -> {
@@ -139,6 +160,16 @@ public class FeedViewController {
         });
 
         AppExecutors.getDbExecutor().execute(task);
+    }
+
+    private LocalDateTime getTimeFilterCutoffDate() {
+        LocalDateTime now = LocalDateTime.now();
+        return switch (currentTimeFilter) {
+            case "Today" -> now.minusHours(24);
+            case "This week" -> now.minusWeeks(1);
+            case "This month" -> now.minusMonths(1);
+            default -> null; // "All time"
+        };
     }
 
     private void renderPosts(List<Post> posts) {
