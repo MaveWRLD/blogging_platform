@@ -4,6 +4,8 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import org.amalitech.util.exception.DatabaseException;
+import org.amalitech.util.exception.NotFoundException;
 import org.bson.Document;
 
 public class MongoConnectionProvider {
@@ -18,7 +20,7 @@ public class MongoConnectionProvider {
                 .getResourceAsStream("db.properties")) {
 
             if (input == null) {
-                throw new RuntimeException("db.properties file not found in resources folder");
+                throw new NotFoundException("db.properties file not found in resources folder");
             }
             properties.load(input);
 
@@ -28,12 +30,11 @@ public class MongoConnectionProvider {
             mongoClient = MongoClients.create(connectionString);
             database = mongoClient.getDatabase(dbName);
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load MongoDB configuration", e);
+            throw new DatabaseException("Failed to load MongoDB configuration", e);
         }
     }
 
     public static MongoCollection<Document> getCollection(String collectionName) {
-
         return database.getCollection(collectionName);
     }
 
