@@ -13,7 +13,6 @@
 <?import javafx.scene.text.Text?>
 <?import javafx.scene.text.TextFlow?>
 
-<!-- Reading View: Distraction-Free, Content-First -->
 <StackPane xmlns="http://javafx.com/javafx/21"
            xmlns:fx="http://javafx.com/fxml/1"
            fx:controller="org.amalitech.ui.controller.ReadingViewController"
@@ -36,7 +35,6 @@
                 <Insets top="64" right="32" bottom="64" left="32"/>
             </padding>
 
-            <!-- Back Navigation (Subtle) -->
             <HBox spacing="8" alignment="CENTER_LEFT">
                 <padding>
                     <Insets bottom="32"/>
@@ -46,19 +44,16 @@
                         styleClass="ghost-button"/>
             </HBox>
 
-            <!-- Article Header -->
             <VBox spacing="20" styleClass="article-header">
                 <padding>
                     <Insets bottom="32"/>
                 </padding>
 
-                <!-- Title: Large, Bold, Negative Letter Spacing -->
                 <Label fx:id="postTitle"
                        text="The Art of Modern Blog Design"
                        wrapText="true"
                        styleClass="post-detail-title"/>
 
-                <!-- Metadata: Author, Date, Reading Time -->
                 <HBox spacing="12" alignment="CENTER_LEFT">
                     <Label fx:id="authorName" text="John Doe" styleClass="body"/>
                     <Label text="•" styleClass="caption"/>
@@ -67,39 +62,31 @@
                     <Label fx:id="readingTime" text="8 min read" styleClass="caption"/>
                 </HBox>
 
-                <!-- CRUD Actions (Visible to author) -->
                 <HBox fx:id="authorActions" spacing="12" alignment="CENTER_LEFT" managed="false" visible="false">
                     <Button text="Edit Post" onAction="#onEditPost" styleClass="secondary-button"/>
                     <Button text="Delete Post" onAction="#onDeletePost" styleClass="danger-button"/>
                 </HBox>
 
-                <!-- Tags -->
                 <HBox fx:id="tagsContainer" spacing="8" alignment="CENTER_LEFT">
-                    <!-- Tag pills dynamically added -->
                 </HBox>
             </VBox>
 
-            <!-- Divider -->
             <Separator styleClass="divider">
                 <padding>
                     <Insets bottom="32"/>
                 </padding>
             </Separator>
 
-            <!-- Article Body: Comfortable Reading -->
             <TextFlow fx:id="articleBody"
                       lineSpacing="6"
                       styleClass="article-body">
                 <Text text="Content goes here..." styleClass="body-large"/>
             </TextFlow>
 
-            <!-- Spacer -->
             <Region minHeight="48"/>
 
-            <!-- Comments Section: Progressive Disclosure -->
             <VBox spacing="24" styleClass="comments-section">
 
-                <!-- Comments Header -->
                 <HBox spacing="16" alignment="CENTER_LEFT">
                     <Label fx:id="commentsHeader"
                            text="Comments (12)"
@@ -129,13 +116,7 @@
                 </VBox>
 
                 <VBox fx:id="commentsList" spacing="20">
-                    <!-- Comments will be dynamically loaded -->
-                    <!-- Each comment:
-                         - Author avatar and name
-                         - Comment text
-                         - Like • Reply • Date
-                         - Nested replies (max depth 2)
-                    -->
+
                 </VBox>
 
                 <Button fx:id="loadMoreComments"

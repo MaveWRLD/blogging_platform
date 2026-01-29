@@ -17,7 +17,6 @@
                 <Insets top="20" right="20" bottom="20" left="20"/>
             </padding>
 
-            <!-- Header -->
             <HBox alignment="CENTER_LEFT" spacing="10">
                 <Label text="Query Performance Testing" styleClass="header-title">
                     <font>
@@ -28,7 +27,6 @@
 
             <Separator/>
 
-            <!-- Configuration Panel -->
             <VBox spacing="10" styleClass="config-panel">
                 <Label text="Test Configuration" styleClass="section-title">
                     <font>
@@ -44,27 +42,23 @@
                         <ColumnConstraints hgrow="ALWAYS" minWidth="150" prefWidth="300"/>
                     </columnConstraints>
 
-                    <!-- Row 1 -->
                     <Label text="Search Query:" GridPane.columnIndex="0" GridPane.rowIndex="0"/>
                     <TextField fx:id="searchQueryField" promptText="e.g., java" GridPane.columnIndex="1" GridPane.rowIndex="0"/>
 
                     <Label text="Tag IDs:" GridPane.columnIndex="2" GridPane.rowIndex="0"/>
                     <TextField fx:id="tagIdsField" promptText="e.g., 1,2,3" GridPane.columnIndex="3" GridPane.rowIndex="0"/>
 
-                    <!-- Row 2 -->
                     <Label text="Author ID:" GridPane.columnIndex="0" GridPane.rowIndex="1"/>
                     <TextField fx:id="authorIdField" promptText="e.g., 1" GridPane.columnIndex="1" GridPane.rowIndex="1"/>
 
                     <Label text="Post ID:" GridPane.columnIndex="2" GridPane.rowIndex="1"/>
                     <TextField fx:id="postIdField" promptText="e.g., 1" GridPane.columnIndex="3" GridPane.rowIndex="1"/>
 
-                    <!-- Row 3 -->
                     <Label text="Test Phase:" GridPane.columnIndex="0" GridPane.rowIndex="2"/>
                     <ComboBox fx:id="testPhaseCombo" maxWidth="Infinity" GridPane.columnIndex="1" GridPane.rowIndex="2" GridPane.columnSpan="3"/>
                 </GridPane>
             </VBox>
 
-            <!-- Action Buttons -->
             <HBox spacing="10" alignment="CENTER_LEFT">
                 <Button fx:id="startTestButton" text="Start Test" onAction="#handleStartTest" styleClass="primary-button">
                     <font>
@@ -83,7 +77,6 @@
                 </Button>
             </HBox>
 
-            <!-- Progress Section -->
             <VBox spacing="5" styleClass="progress-panel">
                 <Label fx:id="statusLabel" text="Status: Ready" styleClass="status-label">
                     <font>
@@ -93,11 +86,9 @@
                 <ProgressBar fx:id="progressBar" maxWidth="Infinity" prefHeight="25"/>
             </VBox>
 
-            <!-- Results Section -->
             <VBox fx:id="resultsContainer" spacing="15" VBox.vgrow="ALWAYS" visible="false">
                 <Separator/>
 
-                <!-- Summary -->
                 <VBox spacing="5">
                     <Label text="Test Summary" styleClass="section-title">
                         <font>
@@ -111,7 +102,6 @@
                     </Label>
                 </VBox>
 
-                <!-- Chart -->
                 <BarChart fx:id="performanceChart" title="Query Performance Comparison"
                           legendVisible="true" animated="true" minHeight="300" prefHeight="400">
                     <xAxis>
@@ -122,7 +112,6 @@
                     </yAxis>
                 </BarChart>
 
-                <!-- Detailed Findings -->
                 <VBox spacing="5" VBox.vgrow="ALWAYS">
                     <Label text="Detailed Findings" styleClass="section-title">
                         <font>
@@ -139,7 +128,6 @@
                 </VBox>
             </VBox>
 
-            <!-- Log Console -->
             <VBox spacing="5" VBox.vgrow="SOMETIMES">
                 <HBox alignment="CENTER_LEFT">
                     <Label text="Test Log" styleClass="section-title">

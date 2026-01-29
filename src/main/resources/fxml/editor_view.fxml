@@ -17,7 +17,6 @@
       spacing="0"
       styleClass="editor-view">
 
-    <!-- Editor Toolbar -->
     <HBox spacing="16" alignment="CENTER_LEFT" styleClass="editor-toolbar">
         <padding>
             <Insets top="12" right="24" bottom="12" left="24"/>

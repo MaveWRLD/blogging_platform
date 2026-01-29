@@ -1,7 +1,6 @@
-package org.amalitech.util;
+package org.amalitech.util.db;
 
 
-import org.amalitech.util.db.DBConnection;
 import org.amalitech.util.exception.DatabaseException;
 
 import java.sql.Connection;
