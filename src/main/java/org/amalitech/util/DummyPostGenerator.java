@@ -3,6 +3,7 @@ package org.amalitech.util;
 import com.github.javafaker.Faker;
 import org.amalitech.util.db.DBConnection;
 import org.amalitech.models.Post;
+import org.amalitech.util.exception.DatabaseException;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -22,7 +23,7 @@ public class DummyPostGenerator {
         try {
             batchInsertPosts(generate(100000));
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            throw new DatabaseException(e.getMessage());
         }
 
     }

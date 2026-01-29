@@ -32,13 +32,13 @@ public final class DatabaseConfig {
                 .getResourceAsStream("db.properties")) {
 
             if (input == null) {
-                throw new RuntimeException("db.properties file not found in resources folder");
+                throw new NotFoundException("db.properties file not found in resources folder");
             }
 
             properties.load(input);
 
         } catch (Exception e) {
-            throw new RuntimeException("Failed to load database configuration", e);
+            throw new DatabaseException("Failed to load database configuration", e);
         }
     }
 
