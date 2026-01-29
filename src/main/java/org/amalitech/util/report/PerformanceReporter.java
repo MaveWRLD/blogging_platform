@@ -4,6 +4,8 @@ import org.amalitech.config.MongoConnectionProvider;
 import org.amalitech.dao.MongoCommentDao;
 import org.amalitech.dao.PostDao;
 import org.amalitech.models.SortOrder;
+import org.amalitech.util.exception.NotFoundException;
+import org.amalitech.util.exception.ValidationException;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -159,7 +161,7 @@ public class PerformanceReporter {
             writer.write("\n" + "=".repeat(80) + "\n");
 
         } catch (IOException e) {
-            throw new RuntimeException("Failed to generate report", e);
+            throw new ValidationException("Failed to generate report");
         }
     }
 }
