@@ -3,10 +3,10 @@ package org.amalitech.dao;
 import org.amalitech.util.exception.NotFoundException;
 import org.amalitech.models.User;
 import org.amalitech.interfaces.UserRepository;
-import org.amalitech.util.DBExecutor;
-import static org.amalitech.util.DBExecutor.query;
+import org.amalitech.util.db.DBExecutor;
+import static org.amalitech.util.db.DBExecutor.query;
 
-import org.amalitech.util.SqlBuilder;
+import org.amalitech.util.db.SqlBuilder;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;

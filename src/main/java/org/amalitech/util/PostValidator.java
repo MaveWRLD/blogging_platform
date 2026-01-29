@@ -1,4 +1,4 @@
-package org.amalitech.service;
+package org.amalitech.util;
 
 import org.amalitech.util.exception.ValidationException;
 import org.amalitech.models.Post;

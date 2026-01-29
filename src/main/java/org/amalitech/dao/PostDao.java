@@ -6,8 +6,8 @@ import org.amalitech.util.exception.NotFoundException;
 import org.amalitech.models.Post;
 import org.amalitech.models.SortOrder;
 import org.amalitech.interfaces.PostRepository;
-import org.amalitech.util.DBExecutor;
-import org.amalitech.util.SqlBuilder;
+import org.amalitech.util.db.DBExecutor;
+import org.amalitech.util.db.SqlBuilder;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 import static org.amalitech.util.CamelToSnake.camelToSnake;
-import static org.amalitech.util.DBExecutor.query;
+import static org.amalitech.util.db.DBExecutor.query;
 
 public class PostDao implements PostRepository {
 

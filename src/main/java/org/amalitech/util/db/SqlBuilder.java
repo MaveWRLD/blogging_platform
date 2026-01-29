@@ -1,4 +1,4 @@
-package org.amalitech.util;
+package org.amalitech.util.db;
 
 import java.util.*;
 

@@ -2,8 +2,8 @@ package org.amalitech.dao;
 
 import org.amalitech.util.exception.DatabaseException;
 import org.amalitech.models.Tag;
-import org.amalitech.util.DBExecutor;
-import org.amalitech.util.SqlBuilder;
+import org.amalitech.util.db.DBExecutor;
+import org.amalitech.util.db.SqlBuilder;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

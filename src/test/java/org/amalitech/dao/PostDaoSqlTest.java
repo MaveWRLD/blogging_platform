@@ -1,7 +1,7 @@
 package org.amalitech.dao;
 
 import org.amalitech.models.Post;
-import org.amalitech.util.SqlBuilder;
+import org.amalitech.util.db.SqlBuilder;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;

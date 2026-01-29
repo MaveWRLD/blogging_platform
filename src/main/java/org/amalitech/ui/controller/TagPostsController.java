@@ -17,7 +17,6 @@ import org.amalitech.models.Tag;
 import org.amalitech.service.PostService;
 import org.amalitech.service.TagService;
 import org.amalitech.ui.util.AppExecutors;
-import org.amalitech.ui.util.AlertHelper;
 import org.amalitech.ui.util.DbTask;
 
 import java.util.List;
@@ -101,11 +100,11 @@ public class TagPostsController {
             postsTable.setItems(FXCollections.observableArrayList(posts));
         });
 
-        task.setOnFailed(e -> {
-            AlertHelper.showError(task.getException(), "Load Error",
-                    "Failed to load posts for tag #" + tagId);
-            postsTable.setItems(FXCollections.emptyObservableList());
-        });
+//        task.setOnFailed(e -> {
+//            AlertHelper.showError(task.getException(), "Load Error",
+//                    "Failed to load posts for tag #" + tagId);
+//            postsTable.setItems(FXCollections.emptyObservableList());
+//        });
 
         AppExecutors.db().submit(task);
     }

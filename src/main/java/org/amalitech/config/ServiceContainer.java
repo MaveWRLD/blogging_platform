@@ -4,6 +4,7 @@ import org.amalitech.dao.*;
 import org.amalitech.interfaces.*;
 import org.amalitech.service.*;
 import org.amalitech.util.PasswordHasher;
+import org.amalitech.util.PostValidator;
 import org.amalitech.util.UserValidator;
 
 /**
@@ -29,7 +30,6 @@ public class ServiceContainer {
     private final PostTagService postTagService;
     private final TagService tagService;
     private final CommentService commentService;
-    private final PostCacheService postCacheService;
 
     private final UserValidator userValidator;
     private final PasswordHasher passwordHasher;
@@ -54,7 +54,6 @@ public class ServiceContainer {
         
         this.commentRepository = new MongoCommentDao();
 
-        this.postCacheService = new PostCacheService(appConfig);
         this.postTagService = new PostTagService(postTagDao);
         this.tagService = new TagService(tagDao);
 

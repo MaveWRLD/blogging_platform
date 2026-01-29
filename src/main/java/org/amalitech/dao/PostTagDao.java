@@ -4,8 +4,8 @@ import org.amalitech.util.db.DBConnection;
 import org.amalitech.util.exception.DatabaseException;
 import org.amalitech.models.PostTag;
 import org.amalitech.interfaces.PostTagRepository;
-import org.amalitech.util.DBExecutor;
-import org.amalitech.util.SqlBuilder;
+import org.amalitech.util.db.DBExecutor;
+import org.amalitech.util.db.SqlBuilder;
 
 import java.sql.*;
 import java.util.ArrayList;

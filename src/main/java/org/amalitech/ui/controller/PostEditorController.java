@@ -17,7 +17,6 @@ import org.amalitech.service.PostService;
 import org.amalitech.service.PostTagService;
 import org.amalitech.service.TagService;
 import org.amalitech.ui.util.AppExecutors;
-import org.amalitech.ui.util.AlertHelper;
 import org.amalitech.ui.util.DbTask;
 
 import java.util.ArrayList;
@@ -71,7 +70,6 @@ public class PostEditorController {
                 selectTagsWhenReady(tagIds);
             } catch (Exception ignore) {}
         });
-        task.setOnFailed(e -> AlertHelper.showError(task.getException(), "Error", "Could not load post."));
         AppExecutors.db().submit(task);
     }
 
@@ -83,7 +81,6 @@ public class PostEditorController {
             tagsList.setItems(obs);
             tagsList.getSelectionModel().setSelectionMode(javafx.scene.control.SelectionMode.MULTIPLE);
         });
-        task.setOnFailed(e -> AlertHelper.showError(task.getException(), "Error", "Could not load tags."));
         AppExecutors.db().submit(task);
     }
 
@@ -152,7 +149,6 @@ public class PostEditorController {
             });
         });
 
-        task.setOnFailed(e -> AlertHelper.showError(task.getException(), "Error", "Could not save post."));
         AppExecutors.db().submit(task);
     }
 

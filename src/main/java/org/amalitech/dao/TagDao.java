@@ -2,13 +2,13 @@ package org.amalitech.dao;
 
 import org.amalitech.models.Tag;
 import org.amalitech.interfaces.TagRepository;
-import org.amalitech.util.DBExecutor;
-import org.amalitech.util.SqlBuilder;
+import org.amalitech.util.db.DBExecutor;
+import org.amalitech.util.db.SqlBuilder;
 
 import java.sql.*;
 import java.util.*;
 
-import static org.amalitech.util.DBExecutor.query;
+import static org.amalitech.util.db.DBExecutor.query;
 
 public class TagDao implements TagRepository {
 
