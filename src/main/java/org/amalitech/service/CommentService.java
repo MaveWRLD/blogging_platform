@@ -29,7 +29,6 @@ public class CommentService {
      */
     public void createComment(Comment comment) {
         validateComment(comment);
-
         commentRepository.save(comment);
     }
 
@@ -43,28 +42,6 @@ public class CommentService {
             throw new ValidationException("Invalid post ID");
         }
         return commentRepository.findByPostId(postId);
-    }
-
-    /**
-     * Delete a comment by its ID.
-     * @param id the comment ID (MongoDB ObjectId as hex string)
-     */
-    public void deleteComment(String id) {
-        if (id == null || id.trim().isEmpty()) {
-            throw new ValidationException("Invalid comment ID");
-        }
-        commentRepository.deleteByObjectId(id);
-    }
-
-    /**
-     * Delete all comments for a post.
-     * @param postId the post ID
-     */
-    public void deleteCommentsByPostId(int postId) {
-        if (postId <= 0) {
-            throw new ValidationException("Invalid post ID");
-        }
-        commentRepository.deleteByPostId(postId);
     }
 
     /**

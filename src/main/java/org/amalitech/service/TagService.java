@@ -24,7 +24,6 @@ public class TagService {
         return tagDao.findById(id);
     }
 
-
     public Tag getTagByName(String name) {
         if (name == null || name.trim().isEmpty()) return null;
         return tagDao.findByName(name.trim());

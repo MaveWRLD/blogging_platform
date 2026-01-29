@@ -27,12 +27,6 @@ public class PostTagService {
         }
     }
 
-    public void removeTagFromPost(int postId, int tagId) {
-        validateIds(postId, tagId);
-        PostTag postTag = new PostTag(postId, tagId);
-        postTagDao.delete(postTag);
-    }
-
     public void removeAllTagsFromPost(int postId) {
         if (postId <= 0) {
             throw new ValidationException("Invalid post ID");

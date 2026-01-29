@@ -12,13 +12,11 @@ public class UserService {
     private final PasswordHasher passwordHasher;
 
 
-
     public UserService(UserDao userDao, UserValidator userValidator, PasswordHasher passwordHasher) {
         this.userDao = userDao;
         this.userValidator = userValidator;
         this.passwordHasher = passwordHasher;
     }
-
 
     public void createUser(User user) {
         userValidator.validate(user);
