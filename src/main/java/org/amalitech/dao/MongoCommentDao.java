@@ -27,20 +27,13 @@ public class MongoCommentDao implements CommentRepository {
      */
     public MongoCommentDao() {
         this.commentsCollection = MongoConnectionProvider.getCommentsCollection();
-        System.out.println("MongoCommentDao initialized - Connected to database: "
-                + commentsCollection.getNamespace().getDatabaseName());
-        System.out.println("Using collection: " + commentsCollection.getNamespace().getCollectionName());
     }
 
     /**
-     * Constructor for dependency injection (for testing).
      * @param commentsCollection MongoDB collection for comments
      */
     public MongoCommentDao(MongoCollection<Document> commentsCollection) {
         this.commentsCollection = commentsCollection;
-        System.out.println("MongoCommentDao (test mode) - Connected to database: "
-                + commentsCollection.getNamespace().getDatabaseName());
-        System.out.println("Using collection: " + commentsCollection.getNamespace().getCollectionName());
     }
 
     @Override
@@ -118,23 +111,6 @@ public class MongoCommentDao implements CommentRepository {
         comment.setBody(doc.getString("body"));
         comment.setParentCommentId(doc.getInteger("parentCommentId"));
 
-        java.util.Date createdAt = doc.getDate("createdAt");
-        if (createdAt != null) {
-            comment.setCreatedAt(createdAt.toInstant()
-                    .atZone(java.time.ZoneId.systemDefault())
-                    .toLocalDateTime());
-        } else {
-            comment.setCreatedAt(LocalDateTime.now());
-        }
-
-        java.util.Date updatedAt = doc.getDate("updatedAt");
-        if (updatedAt != null) {
-            comment.setUpdatedAt(updatedAt.toInstant()
-                    .atZone(java.time.ZoneId.systemDefault())
-                    .toLocalDateTime());
-        } else {
-            comment.setUpdatedAt(LocalDateTime.now());
-        }
         return comment;
     }
 }
