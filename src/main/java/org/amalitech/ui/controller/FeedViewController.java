@@ -3,6 +3,7 @@ package org.amalitech.ui.controller;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
@@ -29,6 +30,8 @@ public class FeedViewController {
     @FXML private VBox loadingIndicator;
     @FXML private VBox endOfFeed;
     @FXML private Label feedTitle;
+    @FXML private Button prevButton;
+    @FXML private Button nextButton;
 
 
     private final UserService userService;
@@ -69,21 +72,6 @@ public class FeedViewController {
         setupInfiniteScroll();
     }
 
-    @FXML
-    private void onFilterAny() {
-        refreshFeed();
-    }
-
-    @FXML
-    private void onFilterShort() {
-        refreshFeed();
-    }
-
-    @FXML
-    private void onFilterMedium() {
-        refreshFeed();
-    }
-
     private void onSortChanged() {
         String selectedSort = sortFilter.getValue();
         if ("Latest".equals(selectedSort)) {
@@ -94,8 +82,6 @@ public class FeedViewController {
         refreshFeed();
     }
 
-
-
     private void refreshFeed() {
         currentPage = 0;
         hasMorePosts = true;
@@ -105,11 +91,18 @@ public class FeedViewController {
 
     private void loadPosts() {
         if (isLoading || !hasMorePosts) return;
-
         isLoading = true;
         showLoading();
 
+        if (postFeed.getChildren().isEmpty()) {
+            endOfFeed.setManaged(false);
+            endOfFeed.setVisible(false);
+        } else {
+            postFeed.getChildren().clear();
+        }
+
         final int pageToLoad = currentPage;
+
         final LocalDateTime cutoffDate = getTimeFilterCutoffDate();
         final SortOrder sortOrder = currentSortOrder;
         final Integer tagId = selectedTagId;
@@ -131,11 +124,12 @@ public class FeedViewController {
             if (posts.isEmpty() || posts.size() < pageSize) {
                 hasMorePosts = false;
                 showEndOfFeed();
+            } else {
+                hasMorePosts = true;
             }
 
             if (!posts.isEmpty()) {
                 renderPosts(posts);
-                currentPage++;
             }
 
             hideLoading();
@@ -156,7 +150,7 @@ public class FeedViewController {
             case "Today" -> now.minusHours(24);
             case "This week" -> now.minusWeeks(1);
             case "This month" -> now.minusMonths(1);
-            default -> null; // "All time"
+            default -> null;
         };
     }
 
@@ -324,5 +318,27 @@ public class FeedViewController {
             feedTitle.setText("Latest Posts");
         }
         refreshFeed();
+    }
+
+    @FXML
+    private void onPreviousPage() {
+        if (currentPage > 0) {
+            currentPage--;
+            refreshFeed();
+            nextButton.setDisable(false);
+        }
+        if (currentPage == 0) {
+            prevButton.setDisable(true);
+        }
+    }
+
+    @FXML
+    private void onNextPage() {
+        currentPage++;
+        refreshFeed();
+        prevButton.setDisable(false);
+        if (!hasMorePosts) {
+            nextButton.setDisable(true);
+        }
     }
 }

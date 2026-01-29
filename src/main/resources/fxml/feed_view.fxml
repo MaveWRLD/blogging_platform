@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
@@ -59,6 +60,13 @@
                 <Insets top="48" bottom="48"/>
             </padding>
             <Label text="Check back later for more content" styleClass="caption"/>
+        </VBox>
+
+        <VBox spacing="16" alignment="CENTER">
+            <HBox spacing="12" alignment="CENTER">
+                <Button text="Previous" onAction="#onPreviousPage" disable="true" fx:id="prevButton"/>
+                <Button text="Next" onAction="#onNextPage" fx:id="nextButton"/>
+            </HBox>
         </VBox>
     </VBox>
 </ScrollPane>
