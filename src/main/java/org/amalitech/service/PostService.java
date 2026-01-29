@@ -1,5 +1,6 @@
 package org.amalitech.service;
 
+import org.amalitech.util.PostValidator;
 import org.amalitech.util.exception.ValidationException;
 import org.amalitech.models.Post;
 import org.amalitech.models.SortOrder;
@@ -29,13 +30,23 @@ public class PostService {
     }
 
     /**
-     * Get all posts with pagination.
+     * Get all posts with pagination, sort order, and time filtering.
      * @param page page number (0-indexed)
      * @param pageSize page size
-     * @return list of posts
+     * @param sortOrder the sort order
+     * @param fromDate only include posts created after this date (null for all time)
+     * @return list of posts sorted and filtered by time
      */
-    public List<Post> getAllPosts(int page, int pageSize) {
-        return postRepository.findAllPaged(page, pageSize);
+    public List<Post> getAllPosts(int page, int pageSize, SortOrder sortOrder, LocalDateTime fromDate) {
+        List<Post> posts = search(null, Set.of(), Set.of(), null, sortOrder, page, pageSize);
+
+        if (fromDate != null) {
+            posts = posts.stream()
+                    .filter(p -> p.getCreatedAt() != null && p.getCreatedAt().isAfter(fromDate))
+                    .toList();
+        }
+
+        return posts;
     }
 
     /**
@@ -48,6 +59,29 @@ public class PostService {
     public List<Post> listByTag(int tagId, int page, int pageSize) {
         if (tagId <= 0) throw new ValidationException("Invalid tag ID");
         return postRepository.findByTag(tagId, page, pageSize);
+    }
+
+    /**
+     * Get posts by tag with pagination, sort order, and time filtering.
+     * @param tagId the tag ID
+     * @param page page number (0-indexed)
+     * @param pageSize page size
+     * @param sortOrder the sort order
+     * @param fromDate only include posts created after this date (null for all time)
+     * @return list of posts with the tag, sorted and filtered by time
+     */
+    public List<Post> listByTag(int tagId, int page, int pageSize, SortOrder sortOrder, LocalDateTime fromDate) {
+        if (tagId <= 0) throw new ValidationException("Invalid tag ID");
+
+        List<Post> posts = postRepository.findByTag(tagId, page, pageSize);
+
+        if (fromDate != null) {
+            posts = posts.stream()
+                    .filter(p -> p.getCreatedAt() != null && p.getCreatedAt().isAfter(fromDate))
+                    .toList();
+        }
+
+        return sortPosts(posts, sortOrder);
     }
 
     /**
@@ -82,7 +116,7 @@ public class PostService {
      * @param tagIds list of tag IDs to associate
      * @return the created post with generated ID
      */
-    public Post createPost(Post post, List<Integer> tagIds) {
+    public void createPost(Post post, List<Integer> tagIds) {
         postValidator.validateForCreation(post);
 
         int generatedId = postRepository.save(post);
@@ -91,8 +125,6 @@ public class PostService {
         if (tagIds != null && !tagIds.isEmpty()) {
             postTagService.addTagsToPost(generatedId, tagIds);
         }
-
-        return post;
     }
 
     /**
@@ -150,6 +182,33 @@ public class PostService {
         if (userId <= 0) throw new ValidationException("Invalid user ID");
         UserService userService = org.amalitech.config.ServiceContainer.getInstance().getUserService();
         return userService.findByUserId(userId);
+    }
+
+    /**
+     * Sort posts according to the specified sort order.
+     * @param posts the list of posts to sort
+     * @param sortOrder the sort order to apply
+     * @return sorted list of posts
+     */
+    private List<Post> sortPosts(List<Post> posts, SortOrder sortOrder) {
+        if (sortOrder == null || posts == null) {
+            return posts;
+        }
+
+        return switch (sortOrder) {
+            case NEWEST, MOST_COMMENTED -> posts.stream()
+                    .sorted((a, b) -> {
+                        if (a.getCreatedAt() == null || b.getCreatedAt() == null) return 0;
+                        return b.getCreatedAt().compareTo(a.getCreatedAt());
+                    })
+                    .toList();
+            case OLDEST -> posts.stream()
+                    .sorted((a, b) -> {
+                        if (a.getCreatedAt() == null || b.getCreatedAt() == null) return 0;
+                        return a.getCreatedAt().compareTo(b.getCreatedAt());
+                    })
+                    .toList();
+        };
     }
 }
 
