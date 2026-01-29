@@ -55,13 +55,9 @@ public class FeedViewController {
     @FXML
     public void initialize() {
 
-        sortFilter.getItems().addAll("Latest", "Oldest", "Most commented");
+        sortFilter.getItems().addAll("Latest", "Oldest");
         sortFilter.setValue("Latest");
         sortFilter.setOnAction(e -> onSortChanged());
-
-        timeFilter.getItems().addAll("All time", "Today", "This week", "This month");
-        timeFilter.setValue("All time");
-        timeFilter.setOnAction(e -> onTimeFilterChanged());
 
         AppExecutors.getDbExecutor().execute(() -> {
             Platform.runLater(() -> {
@@ -94,19 +90,11 @@ public class FeedViewController {
             currentSortOrder = SortOrder.NEWEST;
         } else if ("Oldest".equals(selectedSort)) {
             currentSortOrder = SortOrder.OLDEST;
-        } else if ("Most commented".equals(selectedSort)) {
-            currentSortOrder = SortOrder.MOST_COMMENTED;
         }
         refreshFeed();
     }
 
-    private void onTimeFilterChanged() {
-        String selectedTime = timeFilter.getValue();
-        if (selectedTime != null) {
-            currentTimeFilter = selectedTime;
-        }
-        refreshFeed();
-    }
+
 
     private void refreshFeed() {
         currentPage = 0;
