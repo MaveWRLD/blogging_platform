@@ -138,7 +138,10 @@ public class PostDao implements PostRepository {
     public List<Post> search(String query, Set<Integer> tagIds, Set<String> statuses, Integer authorId,
                              SortOrder order, int page, int size) {
         List<Object> params = new ArrayList<>();
-        StringBuilder sql = new StringBuilder(SEARCH_SELECT).append(SEARCH_FROM);
+        boolean needsDistinct = (query != null && !query.isBlank()) || !tagIds.isEmpty() || !statuses.isEmpty() || authorId != null;
+        String select = needsDistinct ? "SELECT DISTINCT p.id, p.title, p.body, p.user_id, p.status, p.created_at, p.updated_at"
+                : "SELECT p.id, p.title, p.body, p.user_id, p.status, p.created_at, p.updated_at";
+        StringBuilder sql = new StringBuilder(select).append(SEARCH_FROM);
         appendSearchConditions(sql, query, tagIds, statuses, authorId, params);
         sql.append(" ORDER BY ").append(getSearchOrderByClause(order));
         sql.append(" LIMIT ? OFFSET ?");
@@ -207,7 +210,6 @@ public class PostDao implements PostRepository {
                 rs.getInt("user_id"),
                 rs.getString("status"));
 
-        // Map timestamps
         java.sql.Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {
             post.setCreatedAt(createdAt.toLocalDateTime());
