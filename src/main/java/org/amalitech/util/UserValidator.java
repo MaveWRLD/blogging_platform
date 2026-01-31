@@ -5,7 +5,7 @@ import org.amalitech.models.User;
 
 public class UserValidator {
 
-    public void validate(User user) {
+    public static void validate(User user) {
         if (user.getUsername() == null || user.getUsername().isEmpty()) {
             throw new ValidationException("Username cannot be empty");
         }
@@ -14,7 +14,7 @@ public class UserValidator {
         }
     }
 
-    public void validateCredentials(String username, String password) {
+    public static void validateCredentials(String username, String password) {
         if (username == null || username.isEmpty()) {
             throw new ValidationException("Username cannot be empty");
         }
