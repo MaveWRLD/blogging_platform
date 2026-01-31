@@ -1,23 +1,26 @@
 package org.amalitech.service;
 
 import org.amalitech.dao.PostTagDao;
+import org.amalitech.interfaces.PostTagRepository;
 import org.amalitech.util.exception.ValidationException;
 import org.amalitech.models.PostTag;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class PostTagService {
 
-    private final PostTagDao postTagDao;
+    private final PostTagRepository postTagRepository;
 
     public PostTagService(PostTagDao postTagDao) {
-        this.postTagDao = postTagDao;
+        this.postTagRepository = postTagDao;
     }
 
     public void addTagToPost(int postId, int tagId) {
         validateIds(postId, tagId);
         PostTag postTag = new PostTag(postId, tagId);
-        postTagDao.save(postTag);
+        postTagRepository.save(postTag);
     }
 
     public void addTagsToPost(int postId, List<Integer> tagIds) {
@@ -31,14 +34,14 @@ public class PostTagService {
         if (postId <= 0) {
             throw new ValidationException("Invalid post ID");
         }
-        postTagDao.deleteAllTagsForPost(postId);
+        postTagRepository.deleteAllTagsForPost(postId);
     }
 
     public List<Integer> getTagsForPost(int postId) {
         if (postId <= 0) {
             throw new ValidationException("Invalid post ID");
         }
-        return postTagDao.findTagsByPostId(postId);
+        return postTagRepository.findTagsByPostId(postId);
     }
 
     private void validateIds(int postId, int tagId) {

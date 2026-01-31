@@ -3,6 +3,7 @@ package org.amalitech.service;
 import org.amalitech.util.exception.ValidationException;
 import org.amalitech.models.Comment;
 import org.amalitech.interfaces.CommentRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 
@@ -11,6 +12,7 @@ import java.util.*;
  * Handles comment business logic and validation.
  * Depends on CommentRepository interface (not concrete implementation).
  */
+@Service
 public class CommentService {
 
     private final CommentRepository commentRepository;

@@ -5,12 +5,13 @@ import org.amalitech.util.exception.ValidationException;
 import org.amalitech.models.Post;
 import org.amalitech.models.SortOrder;
 import org.amalitech.interfaces.PostRepository;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
-
+@Service
 public class PostService {
 
     private final PostRepository postRepository;

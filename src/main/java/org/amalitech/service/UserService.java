@@ -6,6 +6,7 @@ import org.amalitech.util.UserValidator;
 import org.amalitech.util.PasswordHasher;
 import org.springframework.stereotype.Service;
 
+@Service
 public class UserService {
 
     private final UserDao userDao;

@@ -3,9 +3,11 @@ package org.amalitech.service;
 import org.amalitech.dao.TagDao;
 import org.amalitech.util.exception.ValidationException;
 import org.amalitech.models.Tag;
+import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Service
 public class TagService {
 
     private final TagDao tagDao;
