@@ -7,12 +7,14 @@ import org.amalitech.util.db.DBExecutor;
 import static org.amalitech.util.db.DBExecutor.query;
 
 import org.amalitech.util.db.SqlBuilder;
+import org.springframework.stereotype.Component;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 
+@Component
 public class UserDao implements UserRepository {
 
     public int save(User user) {

@@ -9,6 +9,7 @@ import org.amalitech.util.exception.DatabaseException;
 import org.amalitech.models.Comment;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -18,6 +19,7 @@ import java.util.List;
  * MongoDB implementation of CommentRepository.
  * Manages comment persistence in MongoDB using the MongoDB connection provider.
  */
+@Component
 public class MongoCommentDao implements CommentRepository {
 
     private final MongoCollection<Document> commentsCollection;

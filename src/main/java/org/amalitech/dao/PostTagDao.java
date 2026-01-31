@@ -6,6 +6,7 @@ import org.amalitech.models.PostTag;
 import org.amalitech.interfaces.PostTagRepository;
 import org.amalitech.util.db.DBExecutor;
 import org.amalitech.util.db.SqlBuilder;
+import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.Set;
 
 import static org.amalitech.util.CamelToSnake.camelToSnake;
 
+@Component
 public class PostTagDao implements PostTagRepository {
 
     public void save(PostTag postTag) {

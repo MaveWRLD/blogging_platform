@@ -1,5 +1,6 @@
 package org.amalitech.dao;
 
+import org.amalitech.models.Comment;
 import org.amalitech.util.db.DBConnection;
 import org.amalitech.util.exception.DatabaseException;
 import org.amalitech.util.exception.NotFoundException;
@@ -8,6 +9,7 @@ import org.amalitech.models.SortOrder;
 import org.amalitech.interfaces.PostRepository;
 import org.amalitech.util.db.DBExecutor;
 import org.amalitech.util.db.SqlBuilder;
+import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.time.LocalDateTime;
@@ -18,6 +20,8 @@ import java.util.Set;
 import static org.amalitech.util.CamelToSnake.camelToSnake;
 import static org.amalitech.util.db.DBExecutor.query;
 
+
+@Component
 public class PostDao implements PostRepository {
 
 

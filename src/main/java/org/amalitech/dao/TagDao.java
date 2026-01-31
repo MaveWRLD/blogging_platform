@@ -4,12 +4,14 @@ import org.amalitech.models.Tag;
 import org.amalitech.interfaces.TagRepository;
 import org.amalitech.util.db.DBExecutor;
 import org.amalitech.util.db.SqlBuilder;
+import org.springframework.stereotype.Component;
 
 import java.sql.*;
 import java.util.*;
 
 import static org.amalitech.util.db.DBExecutor.query;
 
+@Component
 public class TagDao implements TagRepository {
 
     public int save(Tag tag) {
