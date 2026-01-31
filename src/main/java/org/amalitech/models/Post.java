@@ -1,10 +1,10 @@
 package org.amalitech.models;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
+@AllArgsConstructor
 @Setter
 @Getter
 public class Post {

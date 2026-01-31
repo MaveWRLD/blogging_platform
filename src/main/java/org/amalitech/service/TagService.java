@@ -1,38 +1,43 @@
 package org.amalitech.service;
 
 import org.amalitech.dao.TagDao;
+import org.amalitech.interfaces.TagRepository;
 import org.amalitech.util.exception.ValidationException;
 import org.amalitech.models.Tag;
 import org.springframework.stereotype.Service;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 @Service
 public class TagService {
 
-    private final TagDao tagDao;
+    private final TagRepository tagRepository;
 
-    public TagService(TagDao tagDao) {
-        this.tagDao = tagDao;
+    public TagService(TagRepository tagRepository) {
+        this.tagRepository = tagRepository;
     }
 
     public void createTag(Tag tag) {
         validateTag(tag);
-        tagDao.save(tag);
+        tagRepository.save(tag);
     }
 
     public Tag getTagById(int id) {
         if (id <= 0) throw new ValidationException("Invalid tag ID");
-        return tagDao.findById(id);
+        var tags = tagRepository.findById(id);
+        return tags.isEmpty() ? null : tags.get(0);
     }
 
     public Tag getTagByName(String name) {
         if (name == null || name.trim().isEmpty()) return null;
-        return tagDao.findByName(name.trim());
+        var tags = tagRepository.findByName(name.trim());
+        return tags.isEmpty() ? null : tags.get(0);
     }
 
     public List<Tag> getAllTags() {
-        return tagDao.findAll();
+        return tagRepository.findAll();
     }
 
     private void validateTag(Tag tag) {

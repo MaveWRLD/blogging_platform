@@ -2,38 +2,46 @@ package org.amalitech.dao;
 
 import org.amalitech.models.Tag;
 import org.amalitech.interfaces.TagRepository;
+import org.amalitech.util.MapRowToTag;
 import org.amalitech.util.db.DBExecutor;
 import org.amalitech.util.db.SqlBuilder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.sql.*;
 import java.util.*;
 
-import static org.amalitech.util.db.DBExecutor.query;
-
-@Component
+@Repository
 public class TagDao implements TagRepository {
 
+    private final DBExecutor db;
+
+    public TagDao(DBExecutor db) {
+        this.db = db;
+    }
+
+    @Override
     public int save(Tag tag) {
         SqlBuilder.SqlFragment insert = SqlBuilder.buildInsertClause(tag, Set.of("id"));
 
         String sql = "INSERT INTO tags " + insert.getClause() + " RETURNING id";
-        int generatedId = DBExecutor.execute(sql, insert.getParams());
+        int generatedId = db.insertAndReturnId(sql, insert.getParams());
         tag.setId(generatedId);
         return generatedId;
     }
 
-    public Tag findById(int id) {
+    @Override
+    public List<Tag> findById(int id) {
         String sql = "SELECT * FROM tags WHERE id = ?";
-        List<Tag> results = query(sql, List.of(id), this::mapRowToTag);
-        return results.get(0);
+        return db.query(sql, List.of(id), MapRowToTag::mapRowToTag);
     }
 
+    @Override
     public List<Tag> findAll() {
         String sql = "SELECT * FROM tags ORDER BY name";
-        return query(sql, new ArrayList<>(), this::mapRowToTag);
+        return db.query(sql, new ArrayList<>(), MapRowToTag::mapRowToTag);
     }
 
+    @Override
     public void update(Tag tag) {
         SqlBuilder.SqlFragment set = SqlBuilder.buildUpdateSetClause(
                 tag,
@@ -45,30 +53,19 @@ public class TagDao implements TagRepository {
         List<Object> params = new ArrayList<>(set.getParams());
         params.add(tag.getId());
 
-        DBExecutor.execute(sql, params);
+        db.executeUpdate(sql, params);
     }
 
+    @Override
     public void delete(int id) {
         String sql = "DELETE FROM tags WHERE id = ?";
-        DBExecutor.execute(sql, List.of(id));
+        db.executeUpdate(sql, List.of(id));
     }
 
-    public List<Tag> findByPostId(int postId) {
-        String sql = "SELECT t.* FROM tags t " +
-                     "JOIN post_tags pt ON t.id = pt.tag_id " +
-                     "WHERE pt.post_id = ? " +
-                     "ORDER BY t.name";
-        return query(sql, List.of(postId), this::mapRowToTag);
-    }
-
-    public Tag findByName(String name) {
+    @Override
+    public List<Tag> findByName(String name) {
         String sql = "SELECT * FROM tags WHERE name = ?";
-        List<Tag> results = query(sql, List.of(name), this::mapRowToTag);
-        return results.isEmpty() ? null : results.get(0);
-    }
-
-    private Tag mapRowToTag(ResultSet rs) throws SQLException {
-        return new Tag(rs.getInt("id"), rs.getString("name"));
+        return db.query(sql, List.of(name), MapRowToTag::mapRowToTag);
     }
 }
 

@@ -3,6 +3,7 @@ package org.amalitech.interfaces;
 import org.amalitech.models.Tag;
 import org.amalitech.util.exception.NotFoundException;
 
+import java.sql.ResultSet;
 import java.util.List;
 
 /**
@@ -24,7 +25,7 @@ public interface TagRepository {
      * @return the Tag object
      * @throws NotFoundException if tag doesn't exist
      */
-    Tag findById(int id);
+    List<Tag> findById(int id);
 
     /**
      * Find all tags.
@@ -44,18 +45,12 @@ public interface TagRepository {
      */
     void delete(int id);
 
-    /**
-     * Find all tags associated with a specific post.
-     * @param postId the post ID
-     * @return list of tags for the post (may be empty)
-     */
-    List<Tag> findByPostId(int postId);
 
     /**
      * Find a tag by its name.
      * @param name the tag name
      * @return the Tag object, or null if not found
      */
-    Tag findByName(String name);
+    List<Tag> findByName(String name);
 }
 

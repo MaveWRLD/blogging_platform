@@ -1,72 +1,49 @@
 package org.amalitech.dao;
 
-import org.amalitech.util.exception.NotFoundException;
 import org.amalitech.models.User;
 import org.amalitech.interfaces.UserRepository;
+import org.amalitech.util.MapRowToUser;
 import org.amalitech.util.db.DBExecutor;
-import static org.amalitech.util.db.DBExecutor.query;
 
 import org.amalitech.util.db.SqlBuilder;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Set;
 
-@Component
+@Repository
 public class UserDao implements UserRepository {
 
+    private final DBExecutor db;
+
+    public UserDao(DBExecutor db) {
+        this.db = db;
+    }
+
+    @Override
     public int save(User user) {
         SqlBuilder.SqlFragment insert = SqlBuilder.buildInsertClause(
                 user,
                 Set.of("id", "createdAt")
         );
         String sql = "INSERT INTO users " + insert.getClause() + " RETURNING id";
-        int generatedId = DBExecutor.execute(sql, insert.getParams());
-        user.setId(generatedId);
-        return generatedId;
+        return db.insertAndReturnId(sql, insert.getParams());
     }
 
-    public User findByUserId(int id) {
+    public List<User> findByUserId(int id) {
         String sql = "SELECT id, username, email, password, role, status, created_at FROM users WHERE id = ?";
-        List<User> results = query(sql, List.of(id), this::mapRowToUser);
-        if (results.isEmpty()) {
-            throw new NotFoundException("User with id " + id + " not found");
-        }
-        return results.get(0);
+        return db.query(sql, List.of(id), MapRowToUser::mapRowToUser);
     }
 
-    public User findByUsername(String username) {
+    public List<User> findByUsername(String username) {
         String sql = "SELECT id, username, email, password, role, status, created_at FROM users WHERE username = ?";
-        List<User> results = query(sql, List.of(username), this::mapRowToUser);
-        if (results.isEmpty()) {
-            throw new NotFoundException("Post with username " + username + " not found");
-        }
-        return results.get(0);
-    }
-
-    private User mapRowToUser(ResultSet rs) throws SQLException {
-        User user = new User(
-                rs.getInt("id"),
-                rs.getString("username"),
-                rs.getString("email"),
-                rs.getString("password"),
-                rs.getString("role"),
-                rs.getString("status")
-        );
-
-        java.sql.Timestamp ts = rs.getTimestamp("created_at");
-        if (ts != null) {
-            user.setCreatedAt(ts.toLocalDateTime());
-        }
-        return user;
+        return db.query(sql, List.of(username), MapRowToUser::mapRowToUser);
     }
 
     @Override
     public void update(User user) {
         String sql = "UPDATE users SET username = ?, email = ?, password = ?, role = ?, status = ? WHERE id = ?";
-        DBExecutor.execute(sql, List.of(
+        db.executeUpdate(sql, List.of(
                 user.getUsername(),
                 user.getEmail(),
                 user.getPassword(),

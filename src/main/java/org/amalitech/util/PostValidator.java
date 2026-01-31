@@ -18,7 +18,7 @@ public class PostValidator {
      * @param post the post to validate
      * @throws ValidationException if validation fails
      */
-    public void validateForCreation(Post post) {
+    public static void validateForCreation(Post post) {
         validateTitle(post.getTitle());
         validateBody(post.getBody());
         validateUserId(post.getUserId());
@@ -29,7 +29,7 @@ public class PostValidator {
      * @param post the post to validate
      * @throws ValidationException if validation fails
      */
-    public void validateForUpdate(Post post) {
+    public static void validateForUpdate(Post post) {
         validateId(post.getId());
         validateTitle(post.getTitle());
         validateBody(post.getBody());
@@ -40,7 +40,7 @@ public class PostValidator {
      * @param id the post ID
      * @throws ValidationException if ID is invalid
      */
-    private void validateId(int id) {
+    private static void validateId(int id) {
         if (id <= 0) {
             throw new ValidationException("Post ID must be positive");
         }
@@ -51,7 +51,7 @@ public class PostValidator {
      * @param title the title
      * @throws ValidationException if title is invalid
      */
-    private void validateTitle(String title) {
+    private static void validateTitle(String title) {
         if (title == null || title.trim().isEmpty()) {
             throw new ValidationException("Post title cannot be empty");
         }
@@ -65,7 +65,7 @@ public class PostValidator {
      * @param body the body
      * @throws ValidationException if body is invalid
      */
-    private void validateBody(String body) {
+    private static void validateBody(String body) {
         if (body == null || body.trim().isEmpty()) {
             throw new ValidationException("Post body cannot be empty");
         }
@@ -79,13 +79,10 @@ public class PostValidator {
      * @param userId the user ID
      * @throws ValidationException if user ID is invalid
      */
-    private void validateUserId(int userId) {
+    private static void validateUserId(int userId) {
         if (userId <= 0) {
             throw new ValidationException("Post author user ID must be positive");
         }
     }
-
-
-
 }
 
