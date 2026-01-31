@@ -1,7 +1,12 @@
 package org.amalitech.models;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import java.time.LocalDateTime;
 
+@Getter
+@Setter
 public class Comment {
 
     private String id;
@@ -20,28 +25,6 @@ public class Comment {
         this.userName = userName;
         this.body = body;
     }
-
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-
-    public int getPostId() { return postId; }
-    public void setPostId(int postId) { this.postId = postId; }
-
-    public String getUserName() { return userName; }
-    public void setUserName(String userName) { this.userName = userName; }
-
-    public Integer getParentCommentId() {
-        return parentCommentId;
-    }
-    public void setParentCommentId(Integer parentCommentId) {
-        this.parentCommentId = parentCommentId;
-    }
-
-    public String getBody() { return body; }
-    public void setBody(String body) { this.body = body; }
-
-
-    public LocalDateTime getCreatedAt() { return createdAt; }
 
     @Override
     public String toString() {
