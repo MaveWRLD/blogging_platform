@@ -53,4 +53,3 @@ public interface CommentRepository {
      */
     void deleteByPostId(int postId);
 }
-

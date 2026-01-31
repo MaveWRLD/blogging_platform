@@ -3,8 +3,10 @@ package org.amalitech.service;
 import org.amalitech.util.exception.ValidationException;
 import org.amalitech.models.Comment;
 import org.amalitech.interfaces.CommentRepository;
+import org.bson.Document;
 import org.springframework.stereotype.Service;
 
+import java.sql.ResultSet;
 import java.util.*;
 
 /**
@@ -64,6 +66,17 @@ public class CommentService {
         if (comment.getBody().length() > 5000) {
             throw new ValidationException("Comment body cannot exceed 5000 characters");
         }
+    }
+
+    private Comment mapToComment(Document doc) {
+        Comment comment = new Comment();
+        comment.setId(doc.getObjectId("_id").toHexString());
+        comment.setPostId(doc.getInteger("postId"));
+        comment.setUserName(doc.getString("userName"));
+        comment.setBody(doc.getString("body"));
+        comment.setParentCommentId(doc.getInteger("parentCommentId"));
+
+        return comment;
     }
 }
 

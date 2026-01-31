@@ -1,15 +1,18 @@
 package org.amalitech.dao;
 
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
-import org.amalitech.config.MongoConnectionProvider;
+import lombok.AllArgsConstructor;
 import org.amalitech.interfaces.CommentRepository;
 import org.amalitech.util.exception.DatabaseException;
 import org.amalitech.models.Comment;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -19,23 +22,17 @@ import java.util.List;
  * MongoDB implementation of CommentRepository.
  * Manages comment persistence in MongoDB using the MongoDB connection provider.
  */
-@Component
-public class MongoCommentDao implements CommentRepository {
+@Repository
+public class CommentDao implements CommentRepository {
 
     private final MongoCollection<Document> commentsCollection;
 
     /**
      * Constructor that gets the comments collection from MongoDB connection provider.
      */
-    public MongoCommentDao() {
-        this.commentsCollection = MongoConnectionProvider.getCommentsCollection();
-    }
-
-    /**
-     * @param commentsCollection MongoDB collection for comments
-     */
-    public MongoCommentDao(MongoCollection<Document> commentsCollection) {
-        this.commentsCollection = commentsCollection;
+    public CommentDao(MongoDatabase mongoDatabase,
+                      @Value("${mongodb.collection.comments:comments}") String commentsCollectionName) {
+        this.commentsCollection = mongoDatabase.getCollection(commentsCollectionName);
     }
 
     @Override
