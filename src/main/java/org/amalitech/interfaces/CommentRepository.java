@@ -1,7 +1,7 @@
 package org.amalitech.interfaces;
 
 import org.amalitech.models.Comment;
-import org.amalitech.util.exception.NotFoundException;
+import org.amalitech.util.exception.ResourceNotFoundException;
 
 import java.util.List;
 
@@ -23,9 +23,11 @@ public interface CommentRepository {
      * Find a comment by its MongoDB ObjectId (hex string).
      * @param objectId the MongoDB ObjectId as hex string
      * @return the Comment object
-     * @throws NotFoundException if comment doesn't exist
+     * @throws ResourceNotFoundException if comment doesn't exist
      */
     Comment findByObjectId(String objectId);
+
+    long countByPostId(int postId);
 
     /**
      * Find all comments for a specific post.

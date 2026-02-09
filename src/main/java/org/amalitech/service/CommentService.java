@@ -1,46 +1,39 @@
 package org.amalitech.service;
 
-import org.amalitech.util.exception.ValidationException;
-import org.amalitech.models.Comment;
 import org.amalitech.interfaces.CommentRepository;
-import org.bson.Document;
+import org.amalitech.models.Comment;
+import org.amalitech.util.exception.ResourceNotFoundException;
+import org.amalitech.util.exception.ValidationException;
 import org.springframework.stereotype.Service;
 
-import java.sql.ResultSet;
-import java.util.*;
+import java.util.List;
 
-/**
- * Service for comment operations.
- * Handles comment business logic and validation.
- * Depends on CommentRepository interface (not concrete implementation).
- */
 @Service
 public class CommentService {
 
     private final CommentRepository commentRepository;
 
-    /**
-     * Constructor with dependency injection.
-     * @param commentRepository the comment repository (interface)
-     */
     public CommentService(CommentRepository commentRepository) {
         this.commentRepository = commentRepository;
     }
 
-    /**
-     * Create a new comment.
-     * @param comment the comment to create
-     */
-    public void createComment(Comment comment) {
+    public Comment save(Comment comment) {
         validateComment(comment);
         commentRepository.save(comment);
+        return comment;
     }
 
-    /**
-     * Get all comments for a specific post.
-     * @param postId the post ID
-     * @return list of comments
-     */
+    public Comment findById(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            throw new IllegalArgumentException("Comment ID cannot be null or empty");
+        }
+        Comment comment = commentRepository.findByObjectId(id);
+        if (comment == null) {
+            throw new ResourceNotFoundException("Comment not found with ID: " + id);
+        }
+        return comment;
+    }
+
     public List<Comment> getCommentsByPostId(int postId) {
         if (postId <= 0) {
             throw new ValidationException("Invalid post ID");
@@ -48,17 +41,31 @@ public class CommentService {
         return commentRepository.findByPostId(postId);
     }
 
-    /**
-     * Validate a comment.
-     * @param comment the comment to validate
-     * @throws ValidationException if validation fails
-     */
+    public void update(Comment comment) {
+        if (comment == null || comment.getId() == null) {
+            throw new IllegalArgumentException("Comment or ID cannot be null");
+        }
+        validateComment(comment);
+        commentRepository.update(comment);
+    }
+
+    public void deleteById(String commentId) {
+        commentRepository.deleteByObjectId(commentId);
+    }
+
+    public void deleteByPostId(int postId) {
+        if (postId <= 0) {
+            throw new ValidationException("Invalid post ID");
+        }
+        commentRepository.deleteByPostId(postId);
+    }
+
     private void validateComment(Comment comment) {
         if (comment.getPostId() <= 0) {
             throw new ValidationException("Invalid post ID");
         }
-        if (comment.getUserName() == null || comment.getUserName().isEmpty()) {
-            throw new ValidationException("Invalid user name");
+        if (comment.getUsername() == null || comment.getUsername().trim().isEmpty()) {
+            throw new ValidationException("Username cannot be empty");
         }
         if (comment.getBody() == null || comment.getBody().trim().isEmpty()) {
             throw new ValidationException("Comment body cannot be empty");
@@ -67,16 +74,4 @@ public class CommentService {
             throw new ValidationException("Comment body cannot exceed 5000 characters");
         }
     }
-
-    private Comment mapToComment(Document doc) {
-        Comment comment = new Comment();
-        comment.setId(doc.getObjectId("_id").toHexString());
-        comment.setPostId(doc.getInteger("postId"));
-        comment.setUserName(doc.getString("userName"));
-        comment.setBody(doc.getString("body"));
-        comment.setParentCommentId(doc.getInteger("parentCommentId"));
-
-        return comment;
-    }
 }
-

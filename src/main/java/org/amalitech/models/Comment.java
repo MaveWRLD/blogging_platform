@@ -11,19 +11,19 @@ public class Comment {
 
     private String id;
     private int postId;
-    private String userName;
+    private String username;
     private Integer parentCommentId;
     private String body;
     private LocalDateTime createdAt;
 
     public Comment() {}
 
-    public Comment(String id, int postId, String userName, String body) {
+    public Comment(String id, int postId, String userName, String body, LocalDateTime createdAt) {
         this.id = id;
-
         this.postId = postId;
-        this.userName = userName;
+        this.username = userName;
         this.body = body;
+        this.createdAt = createdAt;
     }
 
     @Override

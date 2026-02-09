@@ -4,14 +4,12 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
-import lombok.AllArgsConstructor;
 import org.amalitech.interfaces.CommentRepository;
+import org.amalitech.util.RowMappers.MapCommentToRow;
 import org.amalitech.util.exception.DatabaseException;
 import org.amalitech.models.Comment;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -30,16 +28,15 @@ public class CommentDao implements CommentRepository {
     /**
      * Constructor that gets the comments collection from MongoDB connection provider.
      */
-    public CommentDao(MongoDatabase mongoDatabase,
-                      @Value("${mongodb.collection.comments:comments}") String commentsCollectionName) {
-        this.commentsCollection = mongoDatabase.getCollection(commentsCollectionName);
+    public CommentDao(MongoDatabase mongoDatabase) {
+        this.commentsCollection = mongoDatabase.getCollection("comments");
     }
 
     @Override
     public void save(Comment comment) {
         Document doc = new Document()
                 .append("postId", comment.getPostId())
-                .append("userName", comment.getUserName())
+                .append("userName", comment.getUsername())
                 .append("body", comment.getBody())
                 .append("parentCommentId", comment.getParentCommentId())
                 .append("createdAt", LocalDateTime.now())
@@ -55,16 +52,21 @@ public class CommentDao implements CommentRepository {
             if (doc == null) {
                 throw new DatabaseException("Comment with ID " + objectId + " not found");
             }
-            return mapToComment(doc);
+            return MapCommentToRow.mapToComment(doc);
         } catch (IllegalArgumentException e) {
             throw new DatabaseException("Invalid comment ID format: " + objectId);
         }
     }
 
     @Override
+    public long countByPostId(int postId) {
+        return commentsCollection.countDocuments(Filters.eq("postId", postId));
+    }
+
+    @Override
     public List<Comment> findByPostId(int postId) {
         List<Comment> comments = new ArrayList<>();
-        commentsCollection.find(Filters.eq("postId", postId)).forEach(doc -> comments.add(mapToComment(doc)));
+        commentsCollection.find(Filters.eq("postId", postId)).forEach(doc -> comments.add(MapCommentToRow.mapToComment(doc)));
         return comments;
     }
 
@@ -95,21 +97,5 @@ public class CommentDao implements CommentRepository {
     @Override
     public void deleteByPostId(int postId) {
         commentsCollection.deleteMany(Filters.eq("postId", postId));
-    }
-
-    /**
-     * Map MongoDB Document to Comment object.
-     * @param doc the MongoDB document
-     * @return the Comment object
-     */
-    private Comment mapToComment(Document doc) {
-        Comment comment = new Comment();
-        comment.setId(doc.getObjectId("_id").toHexString());
-        comment.setPostId(doc.getInteger("postId"));
-        comment.setUserName(doc.getString("userName"));
-        comment.setBody(doc.getString("body"));
-        comment.setParentCommentId(doc.getInteger("parentCommentId"));
-
-        return comment;
     }
 }
