@@ -1,48 +1,169 @@
-# Blogging Platform - JavaFX Frontend
+```markdown
+# Blogging Platform API
 
-This README explains how to run the JavaFX desktop frontend locally and fixes the "JavaFX runtime components are missing" error.
+![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=java&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.4-green?style=for-the-badge&logo=spring&logoColor=white)
+![GraphQL](https://img.shields.io/badge/GraphQL-E10098?style=for-the-badge&logo=graphql&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
 
-Two recommended ways to run:
+Modern Blogging Platform backend built with Spring Boot 3.4+.  
+Exposes both RESTful and GraphQL APIs for managing users, blog posts, comments, tags, and reviews.  
+Combines layered architecture, AOP (logging + performance monitoring), input validation, exception handling, caching, and efficient data retrieval patterns.
 
-1) Run using Maven (recommended)
+## Features
 
-- From the project root, build and run via the JavaFX Maven plugin. This ensures the JavaFX dependencies are placed on the module path correctly:
+- Dual API support: REST endpoints + GraphQL interface
+- User management — registration, authentication, roles
+- Blog posts — create, update, publish, delete, pagination, search, trending
+- Comments — threaded replies (MongoDB), CRUD operations
+- Tags** — categorization and filtering
+- AOP-powered** logging, performance monitoring & caching
+- Efficient algorithms — pagination, full-text search, trending sorting
+- OpenAPI 3 documentation (Swagger UI)
+- PostgreSQL for relational data + MongoDB for comments
+- Input validation, custom exceptions, secure password hashing
 
-```powershell
-mvn -DskipTests package
-mvn javafx:run
+## 🛠 Tech Stack
+
+- Java 21
+- Spring Boot 3.4+
+- Spring Web (REST)
+- Spring GraphQL**
+- Spring Data JDBC** / JPA (PostgreSQL)
+- Spring Data MongoDB
+- Hibernate Validator
+- PostgreSQL (main storage)
+- MongoDB** (comments)
+- HikariCP** connection pool
+- MapStruct** (DTO ↔ Entity mapping)
+- Lombok**
+- jBCrypt** (password hashing)
+- AspectJ AOP** — logging, performance monitoring, caching
+- Mockito**, AssertJ, JUnit 5 (testing)
+- Springdoc OpenAPI (Swagger UI)
+
+## Quick Start
+
+### Prerequisites
+
+- Java 21+
+- Maven 3.9+
+- PostgreSQL 15+ & MongoDB 6+ (or Docker)
+- Git
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/yourusername/blogging-platform.git
+cd blogging-platform
 ```
 
-2) Run from IntelliJ / `java` directly (VM options required)
+### 2. Configure environment
 
-If you run the `AppLauncher` main class directly from IntelliJ or by invoking `java` on the command line, you must provide JavaFX on the module path and enable the required modules.
+Create `src/main/resources/application.yml` (or use `application-dev.yml`):
 
-Example PowerShell `java` command (adjust versions and paths if different):
-
-```powershell
-"C:\Program Files\Java\jdk-25\bin\java.exe" \
-  --module-path "C:\Users\JacobQuaye\.m2\repository\org\openjfx\javafx-controls\21\javafx-controls-21-win.jar;C:\Users\JacobQuaye\.m2\repository\org\openjfx\javafx-fxml\21\javafx-fxml-21-win.jar;C:\Users\JacobQuaye\.m2\repository\org\openjfx\javafx-graphics\21\javafx-graphics-21-win.jar;C:\Users\JacobQuaye\.m2\repository\org\openjfx\javafx-base\21\javafx-base-21-win.jar" \
-  --add-modules javafx.controls,javafx.fxml \
-  -classpath "target\classes;C:\Users\JacobQuaye\.m2\repository\org\postgresql\postgresql\42.7.8\postgresql-42.7.8.jar;C:\Users\JacobQuaye\.m2\repository\com\zaxxer\HikariCP\5.0.1\HikariCP-5.0.1.jar;C:\Users\JacobQuaye\.m2\repository\org\mindrot\jbcrypt\0.4\jbcrypt-0.4.jar;C:\Users\JacobQuaye\.m2\repository\org\slf4j\slf4j-api\2.0.9\slf4j-api-2.0.9.jar" \
-  org.amalitech.AppLauncher
+```yaml
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/blogdb
+    username: postgres
+    password: yourpassword
+  data:
+    mongodb:
+      uri: mongodb://localhost:27017/blog_comments
+  graphql:
+    graphiql:
+      enabled: true
+    playground:
+      enabled: true
+server:
+  port: 8080
 ```
 
-- If you run from IntelliJ, edit the Run Configuration for `AppLauncher` and add the VM options (example - put everything on one line):
+### 3. Run the application
+
+```bash
+# Development mode
+mvn spring-boot:run
+
+# Or build & run JAR
+mvn clean package
+java -jar target/blogging-platform-0.0.1-SNAPSHOT.jar
+```
+
+### 4. Access the APIs
+
+- **REST + Swagger UI**: http://localhost:8080/swagger-ui.html
+- **GraphQL Playground**: http://localhost:8080/playground
+- **GraphiQL**: http://localhost:8080/graphiql
+- **Altair GraphQL Client** (alternative): http://localhost:8080/altair
+
+## 📚 API Overview
+
+### REST Endpoints (examples)
+
+- `POST /api/users` — Create user
+- `POST /api/posts` — Create blog post
+- `GET /api/posts?page=0&size=12` — Paginated posts
+- `GET /api/posts/{id}` — Post with comments
+- `GET /api/posts/trending?limit=10` — Trending posts
+- `POST /api/comments` — Add comment
+
+### GraphQL Examples
+
+```graphql
+# Get paginated posts with filter
+query {
+  posts(filter: { page: 0, size: 10, tag: "java" }) {
+    posts { id title status commentCount }
+    total
+    totalPages
+    hasNext
+  }
+}
+
+# Get single post with author & comments
+query {
+  post(id: 1) {
+    post { id title body status publishedAt }
+    author { id username email }
+    comments { id username body createdAt }
+  }
+}
+
+# Create post (mutation)
+mutation {
+  createPost(input: { title: "My First Post", body: "...", status: "DRAFT" }) {
+    id title status
+  }
+}
+```
+
+## Project Structure
 
 ```
---module-path "C:\Users\JacobQuaye\.m2\repository\org\openjfx\javafx-controls\21\javafx-controls-21-win.jar;C:\Users\JacobQuaye\.m2\repository\org\openjfx\javafx-fxml\21\javafx-fxml-21-win.jar;C:\Users\JacobQuaye\.m2\repository\org\openjfx\javafx-graphics\21\javafx-graphics-21-win.jar;C:\Users\JacobQuaye\.m2\repository\org\openjfx\javafx-base\21\javafx-base-21-win.jar" --add-modules javafx.controls,javafx.fxml
+src/main/java/org/amalitech
+├── aspect               # AOP: logging, performance, caching
+├── controllers          # REST Controllers
+├── graphQLResolver      # GraphQL Query & Mutation resolvers
+├── service              # Business logic layer
+├── dao                  # Data access (JDBC / Mongo)
+├── dto                  # Data Transfer Objects
+├── models               # Domain entities
+├── util                 # Validators, exceptions, helpers
+└── algorithm            # Trending sort, cache manager
 ```
 
-Notes & troubleshooting
+## Testing
 
-- Ensure the JavaFX version in `pom.xml` (property `javafx.version`) matches the jars you reference. I set it to `21` in the POM.
-- If you prefer using a JavaFX SDK distribution instead of Maven classifier jars, set `--module-path` to the SDK `lib` directory (e.g., `C:\javafx-sdk-21\lib`).
-- If you see errors about missing native libraries, ensure the `-win` classifier jars are used on Windows (examples above use `-win` jars from your local Maven repo).
-- If you get classpath/module errors, run `mvn javafx:run` from the project root — it handles module-path setup automatically.
+- Unit tests (Mockito + AssertJ)
+- Integration tests (@SpringBootTest)
+- Aspect tests (logging, performance, caching)
 
-Quick verification steps
 
-1. Build project: `mvn -DskipTests package`
-2. Seed an admin user (run from IDE or via `java -cp ...`):
-   - Run `org.amalitech.util.CreateAdmin admin admin@example.com MySecret123`
-3. Launch the app and login with the admin credentials.
+### How to Use It
+
+1. Create a file called `README.md` in your project root
+2. Replace `https://github.com/yourusername/blogging-platform.git` with your actual repo URL
+3. Commit & push — GitHub will render it beautifully
