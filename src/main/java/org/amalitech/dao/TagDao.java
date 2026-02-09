@@ -2,21 +2,24 @@ package org.amalitech.dao;
 
 import org.amalitech.models.Tag;
 import org.amalitech.interfaces.TagRepository;
-import org.amalitech.util.MapRowToTag;
+import org.amalitech.util.RowMappers.MapRowToTag;
 import org.amalitech.util.db.DBExecutor;
 import org.amalitech.util.db.SqlBuilder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
-import java.sql.*;
 import java.util.*;
 
 @Repository
 public class TagDao implements TagRepository {
 
     private final DBExecutor db;
+    private final JdbcTemplate jdbcTemplate;
 
-    public TagDao(DBExecutor db) {
+
+    public TagDao(DBExecutor db, JdbcTemplate jdbcTemplate) {
         this.db = db;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -32,13 +35,27 @@ public class TagDao implements TagRepository {
     @Override
     public List<Tag> findById(int id) {
         String sql = "SELECT * FROM tags WHERE id = ?";
-        return db.query(sql, List.of(id), MapRowToTag::mapRowToTag);
+        return jdbcTemplate.query(sql, new MapRowToTag(), List.of(id));
+    }
+
+    @Override
+    public List<Tag> findTagsByPostId(int postId) {
+        String sql =
+            """
+                SELECT t.id, t.name
+                FROM tags t
+                JOIN post_tags pt ON pt.tag_id = t.id
+                WHERE pt.post_id = ?
+                ORDER BY t.name
+            """;
+
+        return jdbcTemplate.query(sql, new MapRowToTag(), postId);
     }
 
     @Override
     public List<Tag> findAll() {
         String sql = "SELECT * FROM tags ORDER BY name";
-        return db.query(sql, new ArrayList<>(), MapRowToTag::mapRowToTag);
+        return jdbcTemplate.query(sql, new MapRowToTag());
     }
 
     @Override
@@ -53,19 +70,19 @@ public class TagDao implements TagRepository {
         List<Object> params = new ArrayList<>(set.getParams());
         params.add(tag.getId());
 
-        db.executeUpdate(sql, params);
+        jdbcTemplate.update(sql, params);
     }
 
     @Override
     public void delete(int id) {
         String sql = "DELETE FROM tags WHERE id = ?";
-        db.executeUpdate(sql, List.of(id));
+        jdbcTemplate.update(sql, id);
     }
 
     @Override
     public List<Tag> findByName(String name) {
         String sql = "SELECT * FROM tags WHERE name = ?";
-        return db.query(sql, List.of(name), MapRowToTag::mapRowToTag);
+        return jdbcTemplate.query(sql, new MapRowToTag(), List.of(name));
     }
 }
 

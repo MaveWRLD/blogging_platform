@@ -1,9 +1,8 @@
 package org.amalitech.interfaces;
 
 import org.amalitech.models.Tag;
-import org.amalitech.util.exception.NotFoundException;
+import org.amalitech.util.exception.ResourceNotFoundException;
 
-import java.sql.ResultSet;
 import java.util.List;
 
 /**
@@ -23,9 +22,11 @@ public interface TagRepository {
      * Find a tag by its ID.
      * @param id the tag ID
      * @return the Tag object
-     * @throws NotFoundException if tag doesn't exist
+     * @throws ResourceNotFoundException if tag doesn't exist
      */
     List<Tag> findById(int id);
+
+    List<Tag> findTagsByPostId(int postId);
 
     /**
      * Find all tags.

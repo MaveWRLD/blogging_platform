@@ -1,13 +1,11 @@
 package org.amalitech.service;
 
-import org.amalitech.dao.TagDao;
 import org.amalitech.interfaces.TagRepository;
 import org.amalitech.util.exception.ValidationException;
 import org.amalitech.models.Tag;
 import org.springframework.stereotype.Service;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+
 import java.util.List;
 
 @Service
@@ -24,6 +22,11 @@ public class TagService {
         tagRepository.save(tag);
     }
 
+    public List<Tag> findTagsByPostId(int postId) {
+        if (postId <= 0) throw new ValidationException("Invalid post ID");
+        return tagRepository.findTagsByPostId(postId);
+    }
+
     public Tag getTagById(int id) {
         if (id <= 0) throw new ValidationException("Invalid tag ID");
         var tags = tagRepository.findById(id);
@@ -36,9 +39,6 @@ public class TagService {
         return tags.isEmpty() ? null : tags.get(0);
     }
 
-    public List<Tag> getAllTags() {
-        return tagRepository.findAll();
-    }
 
     private void validateTag(Tag tag) {
         if (tag.getName() == null || tag.getName().trim().isEmpty()) {
