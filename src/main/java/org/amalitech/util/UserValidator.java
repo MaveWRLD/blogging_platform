@@ -1,20 +1,10 @@
 package org.amalitech.util;
 
 import org.amalitech.util.exception.ValidationException;
-import org.amalitech.models.User;
 
 public class UserValidator {
 
-    public static void validate(User user) {
-        if (user.getUsername() == null || user.getUsername().isEmpty()) {
-            throw new ValidationException("Username cannot be empty");
-        }
-        if (user.getEmail() == null || user.getEmail().isEmpty()) {
-            throw new ValidationException("Email cannot be empty");
-        }
-    }
-
-    public static void validateCredentials(String username, String password) {
+    public static void validateCredentials(String username, String password) throws ValidationException{
         if (username == null || username.isEmpty()) {
             throw new ValidationException("Username cannot be empty");
         }

@@ -1,10 +1,10 @@
 package org.amalitech.interfaces;
 
 import org.amalitech.models.User;
-import org.amalitech.util.exception.NotFoundException;
+import org.amalitech.util.exception.ResourceNotFoundException;
 
-import java.sql.ResultSet;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository interface for User CRUD operations.
@@ -19,29 +19,33 @@ public interface UserRepository {
      */
     int save(User user);
 
+    List<User> findAll();
+
     /**
      * Find a user by their ID.
      *
      * @param id the user ID
      * @return the User object
-     * @throws NotFoundException if user doesn't exist
+     * @throws ResourceNotFoundException if user doesn't exist
      */
-    List<User> findByUserId(int id);
+    Optional<User> findByUserId(int id);
 
     /**
      * Find a user by their username.
      *
      * @param username the username
      * @return the User object
-     * @throws NotFoundException if user doesn't exist
+     * @throws ResourceNotFoundException if user doesn't exist
      */
-    List<User> findByUsername(String username);
+    Optional<User> findByUsername(String username);
 
     /**
      * Update an existing user.
      * @param user the user with updated data
      */
     void update(User user);
+
+    void delete(int id);
 }
 
 

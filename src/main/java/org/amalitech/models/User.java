@@ -1,10 +1,13 @@
 package org.amalitech.models;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
+@AllArgsConstructor
 @Getter
 @Setter
 public class User {
@@ -13,35 +16,27 @@ public class User {
     private String username;
     private String email;
     private String password;
-    private String role;
+    private List<String> roles;
     private String status;
     private LocalDateTime createdAt;
 
     public User() {}
 
-    public User(String username, String email, String password, String role, String status) {
+    public User(String username, String email, String password, List<String> roles, String status) {
         this.username = username;
         this.email = email;
         this.password = password;
-        this.role = role;
+        this.roles = roles;
         this.status = status;
     }
 
-    public User(int id, String username, String email, String password, String role,
+    public User(int id, String username, String email, String password,
                 String status) {
         this.id = id;
         this.username = username;
         this.email = email;
         this.password = password;
-        this.role = role;
         this.status = status;
         this.createdAt = LocalDateTime.now();
-    }
-
-    public User(String username, String email, String role, String password) {
-        this.username = username;
-        this.email = email;
-        this.role = role;
-        this.password = password;
     }
 }
