@@ -63,7 +63,7 @@ public class PostQueryResolver {
         for (PostDto post : posts) {
             System.out.println(post.getCommentCount());
         }
-        ;
+
         long total = postService.postCount(filter);
         if (total < 0) total = 0;
 

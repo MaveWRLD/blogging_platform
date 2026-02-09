@@ -119,7 +119,6 @@ public class PostService {
      */
     @Cacheable(keyPrefix = "post:id", ttlSeconds =  3600)
     public Map<Post, List<Comment>> findPostById(int id) {
-        logger.info("Fetching Post By id: {}");
         if (id <= 0) throw new ValidationException("Invalid post ID");
         var post = postRepository.findById(id);
         var comments = commentService.getCommentsByPostId(id);
@@ -133,16 +132,16 @@ public class PostService {
 
 
     /**
-     * Get trending posts (database + algorithm)
+     * Get trending posts based on a custom algorithm that considers recency and engagement metrics.
+      * @param limit the maximum number of trending posts to return
+      * @return list of trending posts
      */
     @Cacheable(keyPrefix = "trending:posts", ttlSeconds = 120)
     public List<Post> getTrendingPosts(int limit) {
         logger.info("Calculating trending posts");
 
-        // Step 1: Get candidates from last 48 hours
         List<Post> candidates = postRepository.findRecentForTrending(200);
 
-        // Step 2: Apply trending algorithm
         return trendingAlgorithm.getTopTrending(candidates, limit);
     }
 
@@ -161,9 +160,9 @@ public class PostService {
         cacheManager.invalidatePattern("trending");
         cacheManager.invalidatePattern("recent");
 
-//        if (tagIds != null && !tagIds.isEmpty()) {
-//            postTagRepository.addTagsToPost(generatedId, tagIds);
-//        }
+        if (tagIds != null && !tagIds.isEmpty()) {
+            postTagRepository.addTagsToPost(generatedId, tagIds);
+        }
     }
 
     /**

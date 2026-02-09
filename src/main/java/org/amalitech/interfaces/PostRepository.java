@@ -1,6 +1,5 @@
 package org.amalitech.interfaces;
 
-import org.amalitech.dtos.postDtos.PostDto;
 import org.amalitech.models.Post;
 import org.amalitech.util.exception.ResourceNotFoundException;
 

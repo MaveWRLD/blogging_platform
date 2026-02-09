@@ -1,10 +1,8 @@
 package org.amalitech.interfaces;
 
-import org.amalitech.models.Post;
 import org.amalitech.models.PostTag;
 import org.amalitech.models.Tag;
 
-import java.sql.ResultSet;
 import java.util.List;
 
 /**
@@ -25,13 +23,8 @@ public interface PostTagRepository {
      */
     void delete(PostTag postTag);
 
-    /**
-     * Find all tag IDs associated with a specific post.
-     *
-     * @param postId the post ID
-     * @return list of tag IDs for the post (may be empty)
-     */
-    List<Tag> findTagsByPostId(int postId);
+
+    void addTagsToPost(int postId, List<Integer> tagIds);
 
     /**
      * Remove all tag associations for a specific post.

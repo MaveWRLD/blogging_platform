@@ -1,7 +1,6 @@
 package org.amalitech.service;
 
 import org.amalitech.interfaces.PostTagRepository;
-import org.amalitech.models.Tag;
 import org.amalitech.util.exception.ValidationException;
 import org.amalitech.models.PostTag;
 import org.springframework.stereotype.Service;
