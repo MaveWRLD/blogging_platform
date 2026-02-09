@@ -1,64 +1,149 @@
 package org.amalitech.service;
 
+import org.amalitech.algorithm.CacheManager;
+import org.amalitech.algorithm.TrendingSortAlgorithm;
+import org.amalitech.aspect.Cacheable;
+import org.amalitech.dtos.postDtos.PostFilter;
 import org.amalitech.interfaces.PostTagRepository;
-import org.amalitech.interfaces.UserRepository;
-import org.amalitech.models.Tag;
-import org.amalitech.models.User;
+import org.amalitech.models.*;
 import org.amalitech.util.PostValidator;
+import org.amalitech.util.exception.ResourceNotFoundException;
 import org.amalitech.util.exception.ValidationException;
-import org.amalitech.models.Post;
-import org.amalitech.models.SortOrder;
 import org.amalitech.interfaces.PostRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.springframework.stereotype.Service;
 
-import java.sql.ResultSet;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class PostService {
 
     private final PostRepository postRepository;
     private final PostTagRepository postTagRepository ;
-    private final UserRepository userRepository;
+    private final CommentService commentService;
+    private static final Logger logger= LoggerFactory.getLogger(PostService.class);
+    private final TrendingSortAlgorithm trendingAlgorithm;
+    private final CacheManager cacheManager;
+
+
 
     /**
      * Constructor with dependency injection.
      * @param postRepository the post repository (interface)
      * @param postTagRepository the post-tag service
      */
-    public PostService(PostRepository postRepository, PostTagRepository postTagRepository, UserRepository userRepository) {
+    public PostService(PostRepository postRepository, PostTagRepository postTagRepository, CommentService commentService, TrendingSortAlgorithm trendingAlgorithm, CacheManager cacheManager) {
         this.postRepository = postRepository;
         this.postTagRepository = postTagRepository;
-        this.userRepository = userRepository;
+        this.commentService = commentService;
+        this.trendingAlgorithm = trendingAlgorithm;
+        this.cacheManager = cacheManager;
+    }
+
+
+    public List<Post> findPosts(PostFilter f) {
+
+        if (f == null) {
+            f = new PostFilter();
+            f.setPage(0);
+            f.setSize(12);
+        }
+
+        LocalDateTime fromDateTime = null;
+        if (f.getFromDate() != null) {
+            fromDateTime = f.getFromDate().atStartOfDay();
+        }
+
+        LocalDateTime toDateTime = null;
+        if (f.getToDate() != null) {
+            toDateTime = f.getToDate().atTime(LocalTime.MAX);
+        }
+
+        List<Post> posts = postRepository.findPosts(
+                f.getPage(),
+                f.getSize(),
+                f.getTag(),
+                f.getAuthor(),
+                f.getSearch(),
+                fromDateTime,
+                toDateTime
+        );
+
+        return posts == null ? Collections.emptyList() : posts;
+    }
+
+    public int postCount(PostFilter f) {
+        if (f == null) {
+            f = new PostFilter();
+            f.setPage(0);
+            f.setSize(12);
+        }
+
+        LocalDateTime fromDateTime = null;
+        if (f.getFromDate() != null) {
+            fromDateTime = f.getFromDate().atStartOfDay();
+        }
+
+        LocalDateTime toDateTime = null;
+        if (f.getToDate() != null) {
+            toDateTime = f.getToDate().atTime(LocalTime.MAX);
+        }
+
+        return postRepository.countPosts(
+                f.getTag(),
+                f.getAuthor(),
+                f.getSearch(),
+                fromDateTime,
+                toDateTime
+        );
+    }
+
+    public List<Post> getAllPosts(int page, int limit) {
+        return postRepository.findAll(page, limit);
+    }
+
+    public Long countPosts(){
+        return postRepository.countPosts();
+    }
+
+    /**
+     * Get a post by ID.
+     * @param id the post ID
+     * @return the Post object
+     */
+    @Cacheable(keyPrefix = "post:id", ttlSeconds =  3600)
+    public Map<Post, List<Comment>> findPostById(int id) {
+        logger.info("Fetching Post By id: {}");
+        if (id <= 0) throw new ValidationException("Invalid post ID");
+        var post = postRepository.findById(id);
+        var comments = commentService.getCommentsByPostId(id);
+
+        Post postObj = post.orElseThrow(
+                () -> new ResourceNotFoundException("Post not found with ID: " + id)
+        );
+
+        return Map.of(postObj, comments);
     }
 
 
     /**
-     * Get posts by tag with pagination.
-     * @param tagId the tag ID
-     * @param page page number (0-indexed)
-     * @param pageSize page size
-     * @return list of posts with the tag
+     * Get trending posts (database + algorithm)
      */
-    public List<Post> listByTag(int tagId, int page, int pageSize) {
-        if (tagId <= 0) throw new ValidationException("Invalid tag ID");
-        return postRepository.findByTag(tagId, page, pageSize);
-    }
+    @Cacheable(keyPrefix = "trending:posts", ttlSeconds = 120)
+    public List<Post> getTrendingPosts(int limit) {
+        logger.info("Calculating trending posts");
 
-    /**
-     * Get posts by tag with pagination, sort order, and time filtering.
-     * @param tagId the tag ID
-     * @param page page number (0-indexed)
-     * @param pageSize page size
-     * @param sortOrder the sort order
-     * @param fromDate only include posts created after this date (null for all time)
-     * @return list of posts with the tag, sorted and filtered by time
-     */
-    public List<Post> listByTag(int tagId, int page, int pageSize, SortOrder sortOrder, LocalDateTime fromDate) {
-        if (tagId <= 0) throw new ValidationException("Invalid tag ID");
+        // Step 1: Get candidates from last 48 hours
+        List<Post> candidates = postRepository.findRecentForTrending(200);
 
-        return postRepository.findByTag(tagId, page, pageSize);
+        // Step 2: Apply trending algorithm
+        return trendingAlgorithm.getTopTrending(candidates, limit);
     }
 
     /**
@@ -70,23 +155,15 @@ public class PostService {
     public void createPost(Post post, List<Integer> tagIds) {
         PostValidator.validateForCreation(post);
 
-//        int generatedId =
-        postRepository.save(post);
-//        post.setId(generatedId);
-//
-//        if (tagIds != null && !tagIds.isEmpty()) {
-//            postTagService.addTagsToPost(generatedId, tagIds);
-//        }
-    }
+        int generatedId = postRepository.save(post);
+        post.setId(generatedId);
 
-    /**
-     * Get a post by ID.
-     * @param id the post ID
-     * @return the Post object
-     */
-    public Post getPostById(int id) {
-        if (id <= 0) throw new ValidationException("Invalid post ID");
-        return postRepository.findById(id);
+        cacheManager.invalidatePattern("trending");
+        cacheManager.invalidatePattern("recent");
+
+//        if (tagIds != null && !tagIds.isEmpty()) {
+//            postTagRepository.addTagsToPost(generatedId, tagIds);
+//        }
     }
 
     /**
@@ -103,6 +180,9 @@ public class PostService {
             postTagRepository.deleteAllTagsForPost(post.getId());
             postTagRepository.deleteAllTagsForPost(post.getId());
         }
+
+        cacheManager.invalidate("post:slug:" + post.getId());
+        cacheManager.invalidatePattern("trending");
     }
 
     /**
@@ -115,25 +195,6 @@ public class PostService {
         postRepository.delete(id);
     }
 
-    /**
-     * Get all tags for a post.
-     * @param postId the post ID
-     * @return list of tag IDs
-     */
-    public List<Tag> getTagsForPost(int postId) {
-        return postTagRepository.findTagsByPostId(postId);
-    }
-
-    /**
-     * Get a user by their ID.
-     * This is used to fetch author information for posts.
-     * @param userId the user ID
-     * @return the User object
-     */
-    public List<User> getUserById(int userId) {
-        if (userId <= 0) throw new ValidationException("Invalid user ID");
-        return userRepository.findByUserId(userId);
-    }
 
     /**
      * Sort posts according to the specified sort order.
@@ -162,4 +223,3 @@ public class PostService {
         };
     }
 }
-

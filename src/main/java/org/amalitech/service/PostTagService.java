@@ -37,13 +37,6 @@ public class PostTagService {
         postTagRepository.deleteAllTagsForPost(postId);
     }
 
-    public List<Tag> getTagsForPost(int postId) {
-        if (postId <= 0) {
-            throw new ValidationException("Invalid post ID");
-        }
-        return postTagRepository.findTagsByPostId(postId);
-    }
-
     private void validateIds(int postId, int tagId) {
         if (postId <= 0) throw new ValidationException("Invalid post ID");
         if (tagId <= 0) throw new ValidationException("Invalid tag ID");

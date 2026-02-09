@@ -1,11 +1,12 @@
 package org.amalitech.interfaces;
 
+import org.amalitech.dtos.postDtos.PostDto;
 import org.amalitech.models.Post;
-import org.amalitech.models.SortOrder;
-import org.amalitech.util.exception.NotFoundException;
+import org.amalitech.util.exception.ResourceNotFoundException;
 
-import java.sql.ResultSet;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Repository interface for Post CRUD operations.
@@ -27,26 +28,18 @@ public interface PostRepository {
      *
      * @param id the post ID
      * @return the Post object
-     * @throws NotFoundException if post doesn't exist
+     * @throws ResourceNotFoundException if post doesn't exist
      */
-    Post findById(int id);
+    Optional<Post> findById(int id);
 
     /**
      * Find all posts.
      *
      * @return list of all posts (may be empty)
      */
-    List<Post> findAll();
+    List<Post> findAll(int page, int limit);
 
-    /**
-     * Find posts by tag ID.
-     *
-     * @param tagId the tag ID
-     * @param page  page number (0-indexed)
-     * @param size  page size
-     * @return list of posts with the specified tag
-     */
-    List<Post> findByTag(int tagId, int page, int size);
+    List<Post> findRecentForTrending(int limit);
 
     /**
      * Update an existing post.
@@ -60,6 +53,23 @@ public interface PostRepository {
      */
     void delete(int id);
 
+    List<Post> findPosts(int page,
+                            int size,
+                            String tagName,
+                            String username,
+                            String searchTerm,
+                            LocalDateTime createdAfter,
+                            LocalDateTime createdBefore
+    );
 
+    Long countPosts();
+
+    int countPosts(
+            String tagName,
+            String username,
+            String searchTerm,
+            LocalDateTime createdAfter,
+            LocalDateTime createdBefore
+    );
 }
 

@@ -34,13 +34,6 @@ public interface PostTagRepository {
     List<Tag> findTagsByPostId(int postId);
 
     /**
-     * Find all post IDs associated with a specific tag.
-     * @param tagId the tag ID
-     * @return list of post IDs with the tag (may be empty)
-     */
-    List<Post> findPostsByTagId(int tagId);
-
-    /**
      * Remove all tag associations for a specific post.
      * Used when deleting a post.
      * @param postId the post ID
