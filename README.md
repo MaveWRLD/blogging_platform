@@ -165,5 +165,5 @@ src/main/java/org/amalitech
 ### How to Use It
 
 1. Create a file called `README.md` in your project root
-2. Replace `https://github.com/yourusername/blogging-platform.git` with your actual repo URL
+2. Replace `https://github.com/MaveWRLD/blogging_platform/tree/feature/module-5` with your actual repo URL
 3. Commit & push — GitHub will render it beautifully
