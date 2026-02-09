@@ -1,5 +1,7 @@
 package org.amalitech.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.amalitech.dtos.CommentDto;
 import org.amalitech.dtos.CreateCommentRequest;
@@ -14,6 +16,10 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/comments")
+@Tag(
+        name = "Comments",
+        description = "Endpoints for managing comments and replies"
+)
 public class CommentController {
 
     private final CommentService commentService;
@@ -28,6 +34,10 @@ public class CommentController {
      * Create a new comment (top-level or reply)
      */
     @PostMapping
+    @Operation(
+            summary = "Create a new comment",
+            description = "Create a new comment. If parentId is provided, the comment will be a reply to the specified parent comment."
+    )
     public ResponseEntity<CommentDto> createComment(@Valid @RequestBody CreateCommentRequest request) {
         Comment comment = commentMapper.toEntity(request);
         commentService.save(comment);
@@ -39,6 +49,10 @@ public class CommentController {
      * Update a comment's body
      */
     @PutMapping("/{commentId}")
+    @Operation(
+            summary = "Update a comment",
+            description = "Update the body of an existing comment. Only the body can be updated."
+    )
     public ResponseEntity<CommentDto> updateComment(
             @PathVariable String commentId,
             @Valid @RequestBody UpdateCommentRequest request) {
@@ -58,6 +72,10 @@ public class CommentController {
      */
     @DeleteMapping("/{commentId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(
+            summary = "Delete a comment",
+            description = "Delete a comment by its ID. If the comment has replies, they will also be deleted."
+    )
     public void deleteComment(@PathVariable String commentId) {
         commentService.deleteById(commentId);
     }

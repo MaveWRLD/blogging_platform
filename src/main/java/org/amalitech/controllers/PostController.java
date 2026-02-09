@@ -1,5 +1,7 @@
 package org.amalitech.controllers;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.amalitech.dtos.*;
@@ -22,6 +24,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/posts")
 @RequiredArgsConstructor
+@Tag(name = "Blog Posts", description = "Operations for managing blog posts (create, read, update, delete, trending)")
 public class PostController {
 
     private final PostService postService;
@@ -30,6 +33,10 @@ public class PostController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
+    @Operation(
+            summary = "Create a new post",
+            description = "Creates a new blog post with the provided title and body. The post will be created in DRAFT status."
+    )
     public ResponseEntity<PostDto> createPost(@Valid @RequestBody CreatePostRequest request) {
 
         Post post = postMapper.toEntity(request);
@@ -40,6 +47,10 @@ public class PostController {
     }
 
     @GetMapping
+    @Operation(
+            summary = "Get all posts with pagination",
+            description = "Returns a paginated list of posts. Use 'page' and 'size' query parameters for pagination."
+    )
     public ResponseEntity<ApiResponse<PagedPostsResponse>> getAllPosts(
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "12") int size
@@ -82,6 +93,10 @@ public class PostController {
     }
 
     @GetMapping("/{id}")
+    @Operation(
+            summary = "Get post by ID with comments",
+            description = "Returns full post details including comments and author information"
+    )
     public ResponseEntity<PostWithCommentsDto> getPost(@PathVariable Integer id) {
         if (id == null || id <= 0) {
             return ResponseEntity.badRequest().build();
@@ -102,6 +117,10 @@ public class PostController {
     }
 
     @GetMapping("/trending")
+    @Operation(
+            summary = "Get trending posts",
+            description = "Returns a list of trending posts based on engagement and recency"
+    )
     public ResponseEntity<ApiResponse<List<PostDto>>> getTrendingPosts(
             @RequestParam(required = false, defaultValue = "10") Integer limit
     ) {
@@ -114,6 +133,10 @@ public class PostController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(
+            summary = "Delete a post",
+            description = "Deletes the post with the specified ID. This action is irreversible."
+    )
     public void deletePost(@PathVariable Integer id) {
         postService.deletePost(id);
     }
