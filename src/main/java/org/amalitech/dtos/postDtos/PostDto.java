@@ -11,6 +11,7 @@ public class PostDto {
     private int id;
     private String title;
     private String body;
+    private int userId;
     private String author;
     @JsonIgnore
     private List<String> tags;

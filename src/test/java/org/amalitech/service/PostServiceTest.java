@@ -21,6 +21,7 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class PostServiceTest {
+
     @Mock
     private PostRepository postRepository;
     @Mock
@@ -32,6 +33,8 @@ public class PostServiceTest {
     @Mock
     private CacheManager cacheManager;
     private PostService postService;
+
+
     @BeforeEach
     void setUp() {
         postService = new PostService(postRepository, postTagRepository, commentService, trendingSortAlgorithm, cacheManager);
@@ -60,7 +63,6 @@ public class PostServiceTest {
         verify(postRepository).save(post);
         verify(postTagRepository).addTagsToPost(1, List.of(1));
     }
-
     @Test
     void updatePost_updatesPost() {
         Post post = new Post();

@@ -1,11 +1,15 @@
 package org.amalitech.dtos.postDtos;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.amalitech.dtos.CommentDto;
 
 import java.util.List;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Data
 @Builder
 public class PostWithCommentsDto {

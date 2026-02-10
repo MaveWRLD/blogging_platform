@@ -5,6 +5,7 @@ import org.amalitech.dtos.postDtos.PagedPostsResponse;
 import org.amalitech.dtos.postDtos.PostDto;
 import org.amalitech.dtos.postDtos.PostFilter;
 import org.amalitech.dtos.postDtos.PostResponse;
+import org.amalitech.dtos.userDtos.UserDto;
 import org.amalitech.mappers.CommentMapper;
 import org.amalitech.mappers.PostMapper;
 import org.amalitech.mappers.UserMapper;
@@ -59,10 +60,6 @@ public class PostQueryResolver {
         }
 
         List<PostDto> posts = postService.findPosts(filter).stream().map(postMapper::toDto).collect(Collectors.toList());
-
-        for (PostDto post : posts) {
-            System.out.println(post.getCommentCount());
-        }
 
         long total = postService.postCount(filter);
         if (total < 0) total = 0;

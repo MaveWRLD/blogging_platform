@@ -7,6 +7,7 @@ import org.amalitech.dtos.postDtos.PostFilter;
 import org.amalitech.interfaces.PostTagRepository;
 import org.amalitech.models.*;
 import org.amalitech.util.PostValidator;
+import org.amalitech.util.SortOrder;
 import org.amalitech.util.exception.ResourceNotFoundException;
 import org.amalitech.util.exception.ValidationException;
 import org.amalitech.interfaces.PostRepository;
@@ -176,7 +177,6 @@ public class PostService {
         postRepository.update(post);
 
         if (tagIds != null) {
-            postTagRepository.deleteAllTagsForPost(post.getId());
             postTagRepository.deleteAllTagsForPost(post.getId());
         }
 

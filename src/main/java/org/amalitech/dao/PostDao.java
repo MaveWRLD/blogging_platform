@@ -2,9 +2,9 @@ package org.amalitech.dao;
 
 import org.amalitech.models.Post;
 import org.amalitech.interfaces.PostRepository;
-import org.amalitech.util.RowMappers.MapRowToPost;
+import org.amalitech.util.RowMappers.PostRowMapper;
 import org.amalitech.util.db.SqlBuilder;
-import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.JdbcOperations;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -16,16 +16,16 @@ import java.util.Set;
 @Repository
 public class PostDao implements PostRepository {
 
-    private final JdbcTemplate jdbcTemplate;
+    private final JdbcOperations jdbcTemplate;
 
-    public PostDao(JdbcTemplate jdbcTemplate) {
+    public PostDao(JdbcOperations jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
     public int save(Post post) {
         if (post.getExcerpt() == null && post.getBody() != null) {
-            post.setExcerpt(post.getBody().length() > 50 ? post.getBody().substring(0, 500) : post.getBody());
+            post.setExcerpt(post.getBody().length() > 50 ? post.getBody().substring(0, 50) : post.getBody());
         }
 
         SqlBuilder.SqlFragment insert = SqlBuilder.buildInsertClause(post, Set.of("id"));
@@ -71,7 +71,7 @@ public class PostDao implements PostRepository {
                     WHERE p.id = ?
                     GROUP BY p.id;
                 """;
-        List<Post> posts = jdbcTemplate.query(sql, new MapRowToPost(), id);
+        List<Post> posts = jdbcTemplate.query(sql, new PostRowMapper(), id);
         return posts.stream().findFirst();
     }
 
@@ -97,14 +97,12 @@ public class PostDao implements PostRepository {
         ORDER BY p.created_at DESC
         LIMIT ? OFFSET ?;
         """;
-        return jdbcTemplate.query(sql, new MapRowToPost(), limit, offset);
+        return jdbcTemplate.query(sql, new PostRowMapper(), limit, offset);
     }
 
     public Long countPosts(){
         String countSql = "SELECT COUNT(*) FROM posts";
-        Long count = jdbcTemplate.queryForObject(countSql, Long.class);
-        System.out.println(count);
-        return count;
+        return jdbcTemplate.queryForObject(countSql, Long.class);
     }
 
     @Override
@@ -118,7 +116,7 @@ public class PostDao implements PostRepository {
             LIMIT ?
             """;
 
-        return jdbcTemplate.query(sql, new MapRowToPost(), limit);
+        return jdbcTemplate.query(sql, new PostRowMapper(), limit);
     }
 
     /**
@@ -145,12 +143,9 @@ public class PostDao implements PostRepository {
         b.orderBy("p.created_at DESC");
         b.limit(size, (long) page * size);
 
-        System.out.println("SQL: " + b.getSql());
-        System.out.println("Params: " + b.getParams());
-
         return jdbcTemplate.query(
                 b.getSql(),
-                new MapRowToPost(),
+                new PostRowMapper(),
                 b.getParams().toArray()
         );
     }

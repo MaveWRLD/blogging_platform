@@ -52,21 +52,30 @@ public class PostControllerTest {
         assertThat(body).isNotNull();
         assertThat(body.getData().getPosts()).isEmpty();
     }
+
     @Test
     void createPost_createsAndReturnsPost() {
         CreatePostRequest request = new CreatePostRequest();
         request.setTitle("Test Title");
         request.setBody("Test Body");
+
         Post post = new Post();
         post.setId(1);
 
+        PostDto postDto = new PostDto();
+        postDto.setId(1);
+        postDto.setTitle("Test Title");
+
         when(postMapper.toEntity(request)).thenReturn(post);
         doNothing().when(postService).createPost(any(Post.class), isNull());
-        when(postMapper.toDto(post)).thenReturn(new PostDto());
-        ResponseEntity<PostDto> response = controller.createPost(request);
+        when(postMapper.toDto(post)).thenReturn(postDto);
+
+        ResponseEntity<ApiResponse<PostDto>> response = controller.createPost(request);
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(response.getBody()).isNotNull();
+        assertThat(response.getBody().getData()).isEqualTo(postDto);
+        assertThat(response.getBody().getMessage()).isEqualTo("Post created successfully");
     }
 
     @Test

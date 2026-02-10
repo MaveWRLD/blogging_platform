@@ -37,13 +37,13 @@ public class PostController {
             summary = "Create a new post",
             description = "Creates a new blog post with the provided title and body. The post will be created in DRAFT status."
     )
-    public ResponseEntity<PostDto> createPost(@Valid @RequestBody CreatePostRequest request) {
+    public ResponseEntity<ApiResponse<PostDto>> createPost(@Valid @RequestBody CreatePostRequest request) {
 
         Post post = postMapper.toEntity(request);
 
         postService.createPost(post, null);
 
-        return ResponseEntity.ok(postMapper.toDto(post));
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.CREATED, postMapper.toDto(post), "Post created successfully"));
     }
 
     @GetMapping

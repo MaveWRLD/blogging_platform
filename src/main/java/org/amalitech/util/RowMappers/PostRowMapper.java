@@ -7,7 +7,7 @@ import java.sql.Timestamp;
 import org.amalitech.models.Post;
 import org.springframework.jdbc.core.RowMapper;
 
-public class MapRowToPost implements RowMapper<Post> {
+public class PostRowMapper implements RowMapper<Post> {
 
     @Override
     public Post mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -37,7 +37,6 @@ public class MapRowToPost implements RowMapper<Post> {
         post.setViewCount(rs.getInt("view_count"));
         post.setLikeCount(rs.getInt("like_count"));
         post.setCommentCount(rs.getInt("comment_count"));
-        System.out.println(post.getCommentCount());
 
         return post;
     }

@@ -1,6 +1,7 @@
 package org.amalitech.models;
 
 import lombok.*;
+import org.amalitech.util.PostStatus;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
