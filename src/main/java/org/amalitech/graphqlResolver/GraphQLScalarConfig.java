@@ -26,18 +26,18 @@ public class GraphQLScalarConfig {
     private GraphQLScalarType dateTimeScalar() {
         return GraphQLScalarType.newScalar()
                 .name("DateTime")
-                .description("DateTime scalar type")
+                .description("ISO 8601 DateTime (supports both local and UTC/Z formats)")
                 .coercing(new Coercing<LocalDateTime, String>() {
-                    private final DateTimeFormatter formatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
+                    private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
 
                     @Override
                     public String serialize(@NonNull Object dataFetcherResult,
                                             @NonNull GraphQLContext graphQLContext,
                                             @NonNull Locale locale) throws CoercingSerializeException {
-                        if (dataFetcherResult instanceof LocalDateTime) {
-                            return ((LocalDateTime) dataFetcherResult).format(formatter);
+                        if (dataFetcherResult instanceof LocalDateTime local) {
+                            return local.format(formatter);
                         }
-                        throw new CoercingSerializeException("Expected a LocalDateTime object.");
+                        throw new CoercingSerializeException("Expected LocalDateTime");
                     }
 
                     @Override
@@ -45,12 +45,12 @@ public class GraphQLScalarConfig {
                                                     @NonNull GraphQLContext graphQLContext,
                                                     @NonNull Locale locale) throws CoercingParseValueException {
                         try {
-                            if (input instanceof String) {
-                                return LocalDateTime.parse((String) input, formatter);
+                            if (input instanceof String s) {
+                                return LocalDateTime.parse(s, formatter);
                             }
-                            throw new CoercingParseValueException("Expected a String");
+                            throw new CoercingParseValueException("Expected String");
                         } catch (Exception e) {
-                            throw new CoercingParseValueException("Invalid DateTime format: " + input, e);
+                            throw new CoercingParseValueException("Invalid DateTime: " + input, e);
                         }
                     }
 
@@ -59,11 +59,11 @@ public class GraphQLScalarConfig {
                                                       @NonNull CoercedVariables variables,
                                                       @NonNull GraphQLContext context,
                                                       @NonNull Locale locale) throws CoercingParseLiteralException {
-                        if (input instanceof StringValue) {
+                        if (input instanceof StringValue sv) {
                             try {
-                                return LocalDateTime.parse(((StringValue) input).getValue(), formatter);
+                                return LocalDateTime.parse(sv.getValue(), formatter);
                             } catch (Exception e) {
-                                throw new CoercingParseLiteralException("Invalid DateTime format", e);
+                                throw new CoercingParseLiteralException("Invalid DateTime format: " + sv.getValue(), e);
                             }
                         }
                         throw new CoercingParseLiteralException("Expected StringValue");
