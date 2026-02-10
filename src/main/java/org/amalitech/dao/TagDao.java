@@ -2,7 +2,7 @@ package org.amalitech.dao;
 
 import org.amalitech.models.Tag;
 import org.amalitech.interfaces.TagRepository;
-import org.amalitech.util.RowMappers.MapRowToTag;
+import org.amalitech.util.RowMappers.TagRowMapper;
 import org.amalitech.util.db.DBExecutor;
 import org.amalitech.util.db.SqlBuilder;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -35,7 +35,7 @@ public class TagDao implements TagRepository {
     @Override
     public List<Tag> findById(int id) {
         String sql = "SELECT * FROM tags WHERE id = ?";
-        return jdbcTemplate.query(sql, new MapRowToTag(), List.of(id));
+        return jdbcTemplate.query(sql, new TagRowMapper(), List.of(id));
     }
 
     @Override
@@ -49,13 +49,13 @@ public class TagDao implements TagRepository {
                 ORDER BY t.name
             """;
 
-        return jdbcTemplate.query(sql, new MapRowToTag(), postId);
+        return jdbcTemplate.query(sql, new TagRowMapper(), postId);
     }
 
     @Override
     public List<Tag> findAll() {
         String sql = "SELECT * FROM tags ORDER BY name";
-        return jdbcTemplate.query(sql, new MapRowToTag());
+        return jdbcTemplate.query(sql, new TagRowMapper());
     }
 
     @Override
@@ -82,7 +82,7 @@ public class TagDao implements TagRepository {
     @Override
     public List<Tag> findByName(String name) {
         String sql = "SELECT * FROM tags WHERE name = ?";
-        return jdbcTemplate.query(sql, new MapRowToTag(), List.of(name));
+        return jdbcTemplate.query(sql, new TagRowMapper(), List.of(name));
     }
 }
 
