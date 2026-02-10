@@ -37,13 +37,12 @@ public class LRUCache<K, V> {
     }
 
     public LRUCache() {
-        this(1000); // Default capacity
+        this(1000);
     }
 
     public LRUCache(int capacity) {
         this.capacity = capacity;
 
-        // LinkedHashMap with access-order (LRU behavior)
         this.cache = new LinkedHashMap<K, CacheEntry<V>>(capacity, 0.75f, true) {
             @Override
             protected boolean removeEldestEntry(Map.Entry<K, CacheEntry<V>> eldest) {

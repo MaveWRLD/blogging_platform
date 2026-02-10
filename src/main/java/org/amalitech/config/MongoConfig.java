@@ -6,16 +6,14 @@ import com.mongodb.client.MongoDatabase;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.PropertySource;
 
 @Configuration
-@PropertySource("classpath:db.properties")
 public class MongoConfig {
 
-    @Value("${mongodb.uri:mongodb://localhost:27017}")
+    @Value("${spring.data.mongodb.uri}")
     private String mongoUri;
 
-    @Value("${mongodb.database}")
+    @Value("${spring.data.mongodb.database}")
     private String databaseName;
 
     @Bean

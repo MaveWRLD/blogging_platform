@@ -59,9 +59,19 @@ public class PerformanceMonitoringAspect {
     public void algorithmMethods() {}
 
     /**
+     * Log all controller methods
+     */
+    @Pointcut("execution(* org.amalitech.controllers..*(..))")
+    public void controllerMethods() {}
+
+    @Pointcut("execution(* org.amalitech.graphqlResolver..*(..))")
+    public void resolverMethods() {}
+
+
+    /**
      * Monitor performance of service and algorithm methods
      */
-    @Around("serviceMethods() || algorithmMethods()")
+    @Around("serviceMethods() || algorithmMethods() || controllerMethods() || resolverMethods()")
     public Object monitorPerformance(ProceedingJoinPoint joinPoint) throws Throwable {
         String methodKey = joinPoint.getSignature().toShortString();
         long startTime = System.nanoTime();
@@ -89,7 +99,6 @@ public class PerformanceMonitoringAspect {
         }
     }
 
-    // make internal metrics access private to avoid exposing MethodMetrics type
     private MethodMetrics getMetrics(String methodKey) {
         return metricsMap.get(methodKey);
     }
@@ -103,7 +112,7 @@ public class PerformanceMonitoringAspect {
             long callCount = metrics.callCount.get();
             double avg = metrics.getAverageTime();
             long min = metrics.minTime.get();
-            if (min == Long.MAX_VALUE) min = 0; // normalize unset min
+            if (min == Long.MAX_VALUE) min = 0;
             long max = metrics.maxTime.get();
 
             list.add(new PerformanceMethodMetricsDto(method, callCount, avg, min, max));

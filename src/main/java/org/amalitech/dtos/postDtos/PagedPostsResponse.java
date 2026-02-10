@@ -2,7 +2,6 @@ package org.amalitech.dtos.postDtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.amalitech.models.Post;
 
 import java.util.List;
 
