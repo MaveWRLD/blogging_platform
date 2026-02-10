@@ -1,38 +1,57 @@
 package org.amalitech.util.db;
 
-
 import org.amalitech.util.exception.DatabaseException;
+import org.springframework.stereotype.Repository;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import javax.sql.DataSource;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
+@Repository
 public class DBExecutor {
 
-    public static void bindParameters(PreparedStatement ps, List<Object> params) throws SQLException {
+    private final DataSource dataSource;
+
+    public DBExecutor(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    private void bindParameters(PreparedStatement ps, List<Object> params) throws SQLException {
+        if (params == null) return;
         for (int i = 0; i < params.size(); i++) {
             ps.setObject(i + 1, params.get(i));
         }
     }
 
-    public static int execute(String sql, List<Object> params) {
-        try (Connection conn = DBConnection.getConnection();
-            PreparedStatement ps = conn.prepareStatement(sql)) {
+    public int insertAndReturnId(String sql, List<Object> params) {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps =
+                     conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             bindParameters(ps, params);
-            boolean hasResultSet = ps.execute();
-            if (hasResultSet) {
-                try (ResultSet rs = ps.getResultSet()) {
-                    if (rs.next()) {
-                        return rs.getInt(1);
-                    }
+            ps.executeUpdate();
+
+            try (ResultSet rs = ps.getGeneratedKeys()) {
+                if (rs.next()) {
+                    return rs.getInt(1);
                 }
             }
             return 0;
         } catch (SQLException e) {
-            throw new DatabaseException("Database operation failed", e);
+            throw new DatabaseException("Insert failed", e);
+        }
+    }
+
+    public int executeUpdate(String sql, List<Object> params) {
+        try (Connection conn = dataSource.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            bindParameters(ps, params);
+            return ps.executeUpdate();
+
+        } catch (SQLException e) {
+            throw new DatabaseException("Update failed", e);
         }
     }
 
@@ -41,19 +60,29 @@ public class DBExecutor {
         T map(ResultSet rs) throws SQLException;
     }
 
-    public static <T> List<T> query(String sql, List<Object> params, RowMapper<T> mapper) {
-        List<T> results = new ArrayList<>();
-        try (Connection conn = DBConnection.getConnection();
+    public <T> List<T> query(
+            String sql,
+            List<Object> params,
+            RowMapper<T> mapper) {
+
+        try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
+
             bindParameters(ps, params);
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                results.add(mapper.map(rs));
+
+            try (ResultSet rs = ps.executeQuery()) {
+                List<T> results = new ArrayList<>();
+                while (rs.next()) {
+                    results.add(mapper.map(rs));
+                }
+                return results;
             }
         } catch (SQLException e) {
-            throw new DatabaseException("Error executing query", e);
+            System.err.println("SQL: " + sql);
+            System.err.println("Params: " + params);
+            e.printStackTrace();
+            throw new DatabaseException("Query failed: " + e.getMessage(), e);
         }
-        return results;
     }
 }
 
