@@ -3,10 +3,9 @@ package org.amalitech.dao;
 import org.amalitech.models.Role;
 import org.amalitech.models.User;
 import org.amalitech.interfaces.UserRepository;
-import org.amalitech.util.RowMappers.MapRowToUser;
-import org.amalitech.util.db.DBExecutor;
-
+import org.amalitech.util.RowMappers.UserRowMapper;
 import org.amalitech.util.db.SqlBuilder;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
@@ -17,12 +16,12 @@ import java.util.Set;
 @Repository
 public class UserDao implements UserRepository {
 
-    private final DBExecutor db;
+    private final JdbcTemplate jdbcTemplate;
     private final RoleDao roleDao;
     private final UserRoleDao userRoleDao;
 
-    public UserDao(DBExecutor db, RoleDao roleDao, UserRoleDao userRoleDao) {
-        this.db = db;
+    public UserDao(JdbcTemplate jdbcTemplate, RoleDao roleDao, UserRoleDao userRoleDao) {
+        this.jdbcTemplate = jdbcTemplate;
         this.roleDao = roleDao;
         this.userRoleDao = userRoleDao;
     }
@@ -34,8 +33,10 @@ public class UserDao implements UserRepository {
                 Set.of("id", "createdAt")
         );
         String sql = "INSERT INTO users " + insert.getClause() + " RETURNING id";
+
+        Integer userId = jdbcTemplate.queryForObject(sql, Integer.class, insert.getParams().toArray());
+
         Role role = roleDao.findByName("reader");
-        int userId = db.insertAndReturnId(sql, insert.getParams());
         if (role != null) {
             userRoleDao.assignRoleToUser(userId, role.getId());
         }
@@ -48,40 +49,53 @@ public class UserDao implements UserRepository {
                 """
                     SELECT
                         u.id, u.username, u.email, u.password, u.status, u.created_at,
-                              COALESCE(
-                                ARRAY_AGG(DISTINCT r.name) FILTER (WHERE r.name IS NOT NULL),
-                                '{}'
-                              ) AS roles
-                        FROM users u
-                        LEFT JOIN user_roles ur ON ur.user_id = u.id
-                        LEFT JOIN roles r       ON r.id = ur.role_id
-                        GROUP BY
-                            u.id, u.username, u.email, u.password, u.status, u.created_at
-                        ORDER BY u.id;
+                        COALESCE(
+                            ARRAY_AGG(DISTINCT r.name) FILTER (WHERE r.name IS NOT NULL),
+                            '{}'
+                        ) AS roles
+                    FROM users u
+                    LEFT JOIN user_roles ur ON ur.user_id = u.id
+                    LEFT JOIN roles r       ON r.id = ur.role_id
+                    GROUP BY
+                        u.id, u.username, u.email, u.password, u.status, u.created_at
+                    ORDER BY u.id;
                 """;
-        return db.query(sql, new ArrayList<>(), MapRowToUser::mapRowToUser);
+
+        return jdbcTemplate.query(sql, new UserRowMapper());
     }
 
+    @Override
     public Optional<User> findByUserId(int id) {
         String sql =
-        """
-            SELECT
-                u.id, u.username, u.email, u.password, u.status, u.created_at,
-                COALESCE(ARRAY_AGG(r.name) FILTER (WHERE r.name IS NOT NULL), '{}') AS roles
-            FROM users u
-            LEFT JOIN user_roles ur ON ur.user_id = u.id
-            LEFT JOIN roles r ON r.id = ur.role_id
-            WHERE u.id = ?
-            GROUP BY u.id
-        """;
-        return db.query(sql, List.of(id), MapRowToUser::mapRowToUser)
-                .stream()
-                .findFirst();
+                """
+                    SELECT
+                        u.id, u.username, u.email, u.password, u.status, u.created_at,
+                        COALESCE(ARRAY_AGG(r.name) FILTER (WHERE r.name IS NOT NULL), '{}') AS roles
+                    FROM users u
+                    LEFT JOIN user_roles ur ON ur.user_id = u.id
+                    LEFT JOIN roles r ON r.id = ur.role_id
+                    WHERE u.id = ?
+                    GROUP BY u.id
+                """;
+
+        List<User> users = jdbcTemplate.query(sql, new UserRowMapper(), id);
+        return users.stream().findFirst();
     }
 
     public Optional<User> findByUsername(String username) {
-        String sql = "SELECT id, username, email, password, role, status, created_at FROM users WHERE username = ?";
-        return db.query(sql, List.of(username), MapRowToUser::mapRowToUser).stream().findFirst();
+        String sql =
+                """
+                    SELECT
+                        id, username, email, password, status, created_at,
+                        COALESCE(ARRAY_AGG(r.name) FILTER (WHERE r.name IS NOT NULL), '{}') AS roles
+                    FROM users u
+                    LEFT JOIN user_roles ur ON ur.user_id = u.id
+                    LEFT JOIN roles r ON r.id = ur.role_id
+                    WHERE u.username = ?
+                    GROUP BY u.id
+                """;
+        List<User> users = jdbcTemplate.query(sql, new UserRowMapper(), username);
+        return users.stream().findFirst();
     }
 
     @Override
@@ -100,12 +114,12 @@ public class UserDao implements UserRepository {
         List<Object> params = new ArrayList<>(set.getParams());
         params.add(user.getId());
 
-        db.executeUpdate(sql, params);
+        jdbcTemplate.update(sql, params.toArray());
     }
 
     @Override
     public void delete(int id) {
         String sql = "DELETE FROM users WHERE id = ?";
-        db.executeUpdate(sql, List.of(id));
+        jdbcTemplate.update(sql, id);
     }
 }
