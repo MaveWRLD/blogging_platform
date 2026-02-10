@@ -21,6 +21,14 @@ public class CustomExceptionHandler {
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(DatabaseException.class)
+    public ResponseEntity<?> handleDatabaseException(DatabaseException ex, WebRequest request) {
+        Map<String, Object> body = exceptionBody(ex.getMessage(), request);
+
+
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleValidationErrors(MethodArgumentNotValidException ex) {
 
@@ -36,14 +44,6 @@ public class CustomExceptionHandler {
         body.put("message", "Validation failed");
 
         return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(DatabaseException.class)
-    public ResponseEntity<?> handleDatabaseException(DatabaseException ex, WebRequest request) {
-        Map<String, Object> body = exceptionBody(ex.getMessage(), request);
-
-
-        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     private static Map<String, Object> exceptionBody(String exception, WebRequest request) {
