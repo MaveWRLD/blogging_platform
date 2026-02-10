@@ -1,9 +1,97 @@
 package org.amalitech.util.db;
 
+import lombok.Getter;
+
 import java.util.*;
 
 public class SqlBuilder {
 
+    private String baseSelect;
+    private final List<Object> params = new ArrayList<>();
+    private final List<String> whereClauses = new ArrayList<>();
+    private final List<String> havingClauses = new ArrayList<>();
+    ArrayList<String> groupByColumns = new ArrayList<>();
+    private String orderByClause = null;
+    private Integer limitValue = null;
+    private Long offsetValue = null;
+
+    public SqlBuilder(String baseSql) {
+        this.baseSelect = baseSql;
+    }
+
+    public SqlBuilder groupBy(String... columns) {
+
+        groupByColumns.addAll(Arrays.asList(columns));
+        return this;
+    }
+
+    public SqlBuilder where(String condition, Object... values) {
+        whereClauses.add(condition);
+        Collections.addAll(params, values);
+        return this;
+    }
+
+    public SqlBuilder and(String condition, Object... values) {
+        return where(condition, values);
+    }
+
+    public void having(String condition, Object... values) {
+        havingClauses.add(condition);
+        Collections.addAll(params, values);
+    }
+
+    public void orderBy(String orderBy) {
+        this.orderByClause = orderBy;
+    }
+
+    public void limit(int size, long offset) {
+        this.limitValue = size;
+        this.offsetValue = offset;
+    }
+
+    public String getSql() {
+        StringBuilder sql = new StringBuilder(baseSelect);
+
+        if (!whereClauses.isEmpty()) {
+            sql.append(" WHERE ").append(String.join(" AND ", whereClauses));
+        }
+
+        if (!groupByColumns.isEmpty()) {
+            sql.append(" GROUP BY ").append(String.join(", ", groupByColumns));
+        }
+
+        if (!havingClauses.isEmpty()) {
+            sql.append(" HAVING ").append(String.join(" AND ", havingClauses));
+        }
+
+        if (orderByClause != null) {
+            sql.append(" ORDER BY ").append(orderByClause);
+        }
+
+        if (limitValue != null) {
+            sql.append(" LIMIT ?");
+            if (offsetValue != null) {
+                sql.append(" OFFSET ?");
+            }
+        }
+
+        return sql.toString();
+    }
+
+
+    public List<Object> getParams() {
+        List<Object> allParams = new ArrayList<>(params);
+        if (limitValue != null) {
+            allParams.add(limitValue);
+            if (offsetValue != null) {
+                allParams.add(offsetValue);
+            }
+        }
+        return allParams;
+    }
+
+
+    @Getter
     public static class SqlFragment {
         private final String clause;
         private final List<Object> params;
@@ -12,9 +100,6 @@ public class SqlBuilder {
             this.clause = clause;
             this.params = params;
         }
-
-        public String getClause() { return clause; }
-        public List<Object> getParams() { return params; }
 
         @Override
         public String toString() {
@@ -70,6 +155,14 @@ public class SqlBuilder {
         String clause = "(" + columns + ") VALUES (" + placeholders + ")";
 
         return new SqlFragment(clause, params);
+    }
+
+    @Override
+    public String toString() {
+        return "SqlBuilder{" +
+                "sql=" + getSql() +
+                ", params=" + getParams() +
+                '}';
     }
 }
 
