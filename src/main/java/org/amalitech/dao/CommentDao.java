@@ -5,7 +5,7 @@ import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.Updates;
 import org.amalitech.interfaces.CommentRepository;
-import org.amalitech.util.RowMappers.MapCommentToRow;
+import org.amalitech.util.RowMappers.CommentRowMapper;
 import org.amalitech.util.exception.DatabaseException;
 import org.amalitech.models.Comment;
 import org.bson.Document;
@@ -52,7 +52,7 @@ public class CommentDao implements CommentRepository {
             if (doc == null) {
                 throw new DatabaseException("Comment with ID " + objectId + " not found");
             }
-            return MapCommentToRow.mapToComment(doc);
+            return CommentRowMapper.mapToComment(doc);
         } catch (IllegalArgumentException e) {
             throw new DatabaseException("Invalid comment ID format: " + objectId);
         }
@@ -66,7 +66,7 @@ public class CommentDao implements CommentRepository {
     @Override
     public List<Comment> findByPostId(int postId) {
         List<Comment> comments = new ArrayList<>();
-        commentsCollection.find(Filters.eq("postId", postId)).forEach(doc -> comments.add(MapCommentToRow.mapToComment(doc)));
+        commentsCollection.find(Filters.eq("postId", postId)).forEach(doc -> comments.add(CommentRowMapper.mapToComment(doc)));
         return comments;
     }
 
