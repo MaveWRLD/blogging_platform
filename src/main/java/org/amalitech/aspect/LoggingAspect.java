@@ -29,6 +29,7 @@ public class LoggingAspect {
     @Pointcut("execution(* org.amalitech.controllers..*(..))")
     public void controllerMethods() {}
 
+
     @Pointcut("execution(* org.amalitech.graphqlResolver..*(..))")
     public void resolverMethods() {}
 

@@ -99,10 +99,6 @@ public class PerformanceMonitoringAspect {
         }
     }
 
-    private MethodMetrics getMetrics(String methodKey) {
-        return metricsMap.get(methodKey);
-    }
-
     /**
      * Snapshot current performance metrics as a DTO
      */
@@ -118,18 +114,5 @@ public class PerformanceMonitoringAspect {
             list.add(new PerformanceMethodMetricsDto(method, callCount, avg, min, max));
         });
         return new PerformanceStatsDto(Instant.now(), list);
-    }
-
-    /**
-     * Print all performance statistics
-     */
-    public void printStatistics() {
-        logger.info("=== PERFORMANCE STATISTICS ===");
-        metricsMap.forEach((method, metrics) -> {
-            logger.info("Method: {}", method);
-            logger.info("  Calls: {}", metrics.callCount.get());
-            logger.info("  Avg Time: {}ms", String.format("%.2f", metrics.getAverageTime()));            logger.info("  Min Time: {}ms", metrics.minTime.get());
-            logger.info("  Max Time: {}ms", metrics.maxTime.get());
-        });
     }
 }
