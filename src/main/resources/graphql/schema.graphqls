@@ -1,0 +1,101 @@
+scalar DateTime
+
+enum SortOrder {
+    ASC
+    DESC
+}
+
+enum PostStatus {
+    DRAFT
+    PUBLISHED
+    ARCHIVED
+}
+
+input PostFilter {
+    page: Int = 0
+    size: Int = 12
+    tag: String
+    author: String
+    search: String
+    fromDate: DateTime
+    toDate: DateTime
+}
+
+input CreatePostInput {
+    title: String!
+    body: String!
+    status: PostStatus = DRAFT
+    tags: [String!]!
+}
+
+input UpdatePostInput {
+    title: String
+    content: String
+    status: PostStatus
+    tags: [String!]
+}
+
+input CreateCommentInput {
+    postId: ID!
+    content: String!
+}
+
+type Post {
+    id: ID!
+    title: String!
+    body: String!
+    userId: ID!
+    likeCount: Int!
+    commentCount: Int!
+    createdAt: DateTime!
+    tags: [Tag]
+}
+
+type Tag {
+    id: ID!
+    name: String!
+}
+
+type User {
+    id: ID!
+    username: String!
+    email: String!
+}
+
+type Comment {
+    id: ID!
+    username: String!
+    body: String!
+    createdAt: DateTime!
+}
+
+type PostResponse {
+    post: Post
+    author: User!
+    comments: [Comment]
+}
+
+type PagedPostsResponse {
+    posts: [Post]
+    page: Int
+    size: Int
+    total: Int
+    totalPages: Int
+    hasNext: Boolean
+    hasPrevious: Boolean
+}
+
+type Query {
+    posts(filter: PostFilter): PagedPostsResponse
+    post(id: ID!): PostResponse
+}
+
+type Mutation {
+    createPost(input: CreatePostInput!): Post!
+    updatePost(id: ID!, input: UpdatePostInput!): Post!
+    deletePost(id: ID!): Boolean!
+    publishPost(id: ID!): Post!
+    likePost(id: ID!): Post!
+
+    createComment(input: CreateCommentInput!): Comment!
+}

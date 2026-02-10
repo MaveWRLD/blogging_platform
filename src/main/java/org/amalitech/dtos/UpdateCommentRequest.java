@@ -3,7 +3,6 @@ package org.amalitech.dtos;
 import lombok.Data;
 
 @Data
-public class UpdatePostRequest {
-    private String title;
+public class UpdateCommentRequest {
     private String body;
 }
