@@ -29,17 +29,17 @@ Combines layered architecture, AOP (logging + performance monitoring), input val
 - Java 21
 - Spring Boot 3.4+
 - Spring Web (REST)
-- Spring GraphQL**
+- Spring GraphQL
 - Spring Data JDBC** / JPA (PostgreSQL)
 - Spring Data MongoDB
 - Hibernate Validator
 - PostgreSQL (main storage)
-- MongoDB** (comments)
-- HikariCP** connection pool
-- MapStruct** (DTO ↔ Entity mapping)
-- Lombok**
-- jBCrypt** (password hashing)
-- AspectJ AOP** — logging, performance monitoring, caching
+- MongoDB (comments)
+- HikariCP connection pool
+- MapStruct (DTO ↔ Entity mapping)
+- Lombok
+- jBCrypt (password hashing)
+- AspectJ AOP — logging, performance monitoring, caching
 - Mockito**, AssertJ, JUnit 5 (testing)
 - Springdoc OpenAPI (Swagger UI)
 
@@ -94,12 +94,12 @@ java -jar target/blogging-platform-0.0.1-SNAPSHOT.jar
 
 ### 4. Access the APIs
 
-- **REST + Swagger UI**: http://localhost:8080/swagger-ui.html
-- **GraphQL Playground**: http://localhost:8080/playground
-- **GraphiQL**: http://localhost:8080/graphiql
-- **Altair GraphQL Client** (alternative): http://localhost:8080/altair
+- REST + Swagger UI**: http://localhost:8080/swagger-ui.html
+- GraphQL Playground**: http://localhost:8080/playground
+- GraphiQL**: http://localhost:8080/graphiql
+- Altair GraphQL Client** (alternative): http://localhost:8080/altair
 
-## 📚 API Overview
+## API Overview
 
 ### REST Endpoints (examples)
 
@@ -154,6 +154,116 @@ src/main/java/org/amalitech
 ├── util                 # Validators, exceptions, helpers
 └── algorithm            # Trending sort, cache manager
 ```
+
+```markdown
+# AOP (Aspect-Oriented Programming) in Blogging Platform
+
+This project uses **Spring AOP** to implement cross-cutting concerns in a clean, modular way.  
+The aspects handle **logging**, **performance monitoring**, and **caching** across the service, controller, and DAO layers.
+
+## Aspects Overview
+
+| Aspect                     | Purpose                              | Pointcuts Applied To                          | Key Features                                      |
+|----------------------------|--------------------------------------|-----------------------------------------------|---------------------------------------------------|
+| `LoggingAspect`            | Method entry/exit + exception logging | Controllers, Services, DAOs                   | Entry/exit logs with arguments, exception stack trace, slow query detection |
+| `PerformanceMonitoringAspect` | Track execution time & statistics   | Services, Algorithm layer                     | Records call count, avg/min/max time, logs slow executions (>500ms) |
+| `CachingAspect`            | Method result caching                | Methods annotated with `@Cacheable`           | Cache hit/miss logging, TTL support, key generation based on args |
+
+All aspects are enabled automatically via component scanning and `@EnableAspectJAutoProxy`.
+
+## 1. LoggingAspect
+
+**Location**: `org.amalitech.aspect.LoggingAspect`
+
+**Responsibilities**:
+- Log method entry with arguments (serialized via Jackson)
+- Log method exit
+- Log exceptions with full stack trace
+- Detect and warn about slow database operations (>1000ms)
+
+**Pointcuts**:
+- Controllers: `execution(* org.amalitech.controllers..*(..))`
+- Services: `execution(* org.amalitech.service..*(..))`
+- DAOs: `execution(* org.amalitech.dao..*(..))`
+
+**Example log output**:
+```
+ENTRY -> PostService.findPosts(..) with arguments: [{"page":0,"size":10,"tag":"java"}]
+EXIT -> PostService.findPosts(..)
+DB QUERY START -> findById
+DB QUERY END -> findById completed in 12ms
+SLOW QUERY DETECTED -> findPosts took 1234ms
+EXCEPTION in PostService.createPost(): ValidationException - Title cannot be empty
+```
+
+## 2. PerformanceMonitoringAspect
+
+**Location**: `org.amalitech.aspect.PerformanceMonitoringAspect`
+
+**Responsibilities**:
+- Measure execution time of service & algorithm methods
+- Maintain in-memory statistics (call count, average, min, max time)
+- Log slow executions (>500ms) with current average
+- Expose metrics snapshot via `snapshot()` method
+
+**Pointcuts**:
+- Services: `execution(* org.amalitech.service..*(..))`
+- Algorithms: `execution(* org.amalitech.algorithm..*(..))`
+
+**Features**:
+- Thread-safe using `ConcurrentHashMap` + `AtomicLong`
+- Warning logs for slow methods with avg time
+- Public `snapshot()` method returns `PerformanceStatsDto` (call count, avg, min, max per method)
+
+**Example log**:
+```
+PERFORMANCE -> PostService.findPosts(..) executed in 45ms
+SLOW EXECUTION -> PostService.createPost(..) took 720ms (avg: 312.50ms)
+```
+
+## 3. CachingAspect
+
+**Location**: `org.amalitech.aspect.CachingAspect`
+
+**Responsibilities**:
+- Intercept methods annotated with `@Cacheable`
+- Check cache hit/miss
+- Store results with TTL if cache miss
+- Log cache operations (hit, miss, stored)
+
+**Pointcut**:
+- `@annotation(org.amalitech.annotation.Cacheable)`
+
+**Cache key generation**:
+- Prefix (if provided) + method name + hash of arguments
+- Uses `Arrays.hashCode(args)` for simplicity
+
+**Example log**:
+```
+CACHE HIT -> posts:findById:42
+CACHE MISS -> posts:getTrendingPosts:10
+CACHE STORED -> posts:getTrendingPosts:10 (TTL: 300s)
+```
+
+## Configuration
+
+All aspects are Spring-managed beans (`@Component` + `@Aspect`).
+
+AOP is enabled via:
+
+```java
+@SpringBootApplication
+@EnableAspectJAutoProxy(proxyTargetClass = true)  // if needed for CGLIB
+public class Application { ... }
+```
+
+## Monitoring & Debugging
+
+- **Recent logs endpoint** (admin only): `GET /api/admin/logs/recent?limit=100&level=ERROR`
+- **Performance metrics** (if exposed): `GET /api/admin/performance/snapshot`
+- **Logs** appear in console + captured in-memory for API access
+
+
 
 ## Testing
 
