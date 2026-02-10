@@ -1,4 +1,4 @@
-package org.amalitech.models;
+package org.amalitech.util;
 
 /**
  * Sort order for post listing (e.g. in search and feeds).
