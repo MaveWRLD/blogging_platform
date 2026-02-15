@@ -9,11 +9,11 @@ import org.amalitech.dtos.ApiResponse;
 import org.amalitech.dtos.userDtos.CreateUserRequest;
 import org.amalitech.dtos.userDtos.UpdateUserRequest;
 import org.amalitech.dtos.userDtos.UserDto;
-import org.amalitech.dtos.userDtos.UserWithRoleDto;
+import org.amalitech.mappers.PostMapper;
 import org.amalitech.mappers.UserMapper;
-import org.amalitech.models.User;
+import org.amalitech.entities.User;
 import org.amalitech.service.UserService;
-import org.amalitech.util.exception.ResourceNotFoundException;
+import org.amalitech.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -29,31 +29,8 @@ public class UserController{
 
     private final UserService userService;
     private final UserMapper userMapper;
+    private final PostMapper postMapper;
 
-    @GetMapping
-    @Operation(
-            summary = "Get all users",
-            description = "Returns a list of all users in the system"
-    )
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        List<User> users = userService.findAllUsers();
-        List<UserDto> userDtos = users.stream()
-                .map(userMapper::toUserDto)
-                .toList();
-        return ResponseEntity.ok(userDtos);
-    }
-
-    @GetMapping("/{id}")
-    @Operation(
-            summary = "Get user by ID",
-            description = "Returns a single user with their role information based on the provided user ID"
-    )
-    public ResponseEntity<UserWithRoleDto> getUser(@PathVariable int id) {
-        User user = userService.findByUserId(id);
-        if (user == null)
-            return ResponseEntity.badRequest().build();
-        return ResponseEntity.ok(userMapper.toDto(user));
-    }
 
     @PostMapping
     @Operation(
@@ -69,7 +46,32 @@ public class UserController{
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .body(ApiResponse.success(userMapper.toUserDto(user), "User created successfully"));
+                .body(ApiResponse.success("User created successfully", userMapper.toDto(user)));
+    }
+
+    @GetMapping
+    @Operation(
+            summary = "Get all users",
+            description = "Returns a list of all users in the system"
+    )
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        List<User> users = userService.findAllUsers();
+        List<UserDto> userDtos = users.stream()
+                .map(userMapper::toDto)
+                .toList();
+        return ResponseEntity.ok(userDtos);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(
+            summary = "Get user by ID",
+            description = "Returns a single user with their role information based on the provided user ID"
+    )
+    public ResponseEntity<UserDto> getUser(@PathVariable Long id) {
+        User user = userService.findByUserId(id);
+        if (user == null)
+            return ResponseEntity.badRequest().build();
+        return ResponseEntity.ok(userMapper.toDto(user));
     }
 
     @PutMapping("/{id}")
@@ -80,11 +82,11 @@ public class UserController{
     public ResponseEntity<ApiResponse<UserDto>> updateUser(
             @PathVariable int id,
             @RequestBody UpdateUserRequest request) {
-            User existing = userService.findByUserId(id);
+            User existing = userService.findByUserId(Long.parseLong(String.valueOf(id)));
             userMapper.updateEntity(request, existing);
-            userService.updateUser(existing);
-            UserDto dto = userMapper.toUserDto(existing);
-            return ResponseEntity.ok(ApiResponse.success(dto, "User updated successfully"));
+            var updatedUser = userService.updateUser(id, existing);
+            UserDto dto = userMapper.toDto(updatedUser);
+            return ResponseEntity.ok(ApiResponse.success("User updated successfully", dto));
     }
 
     @DeleteMapping("/{id}")
@@ -94,12 +96,12 @@ public class UserController{
     )
     public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable int id) {
         try {
-            User existing = userService.findByUserId(id);
+            User existing = userService.findByUserId(Long.parseLong(String.valueOf(id)));
             if (existing == null) {
                 throw new ResourceNotFoundException("User not found");
             }
             userService.deleteUser(id);
-            return ResponseEntity.ok(ApiResponse.success(null, "User deleted successfully"));
+            return ResponseEntity.ok(ApiResponse.success(HttpStatus.NO_CONTENT,"User deleted successfully", null));
         } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
