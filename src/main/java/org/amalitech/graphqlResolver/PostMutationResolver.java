@@ -34,7 +34,7 @@ public class PostMutationResolver {
         Post post = new Post();
         post.setTitle(input.getTitle());
         post.setBody(input.getBody());
-        post.setStatus(PostStatus.valueOf(input.getStatus() != null ? input.getStatus() : "DRAFT"));
+        post.setStatus(PostStatus.valueOf(input.getStatus() != null ? input.getStatus() : "draft"));
 
         postService.createPost(post, null);
 
@@ -56,7 +56,7 @@ public class PostMutationResolver {
         }
         if (input.getStatus() != null) {
             existing.setStatus(PostStatus.valueOf(input.getStatus()));
-            if ("PUBLISHED".equals(existing.getStatus()) && existing.getPublishedAt() == null) {
+            if (existing.getPublishedAt() == null && "published".equals(existing.getStatus())) {
                 existing.setPublishedAt(Instant.now());
             }
         }
@@ -82,7 +82,7 @@ public class PostMutationResolver {
         );
 
         if (PostStatus.published != post.getStatus()) {
-            post.setStatus(PostStatus.valueOf("PUBLISHED"));
+            post.setStatus(PostStatus.valueOf("published"));
             post.setPublishedAt(Instant.now());
             postService.updatePost(post, null);
         }
