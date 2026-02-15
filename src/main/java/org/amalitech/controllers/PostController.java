@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/posts")
@@ -45,7 +44,7 @@ public class PostController {
 
         Post post = postMapper.createPost(request);
 
-        var createdPost = postService.createPost(post, null);
+        var createdPost = postService.createPost(post, request.getTagNames());
 
         return ResponseEntity.ok(ApiResponse.success(HttpStatus.CREATED, "Post created successfully", postMapper.toDto(createdPost)));
     }
@@ -86,7 +85,7 @@ public class PostController {
     ) {
         PostPagination result = getPostpagination(page, size, sortBy, sortDir);
 
-        List<PostDto> posts = result.pagedPost().getContent().stream().map(postMapper::toDto).toList();
+        List<PostDto> posts = result.pagedPost().getContent();
 
         PagedPostsResponse pagedResponse = new PagedPostsResponse(
                 posts, result.page(), result.size(), result.total(), result.totalPages(), result.hasPrevious(), result.hasNext()
@@ -101,47 +100,54 @@ public class PostController {
             @RequestParam(required = false, defaultValue = "0") int page,
             @RequestParam(required = false, defaultValue = "10") int size
     ) {
-        Page<Post> posts = postService.findPostsByUserId(userId, page, size);
+        var posts = postService.findPostsByUserId(userId, page, size);
         var totalPosts = posts.getTotalElements();
         var hasNextPage = posts.hasNext();
         var hasPreviousPage = posts.hasPrevious();
 
-        var postDtos = posts.getContent().stream().map(postMapper::toDto).collect(Collectors.toList());
+        var postDtos = posts.getContent();
 
         if (posts.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
         return ResponseEntity.ok(
-                new PagedPostsResponse
-                        (
-                                postDtos, posts.getNumber(), posts.getSize(), totalPosts, posts.getTotalPages(), hasPreviousPage, hasNextPage
-                        )
+                new PagedPostsResponse(
+                        postDtos, posts.getNumber(), posts.getSize(), totalPosts, posts.getTotalPages(), hasPreviousPage, hasNextPage
+                )
         );
     }
 
     @GetMapping("/trending")
-    public ResponseEntity<List<PostDto>> getTrendingPosts(
-            @RequestParam(defaultValue = "10") int limit) {
-        List<Post> trending = postService.getTopTrendingPosts(limit);
-        List<PostDto> dtos = trending.stream().map(postMapper::toDto).toList();
-        return ResponseEntity.ok(dtos);
-    }
+    @Operation(
+            summary = "Get trending posts",
+            description = "Returns a list of trending posts based on engagement and recency"
+    )
+    public ResponseEntity<PagedPostsResponse> getTrendingPosts(
+            @RequestParam(required = false, defaultValue = "10") Integer limit,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "12") int size
+    ) {
 
-    //    @GetMapping("/trending")
-//    @Operation(
-//            summary = "Get trending posts",
-//            description = "Returns a list of trending posts based on engagement and recency"
-//    )
-//    public ResponseEntity<ApiResponse<List<PostDto>>> getTrendingPosts(
-//            @RequestParam(required = false, defaultValue = "10") Integer limit
-//    ) {
-//        List<PostDto> trendingDtos = postService.getTrendingPosts(limit).stream()
-//                .map(postMapper::toDto)
-//                .toList();
-//
-//        return ResponseEntity.ok(ApiResponse.success(trendingDtos, "Trending posts retrieved successfully"));
-//    }
+        Pageable pageable = Pageable.ofSize(size).withPage(page);
+
+        Page<Post> trendingDtos = postService.getTopTrendingPosts(limit, pageable);
+
+        var totalPosts = trendingDtos.getTotalElements();
+        var hasNextPage = trendingDtos.hasNext();
+        var hasPreviousPage = trendingDtos.hasPrevious();
+
+
+         List<PostDto> postDtos = trendingDtos.getContent().stream()
+                .map(postMapper::toDto)
+                .toList();
+
+        return ResponseEntity.ok(
+                new PagedPostsResponse(
+                        postDtos, trendingDtos.getNumber(), trendingDtos.getSize(), totalPosts, trendingDtos.getTotalPages(), hasPreviousPage, hasNextPage
+                )
+        );
+    }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -194,7 +200,7 @@ public class PostController {
                 sort
         );
 
-        Page<Post> pagedPost = postService.getPosts(pageable);
+        Page<PostDto> pagedPost = postService.getPosts(pageable);
 
         long total = pagedPost.getTotalElements();
         int totalPages = pagedPost.getTotalPages();
@@ -203,7 +209,7 @@ public class PostController {
         return new PostPagination(page, size, pagedPost, total, totalPages, hasNext, hasPrevious);
     }
 
-    private record PostPagination(int page, int size, Page<Post> pagedPost, long total, int totalPages, boolean hasNext, boolean hasPrevious) {
+    private record PostPagination(int page, int size, Page<PostDto> pagedPost, long total, int totalPages, boolean hasNext, boolean hasPrevious) {
     }
 
     private Result getPostComments(Map<Post, List<Comment>> postWithComments) {

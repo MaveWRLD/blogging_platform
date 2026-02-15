@@ -24,6 +24,7 @@ public interface PostMapper {
 
 
     @ObjectFactory
+    @Mapping(target = "tags", ignore = true)
     default Post createPost(CreatePostRequest request) {
         return PostFactory.fromRequest(request);
     }

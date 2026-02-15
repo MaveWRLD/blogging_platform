@@ -1,7 +1,9 @@
 package org.amalitech.service;
 
 import org.amalitech.algorithm.TrendingSortAlgorithm;
+import org.amalitech.dtos.postDtos.PostDto;
 import org.amalitech.dtos.postDtos.PostFilter;
+import org.amalitech.repositories.CommentRepository;
 import org.amalitech.repositories.TagRepository;
 import org.amalitech.entities.*;
 import org.amalitech.repositories.PostRepository;
@@ -14,10 +16,7 @@ import org.amalitech.exception.ValidationException;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -49,6 +48,7 @@ public class PostService {
         this.commentService = commentService;
         this.trendingAlgorithm = trendingAlgorithm;
         this.userRepository = userRepository;
+        this.tagService = tagService;
     }
 
     /**
@@ -81,15 +81,14 @@ public class PostService {
      */
     @Transactional(readOnly = true, propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
     @Cacheable(value="allPosts")
-    public Page<Post> getPosts(Pageable pageable) {
-        return postRepository.findAll(pageable);
+    public Page<PostDto> getPosts(Pageable pageable) {
+        return postRepository.findAllProjected(pageable);
     }
-
 
     /**
      * Get a post by ID with comments
      */
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
+    @Transactional(readOnly = true)
     @Cacheable(value = "post:detail", key = "#id")
     public Map<Post, List<Comment>> findPostById(int id) {
         if (id <= 0) throw new ValidationException("Invalid post ID");
@@ -102,28 +101,31 @@ public class PostService {
         return Map.of(post, comments);
     }
 
+    @Cacheable(value = "postsByUser", key = "#userId + '-' + #page + '-' + #size")
     @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
-    public Page<Post> findPostsByUserId(Long userId, int page, int size) {
+    public Page<PostDto> findPostsByUserId(Long userId, int page, int size) {
         Pageable pageable = Pageable.ofSize(size).withPage(page);
         return postRepository.findPostsByUserId(userId, pageable);
     }
 
-    @Cacheable(value = "trending-posts", key = "#limit", unless = "#result.isEmpty()")
+    @Cacheable(value = "trending-posts", key = "#limit + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
     @Transactional(readOnly = true)
-    public List<Post> getTopTrendingPosts(int limit) {
+    public Page<Post> getTopTrendingPosts(int limit, Pageable pageable) {
         if (limit <= 0 || limit > 100) {
             limit = 10;
         }
 
         Instant threshold = Instant.now().minus(30, ChronoUnit.DAYS);
 
-        List<Post> candidatePosts = postRepository.findRecentPublishedPosts(threshold);
+        Page<Post> candidatePage = postRepository.findRecentPublishedPosts(threshold, pageable);
 
-        if (candidatePosts.isEmpty()) {
-            return Collections.emptyList();
+        if (candidatePage.isEmpty()) {
+            return new PageImpl<>(Collections.emptyList(), pageable, 0);
         }
 
-        return trendingAlgorithm.getTopTrending(candidatePosts, limit);
+        List<Post> topKList = trendingAlgorithm.getTopTrending(candidatePage.getContent(), limit);
+
+        return new PageImpl<>(topKList, pageable, candidatePage.getTotalElements());
     }
 
     /**
