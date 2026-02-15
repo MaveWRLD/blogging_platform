@@ -22,14 +22,11 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
-    private final PostRepository postRepository;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository, PostRepository postRepository) {
+    public UserService(UserRepository userRepository, RoleRepository roleRepository) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
-        this.postRepository = postRepository;
     }
-
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     public List<User> findAllUsers() {
@@ -46,7 +43,6 @@ public class UserService {
     public Optional<User> findByUsername(String username) {
         return userRepository.findByUsername(username);
     }
-
 
     @Transactional
     public User createUser(User user) {
