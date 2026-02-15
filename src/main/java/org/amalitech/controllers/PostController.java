@@ -8,10 +8,14 @@ import org.amalitech.dtos.*;
 import org.amalitech.dtos.postDtos.*;
 import org.amalitech.mappers.CommentMapper;
 import org.amalitech.mappers.PostMapper;
-import org.amalitech.models.Comment;
-import org.amalitech.models.Post;
+import org.amalitech.entities.Comment;
+import org.amalitech.entities.Post;
 import org.amalitech.service.PostService;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,11 +43,34 @@ public class PostController {
     )
     public ResponseEntity<ApiResponse<PostDto>> createPost(@Valid @RequestBody CreatePostRequest request) {
 
-        Post post = postMapper.toEntity(request);
+        Post post = postMapper.createPost(request);
 
-        postService.createPost(post, null);
+        var createdPost = postService.createPost(post, null);
 
-        return ResponseEntity.ok(ApiResponse.success(HttpStatus.CREATED, postMapper.toDto(post), "Post created successfully"));
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.CREATED, "Post created successfully", postMapper.toDto(createdPost)));
+    }
+
+
+    /**
+     * Update existing post (partial update)
+     * POST /api/posts/{id}
+     */
+    @PutMapping("/{id}")
+    @Operation(summary = "Update a post", description = "Partially updates a post. Only provided fields are updated.")
+    public ResponseEntity<ApiResponse<PostDto>> updatePost(
+            @PathVariable Integer id,
+            @Valid @RequestBody UpdatePostRequest request) {
+        Post existing = postService.findPostById(id)
+                .keySet()
+                .stream()
+                .findFirst().orElse(null);
+
+        postMapper.updateEntity(request, existing);
+        postService.updatePost(existing, request.getTagIds());
+        PostDto updatedDto = postMapper.toDto(existing);
+        return ResponseEntity.ok(
+                ApiResponse.success("Post updated successfully", updatedDto)
+        );
     }
 
     @GetMapping
@@ -53,28 +80,130 @@ public class PostController {
     )
     public ResponseEntity<ApiResponse<PagedPostsResponse>> getAllPosts(
             @RequestParam(required = false, defaultValue = "0") int page,
-            @RequestParam(required = false, defaultValue = "12") int size
+            @RequestParam(required = false, defaultValue = "12") int size,
+            @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
+            @RequestParam(required = false, defaultValue = "desc") String sortDir
     ) {
-        page = Math.max(page, 0);
-        size = Math.max(size, 1);
-        List<PostDto> posts = postService.getAllPosts(page, size).stream().map(postMapper::toDto).collect(Collectors.toList());
+        PostPagination result = getPostpagination(page, size, sortBy, sortDir);
 
-        long total = postService.countPosts();
-        int totalPages = (int) Math.ceil((double) total / size) - 1;
-        boolean hasNext = (long) (page + 1) * size < total;
-        boolean hasPrevious = page > 0;
+        List<PostDto> posts = result.pagedPost().getContent().stream().map(postMapper::toDto).toList();
 
         PagedPostsResponse pagedResponse = new PagedPostsResponse(
-                posts,
-                page,
-                size,
-                total,
-                totalPages,
-                hasPrevious,
-                hasNext
+                posts, result.page(), result.size(), result.total(), result.totalPages(), result.hasPrevious(), result.hasNext()
         );
 
-        return ResponseEntity.ok(ApiResponse.success(pagedResponse, "Posts retrieved successfully"));
+        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Posts retrieved successfully", pagedResponse));
+    }
+
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<PagedPostsResponse> getPostsByUserId(
+            @PathVariable Long userId,
+            @RequestParam(required = false, defaultValue = "0") int page,
+            @RequestParam(required = false, defaultValue = "10") int size
+    ) {
+        Page<Post> posts = postService.findPostsByUserId(userId, page, size);
+        var totalPosts = posts.getTotalElements();
+        var hasNextPage = posts.hasNext();
+        var hasPreviousPage = posts.hasPrevious();
+
+        var postDtos = posts.getContent().stream().map(postMapper::toDto).collect(Collectors.toList());
+
+        if (posts.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.ok(
+                new PagedPostsResponse
+                        (
+                                postDtos, posts.getNumber(), posts.getSize(), totalPosts, posts.getTotalPages(), hasPreviousPage, hasNextPage
+                        )
+        );
+    }
+
+    @GetMapping("/trending")
+    public ResponseEntity<List<PostDto>> getTrendingPosts(
+            @RequestParam(defaultValue = "10") int limit) {
+        List<Post> trending = postService.getTopTrendingPosts(limit);
+        List<PostDto> dtos = trending.stream().map(postMapper::toDto).toList();
+        return ResponseEntity.ok(dtos);
+    }
+
+    //    @GetMapping("/trending")
+//    @Operation(
+//            summary = "Get trending posts",
+//            description = "Returns a list of trending posts based on engagement and recency"
+//    )
+//    public ResponseEntity<ApiResponse<List<PostDto>>> getTrendingPosts(
+//            @RequestParam(required = false, defaultValue = "10") Integer limit
+//    ) {
+//        List<PostDto> trendingDtos = postService.getTrendingPosts(limit).stream()
+//                .map(postMapper::toDto)
+//                .toList();
+//
+//        return ResponseEntity.ok(ApiResponse.success(trendingDtos, "Trending posts retrieved successfully"));
+//    }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @Operation(
+            summary = "Delete a post",
+            description = "Deletes the post with the specified ID. This action is irreversible."
+    )
+    public void deletePost(@PathVariable Integer id) {
+        postService.deletePost(id);
+    }
+
+    @GetMapping("/{id}")
+    @Operation(
+            summary = "Get post by ID with comments",
+            description = "Returns full post details including comments and author information"
+    )
+    public ResponseEntity<ApiResponse<PostWithCommentsDto>> getPost(@PathVariable Integer id) {
+        if (id == null || id <= 0) {
+            return ResponseEntity.badRequest().build();
+        }
+
+        var postWithComments = postService.findPostById(id);
+
+        if (postWithComments == null || postWithComments.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        Result comments = getPostComments(postWithComments);
+        var postResponse = postMapper.toDtoWithComments(comments.postDto(), comments.commentDtos());
+        postResponse.setTotalComments(comments.commentDtos().size());
+
+        return ResponseEntity.ok(ApiResponse.success("Post with " + id + " found" , postResponse));
+    }
+
+    private record Result(PostDto postDto, List<CommentDto> commentDtos) {
+    }
+
+    private PostPagination getPostpagination(int page, int size, String sortBy, String sortDir) {
+        page = Math.max(page, 0);
+        size = Math.max(size, 1);
+
+        Sort sort =
+                sortDir.equalsIgnoreCase("ASC") ?
+                        Sort.by(sortBy).ascending() :
+                        Sort.by(sortBy).descending();
+
+        Pageable pageable = PageRequest.of(
+                page,
+                size,
+                sort
+        );
+
+        Page<Post> pagedPost = postService.getPosts(pageable);
+
+        long total = pagedPost.getTotalElements();
+        int totalPages = pagedPost.getTotalPages();
+        boolean hasNext = pagedPost.hasNext();
+        boolean hasPrevious = pagedPost.hasPrevious();
+        return new PostPagination(page, size, pagedPost, total, totalPages, hasNext, hasPrevious);
+    }
+
+    private record PostPagination(int page, int size, Page<Post> pagedPost, long total, int totalPages, boolean hasNext, boolean hasPrevious) {
     }
 
     private Result getPostComments(Map<Post, List<Comment>> postWithComments) {
@@ -89,55 +218,7 @@ public class PostController {
                 .map(commentMapper::toDto)
                 .toList();
 
+
         return new Result(postDto, commentDtos);
-    }
-
-    @GetMapping("/{id}")
-    @Operation(
-            summary = "Get post by ID with comments",
-            description = "Returns full post details including comments and author information"
-    )
-    public ResponseEntity<PostWithCommentsDto> getPost(@PathVariable Integer id) {
-        if (id == null || id <= 0) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        var postWithComments = postService.findPostById(id);
-
-        if (postWithComments == null || postWithComments.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        Result result = getPostComments(postWithComments);
-
-        return ResponseEntity.ok(postMapper.toDtoWithComments(result.postDto(), result.commentDtos()));
-    }
-
-    private record Result(PostDto postDto, List<CommentDto> commentDtos) {
-    }
-
-    @GetMapping("/trending")
-    @Operation(
-            summary = "Get trending posts",
-            description = "Returns a list of trending posts based on engagement and recency"
-    )
-    public ResponseEntity<ApiResponse<List<PostDto>>> getTrendingPosts(
-            @RequestParam(required = false, defaultValue = "10") Integer limit
-    ) {
-        List<PostDto> trendingDtos = postService.getTrendingPosts(limit).stream()
-                .map(postMapper::toDto)
-                .toList();
-
-        return ResponseEntity.ok(ApiResponse.success(trendingDtos, "Trending posts retrieved successfully"));
-    }
-
-    @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(
-            summary = "Delete a post",
-            description = "Deletes the post with the specified ID. This action is irreversible."
-    )
-    public void deletePost(@PathVariable Integer id) {
-        postService.deletePost(id);
     }
 }
