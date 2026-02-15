@@ -3,15 +3,18 @@ package org.amalitech.controllers;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.amalitech.dtos.ApiResponse;
 import org.amalitech.dtos.CommentDto;
 import org.amalitech.dtos.CreateCommentRequest;
 import org.amalitech.dtos.UpdateCommentRequest;
 import org.amalitech.mappers.CommentMapper;
-import org.amalitech.models.Comment;
+import org.amalitech.entities.Comment;
 import org.amalitech.service.CommentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 
 @RestController
@@ -38,11 +41,22 @@ public class CommentController {
             summary = "Create a new comment",
             description = "Create a new comment. If parentId is provided, the comment will be a reply to the specified parent comment."
     )
-    public ResponseEntity<CommentDto> createComment(@Valid @RequestBody CreateCommentRequest request) {
+    public ResponseEntity<ApiResponse<CommentDto>> createComment(@Valid @RequestBody CreateCommentRequest request) {
         Comment comment = commentMapper.toEntity(request);
         commentService.save(comment);
         CommentDto dto = commentMapper.toDto(comment);
-        return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+         return ResponseEntity.ok(ApiResponse.success(HttpStatus.CREATED, "Comment Added Successfully", dto));
+    }
+
+    @GetMapping("/{postId}")
+    @Operation(
+            summary = "Find a comment by id",
+            description = "Create a new comment. If parentId is provided, the comment will be a reply to the specified parent comment."
+    )
+    public ResponseEntity<ApiResponse<List<CommentDto>>> getComment(@PathVariable int postId) {
+        var comments = commentService.getCommentsByPostId(postId);
+        var commentDto = comments.stream().map(commentMapper::toDto).toList();
+        return ResponseEntity.ok(ApiResponse.success(commentDto));
     }
 
     /**
@@ -57,11 +71,9 @@ public class CommentController {
             @PathVariable String commentId,
             @Valid @RequestBody UpdateCommentRequest request) {
 
-        Comment existing = commentService.findById(commentId);
+        Comment existing = commentService.getCommentById(commentId);
 
-        if (request.getBody() != null) {
-            existing.setBody(request.getBody());
-        }
+        existing.setBody(request.getBody());
 
         commentService.update(existing);
         return ResponseEntity.ok(commentMapper.toDto(existing));

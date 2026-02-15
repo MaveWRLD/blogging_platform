@@ -1,11 +1,12 @@
 package org.amalitech.service;
 
-import org.amalitech.interfaces.CommentRepository;
-import org.amalitech.models.Comment;
-import org.amalitech.util.exception.ResourceNotFoundException;
-import org.amalitech.util.exception.ValidationException;
+import org.amalitech.repositories.CommentRepository;
+import org.amalitech.entities.Comment;
+import org.amalitech.exception.ResourceNotFoundException;
+import org.amalitech.exception.ValidationException;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 
 @Service
@@ -19,19 +20,18 @@ public class CommentService {
 
     public Comment save(Comment comment) {
         validateComment(comment);
-        commentRepository.save(comment);
-        return comment;
+        comment.setCreatedAt(Instant.now());
+        return commentRepository.insert(comment);
     }
 
-    public Comment findById(String id) {
+    public Comment getCommentById(String id) {
         if (id == null || id.trim().isEmpty()) {
             throw new IllegalArgumentException("Comment ID cannot be null or empty");
         }
-        Comment comment = commentRepository.findByObjectId(id);
-        if (comment == null) {
-            throw new ResourceNotFoundException("Comment not found with ID: " + id);
-        }
-        return comment;
+
+        return commentRepository.findById(id).orElseThrow(
+                () ->  new ResourceNotFoundException("Comment not found with ID: " + id)
+        );
     }
 
     public List<Comment> getCommentsByPostId(int postId) {
@@ -46,11 +46,11 @@ public class CommentService {
             throw new IllegalArgumentException("Comment or ID cannot be null");
         }
         validateComment(comment);
-        commentRepository.update(comment);
+        commentRepository.save(comment);
     }
 
     public void deleteById(String commentId) {
-        commentRepository.deleteByObjectId(commentId);
+        commentRepository.deleteById(commentId);
     }
 
     public void deleteByPostId(int postId) {
