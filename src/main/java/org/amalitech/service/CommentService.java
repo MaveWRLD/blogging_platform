@@ -5,6 +5,7 @@ import org.amalitech.entities.Comment;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -18,12 +19,14 @@ public class CommentService {
         this.commentRepository = commentRepository;
     }
 
+    @Transactional
     public Comment save(Comment comment) {
         validateComment(comment);
         comment.setCreatedAt(Instant.now());
         return commentRepository.insert(comment);
     }
 
+    @Transactional(readOnly = true)
     public Comment getCommentById(String id) {
         if (id == null || id.trim().isEmpty()) {
             throw new IllegalArgumentException("Comment ID cannot be null or empty");
@@ -34,6 +37,7 @@ public class CommentService {
         );
     }
 
+    @Transactional(readOnly = true)
     public List<Comment> getCommentsByPostId(int postId) {
         if (postId <= 0) {
             throw new ValidationException("Invalid post ID");
@@ -41,6 +45,7 @@ public class CommentService {
         return commentRepository.findByPostId(postId);
     }
 
+    @Transactional
     public void update(Comment comment) {
         if (comment == null || comment.getId() == null) {
             throw new IllegalArgumentException("Comment or ID cannot be null");
@@ -49,10 +54,12 @@ public class CommentService {
         commentRepository.save(comment);
     }
 
+    @Transactional
     public void deleteById(String commentId) {
         commentRepository.deleteById(commentId);
     }
 
+    @Transactional
     public void deleteByPostId(int postId) {
         if (postId <= 0) {
             throw new ValidationException("Invalid post ID");
