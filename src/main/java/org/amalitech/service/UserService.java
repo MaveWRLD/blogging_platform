@@ -2,7 +2,6 @@ package org.amalitech.service;
 
 import org.amalitech.entities.Role;
 import org.amalitech.entities.User;
-import org.amalitech.repositories.PostRepository;
 import org.amalitech.repositories.RoleRepository;
 import org.amalitech.repositories.UserRepository;
 import org.amalitech.util.PasswordHasher;

@@ -3,7 +3,6 @@ package org.amalitech.service;
 import org.amalitech.algorithm.TrendingSortAlgorithm;
 import org.amalitech.dtos.postDtos.PostDto;
 import org.amalitech.dtos.postDtos.PostFilter;
-import org.amalitech.repositories.CommentRepository;
 import org.amalitech.repositories.TagRepository;
 import org.amalitech.entities.*;
 import org.amalitech.repositories.PostRepository;

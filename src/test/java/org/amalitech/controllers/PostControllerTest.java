@@ -7,7 +7,6 @@ import org.amalitech.entities.Comment;
 import org.amalitech.entities.Post;
 import org.amalitech.enums.PostStatus;
 import org.amalitech.exception.ResourceNotFoundException;
-import org.amalitech.exception.ValidationException;
 import org.amalitech.mappers.CommentMapper;
 import org.amalitech.mappers.PostMapper;
 import org.amalitech.service.PostService;

@@ -1,7 +1,6 @@
 package org.amalitech.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.amalitech.dtos.ApiResponse;
 import org.amalitech.dtos.userDtos.CreateUserRequest;
 import org.amalitech.dtos.userDtos.UpdateUserRequest;
 import org.amalitech.dtos.userDtos.UserDto;

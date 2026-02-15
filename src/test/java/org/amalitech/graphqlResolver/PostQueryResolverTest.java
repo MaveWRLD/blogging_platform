@@ -43,16 +43,11 @@ class PostQueryResolverTest {
     @Mock private PostService postService;
     @Mock private PostMapper postMapper;
     @Mock private UserService userService;
-    @Mock private TagService tagService;
     @Mock private CommentMapper commentMapper;
     @Mock private UserMapper userMapper;
 
     @InjectMocks
     private PostQueryResolver resolver;
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // Helper factories
-    // ─────────────────────────────────────────────────────────────────────────
 
     private Post buildPost(Long userId) {
         User user = new User();
@@ -68,10 +63,6 @@ class PostQueryResolverTest {
         when(f.getSize()).thenReturn(size);
         return f;
     }
-
-    // ─────────────────────────────────────────────────────────────────────────
-    // posts – happy paths
-    // ─────────────────────────────────────────────────────────────────────────
 
     @Nested
     @DisplayName("posts() – pagination and mapping")
@@ -176,7 +167,7 @@ class PostQueryResolverTest {
         @Test
         @DisplayName("clamps size to default 12 when filter.size is 0 (invalid)")
         void posts_invalidSize_usesDefaultSize() throws Exception {
-            PostFilter filter = filterWith(0, 0);   // size < 1 → triggers ValidationException
+            PostFilter filter = filterWith(0, 0);
             assertThatThrownBy(() -> resolver.posts(filter))
                     .isInstanceOf(ValidationException.class);
         }
@@ -216,10 +207,6 @@ class PostQueryResolverTest {
         }
     }
 
-    // ─────────────────────────────────────────────────────────────────────────
-    // post – single post query
-    // ─────────────────────────────────────────────────────────────────────────
-
     @Nested
     @DisplayName("post() – single post retrieval")
     class PostQuery {
@@ -234,7 +221,6 @@ class PostQueryResolverTest {
 
             PostDto postDto = mock(PostDto.class);
             CommentDto commentDto = mock(CommentDto.class);
-            // use correctly typed User and UserDto
             User user = new User();
             org.amalitech.dtos.userDtos.UserDto userDto = mock(org.amalitech.dtos.userDtos.UserDto.class);
 

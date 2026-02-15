@@ -50,14 +50,4 @@ public class TagService {
         var tags = tagRepository.findById(id);
         return tags.orElse(null);
     }
-
-
-    private void validateTag(Tag tag) {
-        if (tag.getName() == null || tag.getName().trim().isEmpty()) {
-            throw new ValidationException("Tag name cannot be empty");
-        }
-        if (tag.getName().length() > 50) {
-            throw new ValidationException("Tag name cannot exceed 50 characters");
-        }
-    }
 }

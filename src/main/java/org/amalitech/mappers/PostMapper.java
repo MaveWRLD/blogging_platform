@@ -18,11 +18,6 @@ public interface PostMapper {
 
     PostWithCommentsDto toDtoWithComments(PostDto postDto, List<CommentDto> comments);
 
-    PagedPostsResponse toPagedResponse(
-            List<PostDto> postDto, int page, int size, long total, int totalPages, boolean hasPrevious, boolean hasNext
-    );
-
-
     @ObjectFactory
     @Mapping(target = "tags", ignore = true)
     default Post createPost(CreatePostRequest request) {
