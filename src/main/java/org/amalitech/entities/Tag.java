@@ -12,7 +12,10 @@ import java.util.Set;
 @Getter
 @Setter
 @Entity
-@Table(name = "tags")
+@Table(
+        name = "tags",
+        uniqueConstraints = @UniqueConstraint(name = "uk_tags_name", columnNames = "name")
+)
 public class Tag {
 
     public Tag(String name) {

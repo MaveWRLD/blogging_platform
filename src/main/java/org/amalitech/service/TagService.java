@@ -3,11 +3,10 @@ package org.amalitech.service;
 import org.amalitech.repositories.TagRepository;
 import org.amalitech.exception.ValidationException;
 import org.amalitech.entities.Tag;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,30 +20,28 @@ public class TagService {
         this.tagRepository = tagRepository;
     }
 
-    public void createTag(Tag tag) {
-        validateTag(tag);
-        tagRepository.save(tag);
-    }
-
     @Transactional
-    public List<Tag> findOrCreateTags(List<String> names) {
+    public Set<Tag> findOrCreateTagsByName(Set<String> names) {
+        Set<Tag> existingTags = tagRepository.findByNameIn(names);
 
-        List<Tag> existing = tagRepository.findByNameIn(names);
-
-        Set<String> existingNames = existing.stream()
+        Set<String> existingNames = existingTags.stream()
                 .map(Tag::getName)
                 .collect(Collectors.toSet());
 
-        List<Tag> toCreate = names.stream()
+        Set<Tag> newTags = names.stream()
                 .filter(name -> !existingNames.contains(name))
-                .map(Tag::new)
-                .toList();
+                .distinct()
+                .map(name -> {
+                    Tag tag = new Tag();
+                    tag.setName(name);
+                    return tag;
+                }).collect(Collectors.toSet());
 
-        tagRepository.saveAll(toCreate);
+        if (!newTags.isEmpty()) {
+            existingTags.addAll(tagRepository.saveAll(newTags));
+        }
 
-
-        existing.addAll(toCreate);
-        return existing;
+        return new HashSet<>(existingTags);
     }
 
 

@@ -36,13 +36,14 @@ public class PostService {
     private final CommentService commentService;
     private final TrendingSortAlgorithm trendingAlgorithm;
     private final UserRepository userRepository;
+    private final TagService tagService;
 
     public PostService(
             PostRepository postRepository,
             TagRepository tagRepository,
             CommentService commentService,
             TrendingSortAlgorithm trendingAlgorithm,
-            UserRepository userRepository) {
+            UserRepository userRepository, TagService tagService) {
         this.postRepository = postRepository;
         this.tagRepository = tagRepository;
         this.commentService = commentService;
@@ -134,14 +135,12 @@ public class PostService {
             @CacheEvict(value = "allPosts", condition = "#post.status == 'PUBLISHED'",  allEntries = true),
             @CacheEvict(value = "filteredPosts", allEntries = true)
     })
-    public Post createPost(Post post, List<Long> tagIds) {
+    public Post createPost(Post post, Set<String> tagNames) {
         PostValidator.validateForCreation(post);
 
-//        Set<Tag> tags = tagIds.stream().map(tagId -> tagRepository.findById(Math.toIntExact(tagId))
-//                        .orElseThrow(() -> new ResourceNotFoundException("Tag not found: " + tagId)))
-//                .collect(Collectors.toSet());
+        Set<Tag> tags = tagService.findOrCreateTagsByName(tagNames);
 
-//        post.setTags(tags);
+        post.setTags(tags);
         var user = userRepository.findById(1).orElseThrow();
         post.setUser(user);
 
