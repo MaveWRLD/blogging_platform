@@ -1,7 +1,7 @@
 package org.amalitech.util;
 
-import org.amalitech.util.exception.ValidationException;
-import org.amalitech.models.Post;
+import org.amalitech.exception.ValidationException;
+import org.amalitech.entities.Post;
 
 /**
  * Validator for Post objects.
@@ -21,7 +21,6 @@ public class PostValidator {
     public static void validateForCreation(Post post) {
         validateTitle(post.getTitle());
         validateBody(post.getBody());
-        validateUserId(post.getUserId());
     }
 
     /**
@@ -31,8 +30,10 @@ public class PostValidator {
      */
     public static void validateForUpdate(Post post) {
         validateId(post.getId());
-        validateTitle(post.getTitle());
-        validateBody(post.getBody());
+        if (post.getTitle() != null)
+            validateTitle(post.getTitle());
+        if (post.getBody() != null)
+            validateBody(post.getBody());
     }
 
     /**
