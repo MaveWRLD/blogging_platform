@@ -1,109 +1,484 @@
 package org.amalitech.service;
 
-import org.amalitech.interfaces.RoleRepository;
-import org.amalitech.interfaces.UserRepository;
-import org.amalitech.interfaces.UserRoleRepository;
-import org.amalitech.models.User;
+import org.amalitech.entities.Role;
+import org.amalitech.entities.User;
+import org.amalitech.exception.ResourceNotFoundException;
+import org.amalitech.exception.ValidationException;
+import org.amalitech.repositories.RoleRepository;
+import org.amalitech.repositories.UserRepository;
 import org.amalitech.util.PasswordHasher;
-import org.amalitech.util.exception.ResourceNotFoundException;
-import org.amalitech.util.exception.ValidationException;
+import org.amalitech.util.UserValidator;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+
 import java.util.List;
 import java.util.Optional;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
-public class UserServiceTest {
+@DisplayName("UserService Tests")
+class UserServiceTest {
+
     @Mock
     private UserRepository userRepository;
-    @Mock
-    private UserRoleRepository userRoleRepository;
+
     @Mock
     private RoleRepository roleRepository;
+
+    @InjectMocks
     private UserService userService;
+
+    private User sampleUser;
+    private Role userRole;
+
     @BeforeEach
     void setUp() {
-        userService = new UserService(userRepository, userRoleRepository, roleRepository);
+        sampleUser = new User();
+        sampleUser.setId(1L);
+        sampleUser.setUsername("johndoe");
+        sampleUser.setEmail("john@example.com");
+        sampleUser.setPassword("plainpassword");
+
+        userRole = new Role();
+        userRole.setId(1);
+        userRole.setName("ROLE_USER");
     }
-    @Test
-    void authenticate_withValidCredentials_returnsTrue() {
-        User u = new User();
-        u.setUsername("test");
-        u.setPassword(PasswordHasher.hash("secret"));
-        when(userRepository.findByUsername("test")).thenReturn(Optional.of(u));
-        boolean ok = userService.authenticate("test", "secret");
-        assertThat(ok).isTrue();
+
+    // -------------------------------------------------------------------------
+    // findAllUsers()
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("findAllUsers()")
+    class FindAllUsers {
+
+        @Test
+        @DisplayName("returns all users from repository")
+        void returnsAllUsers() {
+            List<User> users = List.of(sampleUser);
+            when(userRepository.findAll()).thenReturn(users);
+
+            List<User> result = userService.findAllUsers();
+
+            assertThat(result).containsExactlyElementsOf(users);
+            verify(userRepository).findAll();
+        }
+
+        @Test
+        @DisplayName("returns empty list when no users exist")
+        void noUsers_returnsEmpty() {
+            when(userRepository.findAll()).thenReturn(List.of());
+
+            List<User> result = userService.findAllUsers();
+
+            assertThat(result).isEmpty();
+        }
     }
-    @Test
-    void authenticate_withInvalidCredentials_throwsValidationException() {
-        User u = new User();
-        u.setUsername("test");
-        u.setPassword(PasswordHasher.hash("secret"));
-        when(userRepository.findByUsername("test")).thenReturn(Optional.of(u));
-        assertThatThrownBy(() -> userService.authenticate("test", "wrong"))
-                .isInstanceOf(ValidationException.class)
-                .hasMessage("Invalid credentials");
+
+    // -------------------------------------------------------------------------
+    // findByUserId()
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("findByUserId()")
+    class FindByUserId {
+
+        @Test
+        @DisplayName("returns user when found")
+        void found_returnsUser() {
+            when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+
+            User result = userService.findByUserId(1L);
+
+            assertThat(result).isEqualTo(sampleUser);
+        }
+
+        @Test
+        @DisplayName("throws ResourceNotFoundException when user does not exist")
+        void notFound_throwsResourceNotFoundException() {
+            when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> userService.findByUserId(99L))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("User not found with id: 99");
+        }
     }
-    @Test
-    void createUser_savesUserAndAssignsRole() {
-        User user = new User();
-        user.setUsername("newuser");
-        user.setPassword("pass");
-        when(userRepository.save(any(User.class))).thenReturn(1);
-        org.amalitech.models.Role role = new org.amalitech.models.Role();
-        role.setId(1);
-        when(roleRepository.findByName("reader")).thenReturn(role);
-        doNothing().when(userRoleRepository).assignRoleToUser(anyInt(), anyInt());
-        userService.createUser(user);
-        verify(userRepository).save(user);
-        verify(userRoleRepository).assignRoleToUser(1, 1);
+
+    // -------------------------------------------------------------------------
+    // findByUsername()
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("findByUsername()")
+    class FindByUsername {
+
+        @Test
+        @DisplayName("returns Optional with user when username exists")
+        void found_returnsOptionalUser() {
+            when(userRepository.findByUsername("johndoe")).thenReturn(Optional.of(sampleUser));
+
+            Optional<User> result = userService.findByUsername("johndoe");
+
+            assertThat(result).isPresent().contains(sampleUser);
+        }
+
+        @Test
+        @DisplayName("returns empty Optional when username does not exist")
+        void notFound_returnsEmptyOptional() {
+            when(userRepository.findByUsername("ghost")).thenReturn(Optional.empty());
+
+            Optional<User> result = userService.findByUsername("ghost");
+
+            assertThat(result).isEmpty();
+        }
     }
-    @Test
-    void findByUserId_returnsUser() {
-        User user = new User();
-        user.setId(1);
-        when(userRepository.findByUserId(1)).thenReturn(Optional.of(user));
-        User found = userService.findByUserId(1);
-        assertThat(found).isEqualTo(user);
+
+    // -------------------------------------------------------------------------
+    // createUser()
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("createUser()")
+    class CreateUser {
+
+        @Test
+        @DisplayName("creates user with hashed password and assigned ROLE_USER")
+        void validUser_createsSuccessfully() {
+            when(userRepository.existsByUsername("johndoe")).thenReturn(false);
+            when(userRepository.existsByEmail("john@example.com")).thenReturn(false);
+            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+
+            try (MockedStatic<PasswordHasher> hasherMock = mockStatic(PasswordHasher.class)) {
+                hasherMock.when(() -> PasswordHasher.hash("plainpassword")).thenReturn("hashedpassword");
+
+                User result = userService.createUser(sampleUser);
+
+                assertThat(sampleUser.getPassword()).isEqualTo("hashedpassword");
+                assertThat(sampleUser.getRoles()).containsExactly(userRole);
+                assertThat(result).isEqualTo(sampleUser);
+                verify(userRepository).save(sampleUser);
+            }
+        }
+
+        @Test
+        @DisplayName("throws ValidationException when username already exists")
+        void duplicateUsername_throwsValidationException() {
+            when(userRepository.existsByUsername("johndoe")).thenReturn(true);
+
+            assertThatThrownBy(() -> userService.createUser(sampleUser))
+                    .isInstanceOf(ValidationException.class)
+                    .hasMessageContaining("Username already exists");
+
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("throws ValidationException when email already exists")
+        void duplicateEmail_throwsValidationException() {
+            when(userRepository.existsByUsername("johndoe")).thenReturn(false);
+            when(userRepository.existsByEmail("john@example.com")).thenReturn(true);
+
+            assertThatThrownBy(() -> userService.createUser(sampleUser))
+                    .isInstanceOf(ValidationException.class)
+                    .hasMessageContaining("Email already exists");
+
+            verify(userRepository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("throws ResourceNotFoundException when ROLE_USER does not exist")
+        void roleNotFound_throwsResourceNotFoundException() {
+            when(userRepository.existsByUsername("johndoe")).thenReturn(false);
+            when(userRepository.existsByEmail("john@example.com")).thenReturn(false);
+            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> userService.createUser(sampleUser))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("Default role not found: ROLE_USER");
+        }
+
+        @Test
+        @DisplayName("does not hash password when password is blank")
+        void blankPassword_skipsHashing() {
+            sampleUser.setPassword("   ");
+            when(userRepository.existsByUsername("johndoe")).thenReturn(false);
+            when(userRepository.existsByEmail("john@example.com")).thenReturn(false);
+            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+
+            try (MockedStatic<PasswordHasher> hasherMock = mockStatic(PasswordHasher.class)) {
+                userService.createUser(sampleUser);
+                hasherMock.verifyNoInteractions();
+            }
+        }
+
+        @Test
+        @DisplayName("does not hash password when password is null")
+        void nullPassword_skipsHashing() {
+            sampleUser.setPassword(null);
+            when(userRepository.existsByUsername("johndoe")).thenReturn(false);
+            when(userRepository.existsByEmail("john@example.com")).thenReturn(false);
+            when(roleRepository.findByName("ROLE_USER")).thenReturn(Optional.of(userRole));
+            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+
+            try (MockedStatic<PasswordHasher> hasherMock = mockStatic(PasswordHasher.class)) {
+                userService.createUser(sampleUser);
+                hasherMock.verifyNoInteractions();
+            }
+        }
     }
-    @Test
-    void findByUserId_throwsNotFoundWhenMissing() {
-        when(userRepository.findByUserId(1)).thenReturn(Optional.empty());
-        assertThatThrownBy(() -> userService.findByUserId(1))
-                .isInstanceOf(ResourceNotFoundException.class);
+
+    // -------------------------------------------------------------------------
+    // updateUser()
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("updateUser()")
+    class UpdateUser {
+
+        @Test
+        @DisplayName("updates username when provided")
+        void updatesUsername() {
+            User updatedData = new User();
+            updatedData.setUsername("newname");
+
+            when(userRepository.findById(1)).thenReturn(Optional.of(sampleUser));
+            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+
+            userService.updateUser(1, updatedData);
+
+            assertThat(sampleUser.getUsername()).isEqualTo("newname");
+        }
+
+        @Test
+        @DisplayName("updates email when new email is different and not already taken")
+        void updatesEmail_whenNewAndAvailable() {
+            User updatedData = new User();
+            updatedData.setEmail("newemail@example.com");
+
+            when(userRepository.findById(1)).thenReturn(Optional.of(sampleUser));
+            when(userRepository.existsByEmail("newemail@example.com")).thenReturn(false);
+            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+
+            userService.updateUser(1, updatedData);
+
+            assertThat(sampleUser.getEmail()).isEqualTo("newemail@example.com");
+        }
+
+        @Test
+        @DisplayName("throws ValidationException when new email is already in use")
+        void emailInUse_throwsValidationException() {
+            User updatedData = new User();
+            updatedData.setEmail("taken@example.com");
+
+            when(userRepository.findById(1)).thenReturn(Optional.of(sampleUser));
+            when(userRepository.existsByEmail("taken@example.com")).thenReturn(true);
+
+            assertThatThrownBy(() -> userService.updateUser(1, updatedData))
+                    .isInstanceOf(ValidationException.class)
+                    .hasMessageContaining("Email already in use");
+        }
+
+        @Test
+        @DisplayName("does not update email when it is the same as existing")
+        void sameEmail_notUpdated() {
+            User updatedData = new User();
+            updatedData.setEmail("john@example.com"); // same as existing
+
+            when(userRepository.findById(1)).thenReturn(Optional.of(sampleUser));
+            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+
+            userService.updateUser(1, updatedData);
+
+            verify(userRepository, never()).existsByEmail(anyString());
+            assertThat(sampleUser.getEmail()).isEqualTo("john@example.com");
+        }
+
+        @Test
+        @DisplayName("hashes and updates password when provided")
+        void updatesHashedPassword() {
+            User updatedData = new User();
+            updatedData.setPassword("newpassword");
+
+            when(userRepository.findById(1)).thenReturn(Optional.of(sampleUser));
+            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+
+            try (MockedStatic<PasswordHasher> hasherMock = mockStatic(PasswordHasher.class)) {
+                hasherMock.when(() -> PasswordHasher.hash("newpassword")).thenReturn("newhashedpw");
+
+                userService.updateUser(1, updatedData);
+
+                assertThat(sampleUser.getPassword()).isEqualTo("newhashedpw");
+            }
+        }
+
+        @Test
+        @DisplayName("throws ResourceNotFoundException when user does not exist")
+        void userNotFound_throwsResourceNotFoundException() {
+            when(userRepository.findById(99)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> userService.updateUser(99, new User()))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("User not found with id: 99");
+        }
+
+        @Test
+        @DisplayName("does not update username when updatedUser username is null")
+        void nullUsername_retainsExistingUsername() {
+            User updatedData = new User();
+            updatedData.setUsername(null);
+
+            when(userRepository.findById(1)).thenReturn(Optional.of(sampleUser));
+            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+
+            userService.updateUser(1, updatedData);
+
+            assertThat(sampleUser.getUsername()).isEqualTo("johndoe");
+        }
     }
-    @Test
-    void updateUser_updatesUser() {
-        User user = new User();
-        user.setId(1);
-        user.setPassword("newpass");
-        doNothing().when(userRepository).update(user);
-        userService.updateUser(user);
-        verify(userRepository).update(user);
-        assertThat(user.getPassword()).isEqualTo(PasswordHasher.hash("newpass"));
+
+    // -------------------------------------------------------------------------
+    // deleteUser()
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("deleteUser()")
+    class DeleteUser {
+
+        @Test
+        @DisplayName("deletes user when found")
+        void found_deletesSuccessfully() {
+            when(userRepository.existsById(1)).thenReturn(true);
+
+            userService.deleteUser(1);
+
+            verify(userRepository).deleteById(1);
+        }
+
+        @Test
+        @DisplayName("throws ResourceNotFoundException when user does not exist")
+        void notFound_throwsResourceNotFoundException() {
+            when(userRepository.existsById(99)).thenReturn(false);
+
+            assertThatThrownBy(() -> userService.deleteUser(99))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("User not found with id: 99");
+
+            verify(userRepository, never()).deleteById(anyInt());
+        }
     }
-    @Test
-    void deleteUser_deletesUser() {
-        User user = new User();
-        user.setId(1);
-        when(userRepository.findByUserId(1)).thenReturn(Optional.of(user));
-        doNothing().when(userRepository).delete(1);
-        userService.deleteUser(1);
-        verify(userRepository).delete(1);
+
+    // -------------------------------------------------------------------------
+    // authenticate()
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("authenticate()")
+    class Authenticate {
+
+        @Test
+        @DisplayName("returns user when credentials are valid")
+        void validCredentials_returnsUser() {
+            sampleUser.setPassword("hashedpassword");
+            when(userRepository.findByUsername("johndoe")).thenReturn(Optional.of(sampleUser));
+
+            try (MockedStatic<UserValidator> validatorMock = mockStatic(UserValidator.class);
+                 MockedStatic<PasswordHasher> hasherMock = mockStatic(PasswordHasher.class)) {
+
+                validatorMock.when(() -> UserValidator.validateCredentials("johndoe", "rawpassword"))
+                        .thenAnswer(inv -> null);
+                hasherMock.when(() -> PasswordHasher.check("rawpassword", "hashedpassword"))
+                        .thenReturn(true);
+
+                User result = userService.authenticate("johndoe", "rawpassword");
+
+                assertThat(result).isEqualTo(sampleUser);
+            }
+        }
+
+        @Test
+        @DisplayName("throws ValidationException when password does not match")
+        void wrongPassword_throwsValidationException() {
+            sampleUser.setPassword("hashedpassword");
+            when(userRepository.findByUsername("johndoe")).thenReturn(Optional.of(sampleUser));
+
+            try (MockedStatic<UserValidator> validatorMock = mockStatic(UserValidator.class);
+                 MockedStatic<PasswordHasher> hasherMock = mockStatic(PasswordHasher.class)) {
+
+                validatorMock.when(() -> UserValidator.validateCredentials("johndoe", "wrongpw"))
+                        .thenAnswer(inv -> null);
+                hasherMock.when(() -> PasswordHasher.check("wrongpw", "hashedpassword"))
+                        .thenReturn(false);
+
+                assertThatThrownBy(() -> userService.authenticate("johndoe", "wrongpw"))
+                        .isInstanceOf(ValidationException.class)
+                        .hasMessageContaining("Invalid credentials");
+            }
+        }
+
+        @Test
+        @DisplayName("throws ResourceNotFoundException when username does not exist")
+        void unknownUser_throwsResourceNotFoundException() {
+            when(userRepository.findByUsername("ghost")).thenReturn(Optional.empty());
+
+            try (MockedStatic<UserValidator> validatorMock = mockStatic(UserValidator.class)) {
+                validatorMock.when(() -> UserValidator.validateCredentials("ghost", "pass"))
+                        .thenAnswer(inv -> null);
+
+                assertThatThrownBy(() -> userService.authenticate("ghost", "pass"))
+                        .isInstanceOf(ResourceNotFoundException.class)
+                        .hasMessageContaining("User not found with username: ghost");
+            }
+        }
     }
-    @Test
-    void findAllUsers_returnsUsers() {
-        List<User> users = List.of(new User());
-        when(userRepository.findAll()).thenReturn(users);
-        List<User> found = userService.findAllUsers();
-        assertThat(found).isEqualTo(users);
+
+    // -------------------------------------------------------------------------
+    // assignRole()
+    // -------------------------------------------------------------------------
+    @Nested
+    @DisplayName("assignRole()")
+    class AssignRole {
+
+        @Test
+        @DisplayName("assigns role to user and saves")
+        void validUserAndRole_assignsSuccessfully() {
+            Role adminRole = new Role();
+            adminRole.setName("ROLE_ADMIN");
+
+            when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+            when(roleRepository.findByName("ROLE_ADMIN")).thenReturn(Optional.of(adminRole));
+            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+
+            User result = userService.assignRole(1L, "ROLE_ADMIN");
+
+            assertThat(sampleUser.getRoles()).containsExactly(adminRole);
+            assertThat(result).isEqualTo(sampleUser);
+            verify(userRepository).save(sampleUser);
+        }
+
+        @Test
+        @DisplayName("throws ResourceNotFoundException when user does not exist")
+        void userNotFound_throwsResourceNotFoundException() {
+            when(userRepository.findById(99L)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> userService.assignRole(99L, "ROLE_ADMIN"))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("User not found with id: 99");
+        }
+
+        @Test
+        @DisplayName("throws ResourceNotFoundException when role does not exist")
+        void roleNotFound_throwsResourceNotFoundException() {
+            when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+            when(roleRepository.findByName("ROLE_NONEXISTENT")).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> userService.assignRole(1L, "ROLE_NONEXISTENT"))
+                    .isInstanceOf(ResourceNotFoundException.class)
+                    .hasMessageContaining("Role not found: ROLE_NONEXISTENT");
+        }
     }
 }

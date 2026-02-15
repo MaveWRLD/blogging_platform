@@ -1,61 +1,114 @@
 package org.amalitech.service;
 
-import org.amalitech.interfaces.TagRepository;
-import org.amalitech.models.Tag;
-import org.amalitech.util.exception.ValidationException;
+import org.amalitech.entities.Tag;
+import org.amalitech.exception.ValidationException;
+import org.amalitech.repositories.TagRepository;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import java.util.List;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.any;
+
+import java.util.Optional;
+import java.util.Set;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.*;
 
-
 @ExtendWith(MockitoExtension.class)
-public class TagServiceTest {
+@DisplayName("TagService Tests")
+class TagServiceTest {
+
     @Mock
     private TagRepository tagRepository;
+
     @InjectMocks
     private TagService tagService;
-    @Test
-    void createTag_createsValidTag() {
-        Tag tag = new Tag();
-        tag.setName("test");
-        when(tagRepository.save(any(Tag.class))).thenReturn(1);
-        tagService.createTag(tag);
-        verify(tagRepository).save(tag);
+
+    @Nested
+    @DisplayName("findOrCreateTagsByName()")
+    class FindOrCreateTagsByName {
+
+        @Test
+        @DisplayName("returns existing tags without creating new ones")
+        void allTagsExist_returnsExistingSet() {
+            Tag java = tagWithName(1, "java");
+            Tag spring = tagWithName(2, "spring");
+
+            when(tagRepository.findByNameIn(Set.of("java", "spring")))
+                    .thenReturn(Set.of(java, spring));
+
+            Set<Tag> result = tagService.findOrCreateTagsByName(Set.of("java", "spring"));
+
+            assertThat(result).containsExactlyInAnyOrder(java, spring);
+            verify(tagRepository, never()).saveAll(anyCollection());
+        }
+
+        @Test
+        @DisplayName("returns empty set when input is empty")
+        void emptyInput_returnsEmptySet() {
+            when(tagRepository.findByNameIn(Set.of())).thenReturn(Set.of());
+
+            Set<Tag> result = tagService.findOrCreateTagsByName(Set.of());
+
+            assertThat(result).isEmpty();
+            verify(tagRepository, never()).saveAll(anyCollection());
+        }
     }
-    @Test
-    void createTag_throwsValidationForInvalidName() {
-        Tag tag = new Tag();
-        tag.setName("");
-        assertThatThrownBy(() -> tagService.createTag(tag))
-                .isInstanceOf(ValidationException.class)
-                .hasMessage("Tag name cannot be empty");
+
+    @Nested
+    @DisplayName("getTagById()")
+    class GetTagById {
+
+        @Test
+        @DisplayName("returns tag when found")
+        void validId_returnsTag() {
+            Tag tag = tagWithName(1, "java");
+            when(tagRepository.findById(1)).thenReturn(Optional.of(tag));
+
+            Tag result = tagService.getTagById(1);
+
+            assertThat(result).isEqualTo(tag);
+        }
+
+        @Test
+        @DisplayName("returns null when tag does not exist")
+        void idNotFound_returnsNull() {
+            when(tagRepository.findById(99)).thenReturn(Optional.empty());
+
+            Tag result = tagService.getTagById(99);
+
+            assertThat(result).isNull();
+        }
+
+        @Test
+        @DisplayName("throws ValidationException when id is zero")
+        void idIsZero_throwsValidationException() {
+            assertThatThrownBy(() -> tagService.getTagById(0))
+                    .isInstanceOf(ValidationException.class)
+                    .hasMessageContaining("Invalid tag ID");
+            verifyNoInteractions(tagRepository);
+        }
+
+        @Test
+        @DisplayName("throws ValidationException when id is negative")
+        void negativeId_throwsValidationException() {
+            assertThatThrownBy(() -> tagService.getTagById(-1))
+                    .isInstanceOf(ValidationException.class)
+                    .hasMessageContaining("Invalid tag ID");
+        }
     }
-    @Test
-    void findTagsByPostId_returnsTags() {
-        List<Tag> tags = List.of(new Tag());
-        when(tagRepository.findTagsByPostId(1)).thenReturn(tags);
-        List<Tag> result = tagService.findTagsByPostId(1);
-        assertThat(result).isEqualTo(tags);
-    }
-    @Test
-    void getTagById_returnsTag() {
+
+    // -------------------------------------------------------------------------
+    // Helper
+    // -------------------------------------------------------------------------
+    private Tag tagWithName(int id, String name) {
         Tag tag = new Tag();
-        when(tagRepository.findById(1)).thenReturn(List.of(tag));
-        Tag result = tagService.getTagById(1);
-        assertThat(result).isEqualTo(tag);
-    }
-    @Test
-    void getTagByName_returnsTag() {
-        Tag tag = new Tag();
-        when(tagRepository.findByName("test")).thenReturn(List.of(tag));
-        Tag result = tagService.getTagByName("test");
-        assertThat(result).isEqualTo(tag);
+        tag.setId(id);
+        tag.setName(name);
+        return tag;
     }
 }
