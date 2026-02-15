@@ -10,8 +10,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.graphql.execution.RuntimeWiringConfigurer;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Locale;
 
 @Configuration
@@ -20,53 +21,66 @@ public class GraphQLScalarConfig {
     @Bean
     public RuntimeWiringConfigurer runtimeWiringConfigurer() {
         return wiringBuilder -> wiringBuilder
-                .scalar(dateTimeScalar());
+                .scalar(instantScalar());
     }
 
-    private GraphQLScalarType dateTimeScalar() {
+    private GraphQLScalarType instantScalar() {
         return GraphQLScalarType.newScalar()
                 .name("DateTime")
-                .description("ISO 8601 DateTime (supports both local and UTC/Z formats)")
-                .coercing(new Coercing<LocalDateTime, String>() {
-                    private final DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
+                .description("ISO 8601 instant in UTC (e.g. 2025-03-15T14:30:00Z or 2025-03-15T14:30:00.123Z)")
+                .coercing(new Coercing<Instant, String>() {
+
+                    private final DateTimeFormatter formatter = DateTimeFormatter.ISO_INSTANT;
 
                     @Override
                     public String serialize(@NonNull Object dataFetcherResult,
                                             @NonNull GraphQLContext graphQLContext,
                                             @NonNull Locale locale) throws CoercingSerializeException {
-                        if (dataFetcherResult instanceof LocalDateTime local) {
-                            return local.format(formatter);
+
+                        if (dataFetcherResult instanceof Instant instant) {
+                            return formatter.format(instant);
                         }
-                        throw new CoercingSerializeException("Expected LocalDateTime");
+
+                        throw new CoercingSerializeException(
+                                "Expected Instant, got: " + dataFetcherResult.getClass().getName());
                     }
 
                     @Override
-                    public LocalDateTime parseValue(@NonNull Object input,
-                                                    @NonNull GraphQLContext graphQLContext,
-                                                    @NonNull Locale locale) throws CoercingParseValueException {
-                        try {
-                            if (input instanceof String s) {
-                                return LocalDateTime.parse(s, formatter);
-                            }
-                            throw new CoercingParseValueException("Expected String");
-                        } catch (Exception e) {
-                            throw new CoercingParseValueException("Invalid DateTime: " + input, e);
-                        }
-                    }
+                    public Instant parseValue(@NonNull Object input,
+                                              @NonNull GraphQLContext graphQLContext,
+                                              @NonNull Locale locale) throws CoercingParseValueException {
 
-                    @Override
-                    public LocalDateTime parseLiteral(@NonNull Value<?> input,
-                                                      @NonNull CoercedVariables variables,
-                                                      @NonNull GraphQLContext context,
-                                                      @NonNull Locale locale) throws CoercingParseLiteralException {
-                        if (input instanceof StringValue sv) {
+                        if (input instanceof String inputString) {
                             try {
-                                return LocalDateTime.parse(sv.getValue(), formatter);
-                            } catch (Exception e) {
-                                throw new CoercingParseLiteralException("Invalid DateTime format: " + sv.getValue(), e);
+                                return Instant.from(formatter.parse(inputString));
+                            } catch (DateTimeParseException e) {
+                                throw new CoercingParseValueException(
+                                        "Invalid ISO-8601 instant format: " + inputString, e);
                             }
                         }
-                        throw new CoercingParseLiteralException("Expected StringValue");
+
+                        throw new CoercingParseValueException(
+                                "Expected String input, got: " + input.getClass().getName());
+                    }
+
+                    @Override
+                    public Instant parseLiteral(@NonNull Value<?> input,
+                                                @NonNull CoercedVariables variables,
+                                                @NonNull GraphQLContext context,
+                                                @NonNull Locale locale) throws CoercingParseLiteralException {
+
+                        if (input instanceof StringValue stringValue) {
+                            String value = stringValue.getValue();
+                            try {
+                                return Instant.from(formatter.parse(value));
+                            } catch (DateTimeParseException e) {
+                                throw new CoercingParseLiteralException(
+                                        "Invalid ISO-8601 instant literal: " + value, e);
+                            }
+                        }
+
+                        throw new CoercingParseLiteralException(
+                                "Expected StringValue, got: " + input.getClass().getName());
                     }
                 })
                 .build();
