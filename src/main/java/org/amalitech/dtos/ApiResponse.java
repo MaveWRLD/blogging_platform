@@ -15,11 +15,11 @@ public class ApiResponse<T> {
         return new ApiResponse<>(HttpStatus.OK, null, data);
     }
 
-    public static <T> ApiResponse<T> success(T data, String message) {
+    public static <T> ApiResponse<T> success(String message, T data) {
         return new ApiResponse<>(HttpStatus.OK, message, data);
     }
 
-    public static <T> ApiResponse<T> success(HttpStatus status, T data, String message) {
+    public static <T> ApiResponse<T> success(HttpStatus status, String message, T data) {
         return new ApiResponse<>(status, message, data);
     }
 
