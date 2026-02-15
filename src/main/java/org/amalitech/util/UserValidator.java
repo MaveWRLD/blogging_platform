@@ -1,6 +1,6 @@
 package org.amalitech.util;
 
-import org.amalitech.util.exception.ValidationException;
+import org.amalitech.exception.ValidationException;
 
 public class UserValidator {
 

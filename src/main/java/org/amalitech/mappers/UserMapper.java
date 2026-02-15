@@ -3,17 +3,14 @@ package org.amalitech.mappers;
 import org.amalitech.dtos.userDtos.CreateUserRequest;
 import org.amalitech.dtos.userDtos.UpdateUserRequest;
 import org.amalitech.dtos.userDtos.UserDto;
-import org.amalitech.dtos.userDtos.UserWithRoleDto;
-import org.amalitech.models.User;
+import org.amalitech.entities.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
-    UserWithRoleDto toDto(User user);
-
-    UserDto toUserDto(User user);
+    UserDto toDto(User user);
 
     User toEntity(CreateUserRequest createUserRequest);
 
