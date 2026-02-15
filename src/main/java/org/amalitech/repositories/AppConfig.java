@@ -1,4 +1,4 @@
-package org.amalitech.interfaces;
+package org.amalitech.repositories;
 
 /**
  * Configuration interface for application settings.

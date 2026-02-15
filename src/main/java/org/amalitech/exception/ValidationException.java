@@ -1,4 +1,4 @@
-package org.amalitech.util.exception;
+package org.amalitech.exception;
 
 
 public class ValidationException extends RuntimeException {

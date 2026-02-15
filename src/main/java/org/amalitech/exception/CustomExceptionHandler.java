@@ -1,4 +1,4 @@
-package org.amalitech.util.exception;
+package org.amalitech.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package org.amalitech.interfaces;
+package org.amalitech.repositories;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;

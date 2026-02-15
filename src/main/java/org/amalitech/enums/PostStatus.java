@@ -1,4 +1,4 @@
-package org.amalitech.util;
+package org.amalitech.enums;
 
 public enum PostStatus {
     draft,

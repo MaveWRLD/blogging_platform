@@ -1,4 +1,4 @@
-package org.amalitech.util;
+package org.amalitech.enums;
 
 /**
  * Sort order for post listing (e.g. in search and feeds).
