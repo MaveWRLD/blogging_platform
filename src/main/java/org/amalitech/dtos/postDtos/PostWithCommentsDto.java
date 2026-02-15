@@ -17,9 +17,6 @@ public class PostWithCommentsDto {
 
     private List<CommentDto> comments;
     private long totalComments;
-    private int page;
-    private int size;
-    private int totalPages;
 }
 
 
