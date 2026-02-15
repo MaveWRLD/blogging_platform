@@ -2,33 +2,30 @@ package org.amalitech.graphqlResolver;
 
 import org.amalitech.dtos.CreateCommentRequest;
 import org.amalitech.dtos.postDtos.*;
-import org.amalitech.models.Comment;
-import org.amalitech.models.Post;
+import org.amalitech.entities.Comment;
+import org.amalitech.entities.Post;
+import org.amalitech.enums.PostStatus;
 import org.amalitech.service.CommentService;
 import org.amalitech.service.PostService;
-import org.amalitech.service.UserService;
-import org.amalitech.util.exception.ResourceNotFoundException;
+import org.amalitech.exception.ResourceNotFoundException;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.stereotype.Controller;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Controller
 public class PostMutationResolver {
 
     private final PostService postService;
     private final CommentService commentService;
-    private final UserService userService;
 
     public PostMutationResolver(
             PostService postService,
-            CommentService commentService,
-            UserService userService
+            CommentService commentService
     ) {
         this.postService = postService;
         this.commentService = commentService;
-        this.userService = userService;
     }
 
     @MutationMapping
@@ -37,8 +34,7 @@ public class PostMutationResolver {
         Post post = new Post();
         post.setTitle(input.getTitle());
         post.setBody(input.getBody());
-        post.setStatus(input.getStatus() != null ? input.getStatus() : "DRAFT");
-        post.setUserId(1);
+        post.setStatus(PostStatus.valueOf(input.getStatus() != null ? input.getStatus() : "DRAFT"));
 
         postService.createPost(post, null);
 
@@ -59,9 +55,9 @@ public class PostMutationResolver {
             existing.setBody(input.getBody());
         }
         if (input.getStatus() != null) {
-            existing.setStatus(input.getStatus());
+            existing.setStatus(PostStatus.valueOf(input.getStatus()));
             if ("PUBLISHED".equals(existing.getStatus()) && existing.getPublishedAt() == null) {
-                existing.setPublishedAt(LocalDateTime.now());
+                existing.setPublishedAt(Instant.now());
             }
         }
 
@@ -85,9 +81,9 @@ public class PostMutationResolver {
                 () -> new ResourceNotFoundException("Post not found")
         );
 
-        if (!"PUBLISHED".equals(post.getStatus())) {
-            post.setStatus("PUBLISHED");
-            post.setPublishedAt(LocalDateTime.now());
+        if (PostStatus.published != post.getStatus()) {
+            post.setStatus(PostStatus.valueOf("PUBLISHED"));
+            post.setPublishedAt(Instant.now());
             postService.updatePost(post, null);
         }
 
