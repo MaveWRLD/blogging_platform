@@ -1,12 +1,16 @@
 package org.amalitech.service;
 
-import org.amalitech.interfaces.TagRepository;
-import org.amalitech.util.exception.ValidationException;
-import org.amalitech.models.Tag;
+import org.amalitech.repositories.TagRepository;
+import org.amalitech.exception.ValidationException;
+import org.amalitech.entities.Tag;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
-
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 
 @Service
 public class TagService {
@@ -22,21 +26,32 @@ public class TagService {
         tagRepository.save(tag);
     }
 
-    public List<Tag> findTagsByPostId(int postId) {
-        if (postId <= 0) throw new ValidationException("Invalid post ID");
-        return tagRepository.findTagsByPostId(postId);
+    @Transactional
+    public List<Tag> findOrCreateTags(List<String> names) {
+
+        List<Tag> existing = tagRepository.findByNameIn(names);
+
+        Set<String> existingNames = existing.stream()
+                .map(Tag::getName)
+                .collect(Collectors.toSet());
+
+        List<Tag> toCreate = names.stream()
+                .filter(name -> !existingNames.contains(name))
+                .map(Tag::new)
+                .toList();
+
+        tagRepository.saveAll(toCreate);
+
+
+        existing.addAll(toCreate);
+        return existing;
     }
+
 
     public Tag getTagById(int id) {
         if (id <= 0) throw new ValidationException("Invalid tag ID");
         var tags = tagRepository.findById(id);
-        return tags.isEmpty() ? null : tags.get(0);
-    }
-
-    public Tag getTagByName(String name) {
-        if (name == null || name.trim().isEmpty()) return null;
-        var tags = tagRepository.findByName(name.trim());
-        return tags.isEmpty() ? null : tags.get(0);
+        return tags.orElse(null);
     }
 
 
