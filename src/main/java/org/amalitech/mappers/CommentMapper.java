@@ -3,7 +3,7 @@ package org.amalitech.mappers;
 import org.amalitech.dtos.CommentDto;
 import org.amalitech.dtos.CreateCommentRequest;
 import org.amalitech.dtos.UpdateCommentRequest;
-import org.amalitech.models.Comment;
+import org.amalitech.entities.Comment;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 

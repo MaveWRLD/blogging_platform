@@ -3,7 +3,7 @@ package org.amalitech.dtos.userDtos;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import org.amalitech.interfaces.ValidPassword;
+import org.amalitech.repositories.ValidPassword;
 
 @Data
 public class CreateUserRequest {
