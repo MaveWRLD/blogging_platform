@@ -26,29 +26,41 @@ public class PerformanceMonitoringAspect {
     private final ConcurrentHashMap<String, MethodMetrics> metricsMap = new ConcurrentHashMap<>();
 
     private static class MethodMetrics {
-        AtomicLong totalExecutionTime = new AtomicLong(0);
+        AtomicLong totalExecutionTimeNs = new AtomicLong(0);
         AtomicLong callCount = new AtomicLong(0);
-        AtomicLong minTime = new AtomicLong(Long.MAX_VALUE);
-        AtomicLong maxTime = new AtomicLong(0);
+        AtomicLong minTimeNs = new AtomicLong(Long.MAX_VALUE);
+        AtomicLong maxTimeNs = new AtomicLong(0);
 
-        void addExecution(long duration) {
-            totalExecutionTime.addAndGet(duration);
+        void addExecution(long durationNs) {
+            totalExecutionTimeNs.addAndGet(durationNs);
             callCount.incrementAndGet();
 
-            long currentMin = minTime.get();
-            while (duration < currentMin && !minTime.compareAndSet(currentMin, duration)) {
-                currentMin = minTime.get();
+            long currentMin = minTimeNs.get();
+            while (durationNs < currentMin && !minTimeNs.compareAndSet(currentMin, durationNs)) {
+                currentMin = minTimeNs.get();
             }
 
-            long currentMax = maxTime.get();
-            while (duration > currentMax && !maxTime.compareAndSet(currentMax, duration)) {
-                currentMax = maxTime.get();
+            long currentMax = maxTimeNs.get();
+            while (durationNs > currentMax && !maxTimeNs.compareAndSet(currentMax, durationNs)) {
+                currentMax = maxTimeNs.get();
             }
         }
 
-        double getAverageTime() {
+        double getAverageMs() {
             long count = callCount.get();
-            return count > 0 ? (double) totalExecutionTime.get() / count : 0;
+            return count > 0
+                    ? (totalExecutionTimeNs.get() / 1_000_000.0) / count
+                    : 0;
+        }
+
+        double getMinMs() {
+            long min = minTimeNs.get();
+            if (min == Long.MAX_VALUE) return 0;
+            return min / 1_000_000.0;
+        }
+
+        double getMaxMs() {
+            return maxTimeNs.get() / 1_000_000.0;
         }
     }
 
@@ -58,61 +70,64 @@ public class PerformanceMonitoringAspect {
     @Pointcut("execution(* org.amalitech.algorithm..*(..))")
     public void algorithmMethods() {}
 
-    /**
-     * Log all controller methods
-     */
     @Pointcut("execution(* org.amalitech.controllers..*(..))")
     public void controllerMethods() {}
 
     @Pointcut("execution(* org.amalitech.graphqlResolver..*(..))")
     public void resolverMethods() {}
 
-
-    /**
-     * Monitor performance of service and algorithm methods
-     */
     @Around("serviceMethods() || algorithmMethods() || controllerMethods() || resolverMethods()")
     public Object monitorPerformance(ProceedingJoinPoint joinPoint) throws Throwable {
         String methodKey = joinPoint.getSignature().toShortString();
-        long startTime = System.nanoTime();
+        long startNs = System.nanoTime();
 
         try {
             Object result = joinPoint.proceed();
-            long duration = (System.nanoTime() - startTime) / 1_000_000;
+            long durationNs = System.nanoTime() - startNs;
 
             MethodMetrics metrics = metricsMap.computeIfAbsent(methodKey, k -> new MethodMetrics());
-            metrics.addExecution(duration);
+            metrics.addExecution(durationNs);
 
-            logger.debug("PERFORMANCE -> {} executed in {}ms", methodKey, duration);
+            double durationMs = durationNs / 1_000_000.0;
 
-            if (duration > 500) {
-                logger.warn("SLOW EXECUTION -> {} took {}ms (avg: {}ms)",
-                        methodKey, duration, String.format("%.2f", metrics.getAverageTime()));
+            logger.debug("PERFORMANCE -> {} executed in {} ms", methodKey, String.format("%.3f", durationMs));
+
+            if (durationMs > 500) {
+                logger.warn("SLOW EXECUTION -> {} took {} ms (avg: {} ms)",
+                        methodKey,
+                        String.format("%.3f", durationMs),
+                        String.format("%.3f", metrics.getAverageMs()));
             }
 
             return result;
 
         } catch (Throwable e) {
-            long duration = (System.nanoTime() - startTime) / 1_000_000;
-            logger.error("PERFORMANCE ERROR -> {} failed after {}ms", methodKey, duration);
+            long durationNs = System.nanoTime() - startNs;
+            double durationMs = durationNs / 1_000_000.0;
+
+            logger.error("PERFORMANCE ERROR -> {} failed after {} ms",
+                    methodKey,
+                    String.format("%.3f", durationMs));
+
             throw e;
         }
     }
 
-    /**
-     * Snapshot current performance metrics as a DTO
-     */
     public PerformanceStatsDto snapshot() {
         List<PerformanceMethodMetricsDto> list = new ArrayList<>();
+
         metricsMap.forEach((method, metrics) -> {
             long callCount = metrics.callCount.get();
-            double avg = metrics.getAverageTime();
-            long min = metrics.minTime.get();
-            if (min == Long.MAX_VALUE) min = 0;
-            long max = metrics.maxTime.get();
 
-            list.add(new PerformanceMethodMetricsDto(method, callCount, avg, min, max));
+            list.add(new PerformanceMethodMetricsDto(
+                    method,
+                    callCount,
+                    metrics.getAverageMs(),
+                    metrics.getMinMs(),
+                    metrics.getMaxMs()
+            ));
         });
+
         return new PerformanceStatsDto(Instant.now(), list);
     }
 }

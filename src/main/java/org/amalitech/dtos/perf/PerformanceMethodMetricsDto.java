@@ -6,9 +6,12 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class PerformanceMethodMetricsDto {
+
     private String method;
     private long callCount;
     private double avgMs;
-    private long minMs;
-    private long maxMs;
+    private double minMs;
+    private double maxMs;
+
 }
+
