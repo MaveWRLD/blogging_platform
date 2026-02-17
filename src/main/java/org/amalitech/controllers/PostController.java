@@ -83,7 +83,7 @@ public class PostController {
             @RequestParam(required = false, defaultValue = "createdAt") String sortBy,
             @RequestParam(required = false, defaultValue = "desc") String sortDir
     ) {
-        PostPagination result = getPostpagination(page, size, sortBy, sortDir);
+        PostPagination result = getPostPagination(page, size, sortBy, sortDir);
 
         List<PostDto> posts = result.pagedPost().getContent();
 
@@ -185,7 +185,7 @@ public class PostController {
     private record Result(PostDto postDto, List<CommentDto> commentDtos) {
     }
 
-    private PostPagination getPostpagination(int page, int size, String sortBy, String sortDir) {
+    private PostPagination getPostPagination(int page, int size, String sortBy, String sortDir) {
         page = Math.max(page, 0);
         size = Math.max(size, 1);
 

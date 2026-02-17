@@ -45,7 +45,7 @@ public interface PostRepository extends JpaRepository<Post, Integer>, JpaSpecifi
     LEFT JOIN p.user u
     WHERE u.id = :userId
     """)
-    Page<PostDto> findPostsByUserId(@Param("userId") Long userId, Pageable pageable);
+    Page<PostDto> findByUserId(@Param("userId") Long userId, Pageable pageable);
 
     @Query("""
         select p

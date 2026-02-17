@@ -29,18 +29,17 @@ import java.util.stream.Collectors;
 @Controller
 public class PostQueryResolver {
 
-    private final TagService tagService;
     private final PostService postService;
     private final UserService userService;
     private final PostMapper postMapper;
     private final CommentMapper commentMapper;
     private final UserMapper userMapper;
 
-    public PostQueryResolver(PostService postService, PostMapper postMapper, UserService userService, TagService tagService, CommentMapper commentMapper, UserMapper userMapper) {
+    public PostQueryResolver(PostService postService, PostMapper postMapper, UserService userService, CommentMapper commentMapper, UserMapper userMapper) {
         this.postService = postService;
         this.postMapper = postMapper;
         this.userService = userService;
-        this.tagService = tagService;
+
         this.commentMapper = commentMapper;
         this.userMapper = userMapper;
     }

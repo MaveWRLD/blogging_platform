@@ -35,7 +35,7 @@ public class Post {
     @Column(name = "id", nullable = false)
     private int id;
 
-    @Column(name = "title", nullable = false, length = Integer.MAX_VALUE)
+    @Column(name = "title", nullable = false)
     private String title;
 
     @Column(name = "body", length = Integer.MAX_VALUE)
@@ -59,6 +59,7 @@ public class Post {
 
     @Column(name = "published_at")
     private Instant publishedAt;
+
     @ColumnDefault("0")
     @Column(name = "like_count")
     private int likeCount;
@@ -66,6 +67,7 @@ public class Post {
     @ColumnDefault("0")
     @Column(name = "view_count")
     private int viewCount;
+
     @ColumnDefault("0")
     @Column(name = "comment_count")
     private int commentCount;
@@ -83,9 +85,7 @@ public class Post {
 
     @Transient
     private double trendingScore;
-
-
-
+    
 
     /*
  TODO [Reverse Engineering] create field to map the 'search_vector' column

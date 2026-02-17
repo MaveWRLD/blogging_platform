@@ -78,7 +78,7 @@ public class PostService {
     /**
      * Get paged posts (simple latest)
      */
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRED, isolation = Isolation.READ_COMMITTED)
+    @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
     @Cacheable(value="allPosts")
     public Page<PostDto> getPosts(Pageable pageable) {
         return postRepository.findAllProjected(pageable);
@@ -101,10 +101,10 @@ public class PostService {
     }
 
     @Cacheable(value = "postsByUser", key = "#userId + '-' + #page + '-' + #size")
-    @Transactional(readOnly = true, propagation = Propagation.REQUIRES_NEW, isolation = Isolation.READ_COMMITTED)
+    @Transactional(readOnly = true)
     public Page<PostDto> findPostsByUserId(Long userId, int page, int size) {
         Pageable pageable = Pageable.ofSize(size).withPage(page);
-        return postRepository.findPostsByUserId(userId, pageable);
+        return postRepository.findByUserId(userId, pageable);
     }
 
     @Cacheable(value = "trending-posts", key = "#limit + '-' + #pageable.pageNumber + '-' + #pageable.pageSize")
@@ -133,7 +133,7 @@ public class PostService {
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Caching(
             evict = {
-            @CacheEvict(value = "allPosts", condition = "#post.status == 'PUBLISHED'",  allEntries = true),
+            @CacheEvict(value = "allPosts",  allEntries = true),
             @CacheEvict(value = "filteredPosts", allEntries = true)
     })
     public Post createPost(Post post, Set<String> tagNames) {
