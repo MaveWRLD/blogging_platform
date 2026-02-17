@@ -16,6 +16,5 @@ public class CreateUserRequest {
     private String email;
 
     @NotBlank(message = "Password cannot be empty")
-    @ValidPassword
     private String password;
 }
