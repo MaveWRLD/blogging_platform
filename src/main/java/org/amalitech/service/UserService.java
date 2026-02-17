@@ -4,10 +4,10 @@ import org.amalitech.entities.Role;
 import org.amalitech.entities.User;
 import org.amalitech.repositories.RoleRepository;
 import org.amalitech.repositories.UserRepository;
-import org.amalitech.util.PasswordHasher;
 import org.amalitech.util.UserValidator;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,10 +19,12 @@ import java.util.Set;
 @Service
 public class UserService {
 
+    private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
 
-    public UserService(UserRepository userRepository, RoleRepository roleRepository) {
+    public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository, RoleRepository roleRepository) {
+        this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
     }
@@ -53,10 +55,10 @@ public class UserService {
         }
 
         if (user.getPassword() != null && !user.getPassword().isBlank()) {
-            user.setPassword(PasswordHasher.hash(user.getPassword()));
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
 
-        Role userRole = roleRepository.findByName("ROLE_USER")
+        Role userRole = roleRepository.findByName("reader")
                 .orElseThrow(() -> new ResourceNotFoundException("Default role not found: ROLE_USER"));
 
         user.setRoles(Set.of(userRole));
@@ -80,7 +82,7 @@ public class UserService {
         }
 
         if (updatedUser.getPassword() != null && !updatedUser.getPassword().isBlank()) {
-            existing.setPassword(PasswordHasher.hash(updatedUser.getPassword()));
+            existing.setPassword(passwordEncoder.encode(updatedUser.getPassword()));
         }
 
         return userRepository.save(existing);
@@ -101,7 +103,7 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
 
-        if (!PasswordHasher.check(password, user.getPassword())) {
+        if (!passwordEncoder.matches(password, user.getPassword())) {
             throw new ValidationException("Invalid credentials");
         }
 
