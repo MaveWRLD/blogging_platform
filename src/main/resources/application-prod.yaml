@@ -1,0 +1,31 @@
+spring:
+  graphql:
+    graphiql:
+      enabled: true
+      path: /graphiql
+    path: /graphql
+    schema:
+      printer:
+        enabled: true
+      locations: classpath:graphql/
+
+  config:
+    import: optional:file:.env[.properties]
+
+  datasource:
+    url: ${POSTGRES_URL}
+    username: ${POSTGRES_USERNAME}
+    password: ${POSTGRES_PASSWORD}
+    driver-class-name: ${POSTGRES_DRIVER}
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      database: ${MONGODB_DATABASE}
+
+logging:
+  level:
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+
