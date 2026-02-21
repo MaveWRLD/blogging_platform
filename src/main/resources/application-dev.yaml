@@ -27,9 +27,18 @@ spring:
     secret: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION}
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: ${GOOGLE_CLIENT_ID}
+            clientSecret: ${GOOGLE_CLIENT_SECRET}
+
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+#    org.springframework.security: Trace
 
 
