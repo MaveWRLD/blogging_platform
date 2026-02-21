@@ -1,12 +1,12 @@
-package org.amalitech.service;
+package org.amalitech.token;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import org.amalitech.entities.Role;
+import org.amalitech.enums.TokenType;
 
 import javax.crypto.SecretKey;
+import java.time.Instant;
 import java.util.Date;
-import java.util.Set;
 
 public class Jwt {
 
@@ -19,6 +19,12 @@ public class Jwt {
         this.securityKey = securityKey;
     }
 
+    public TokenType getTokenType() {
+        String type = claims.get("token_type", String.class);
+        return TokenType.from(type);
+    }
+
+
     public boolean isExpired() {
         return claims.getExpiration().before(new Date());
     }
@@ -27,13 +33,19 @@ public class Jwt {
         return Long.valueOf(claims.getSubject());
     }
 
-    public Set<Role> getRoles() {
-        return claims.get("roles", Set.class);
-    }
-
     public String toString() {
-        return Jwts.builder().claims(claims).signWith(securityKey).compact();
+        return Jwts
+                .builder()
+                .claims(claims)
+                .signWith(securityKey)
+                .compact();
     }
 
+    public Instant getExpiresAt() {
+        return Instant.ofEpochMilli(claims.getExpiration().getTime());
+    }
 
+    public String getRole() {
+        return claims.get("role", String.class);
+    }
 }

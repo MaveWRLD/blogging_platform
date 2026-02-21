@@ -7,12 +7,10 @@ import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-
 @Service
-public class JwtService {
+public class JwtParser {
     @Value("${spring.jwt.secret}")
     private String secretKey;
-
 
     public Jwt parseToken(String token) {
         try {
