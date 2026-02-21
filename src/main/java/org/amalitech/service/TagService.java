@@ -6,6 +6,7 @@ import org.amalitech.entities.Tag;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -22,6 +23,11 @@ public class TagService {
 
     @Transactional
     public Set<Tag> findOrCreateTagsByName(Set<String> names) {
+
+        if (names == null || names.isEmpty()) {
+            return Collections.emptySet();
+        }
+
         Set<Tag> existingTags = tagRepository.findByNameIn(names);
 
         Set<String> existingNames = existingTags.stream()

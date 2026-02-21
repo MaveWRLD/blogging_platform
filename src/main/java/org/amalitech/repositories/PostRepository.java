@@ -56,5 +56,7 @@ public interface PostRepository extends JpaRepository<Post, Integer>, JpaSpecifi
     """)
     Page<Post> findRecentPublishedPosts(@Param("threshold") Instant threshold, Pageable pageable
     );
+
+    boolean existsByIdAndUser_Id(int id, Long user_id);
 }
 

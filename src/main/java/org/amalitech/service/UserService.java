@@ -1,12 +1,11 @@
 package org.amalitech.service;
 
-import org.amalitech.entities.Role;
 import org.amalitech.entities.User;
-import org.amalitech.repositories.RoleRepository;
 import org.amalitech.repositories.UserRepository;
 import org.amalitech.util.UserValidator;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
@@ -14,19 +13,16 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class UserService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
 
-    public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository, RoleRepository roleRepository) {
+    public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository) {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
     }
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
@@ -58,15 +54,11 @@ public class UserService {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
 
-        Role userRole = roleRepository.findByName("reader")
-                .orElseThrow(() -> new ResourceNotFoundException("Default role not found: ROLE_USER"));
-
-        user.setRoles(Set.of(userRole));
-
         return userRepository.save(user);
     }
 
     @Transactional
+    @PreAuthorize("@authorizationService.canAccessUser(#id)")
     public User updateUser(int id, User updatedUser) {
         User existing = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
@@ -89,6 +81,7 @@ public class UserService {
     }
 
     @Transactional
+    @PreAuthorize("@authorizationService.canAccessUser(#id)")
     public void deleteUser(int id) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User not found with id: " + id);
@@ -111,12 +104,11 @@ public class UserService {
     }
 
     @Transactional
-    public User assignRole(Long id, String roleName) {
-        User user = findByUserId(id);
-        Role role = roleRepository.findByName(roleName)
-                .orElseThrow(() -> new ResourceNotFoundException("Role not found: " + roleName));
+    public User promoteToWriter(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
 
-        user.setRoles(Set.of(role));
+        user.setRole("writer");
         return userRepository.save(user);
     }
 }

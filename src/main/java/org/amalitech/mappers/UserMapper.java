@@ -6,13 +6,20 @@ import org.amalitech.dtos.userDtos.UserDto;
 import org.amalitech.entities.User;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
+import org.mapstruct.ObjectFactory;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
     UserDto toDto(User user);
 
-    User toEntity(CreateUserRequest createUserRequest);
+    @ObjectFactory
+    default User createUser(CreateUserRequest request){
+        return User.registerReader(
+                request.getUsername(), request.getEmail(), request.getPassword(),
+                request.getFirstName(), request.getLastName()
+        );
+    };
 
     /**
      * Updates existing User entity with values from UpdateUserRequest.

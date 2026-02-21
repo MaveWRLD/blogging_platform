@@ -1,8 +1,11 @@
 package org.amalitech.service;
 
+import lombok.AllArgsConstructor;
 import org.amalitech.algorithm.TrendingSortAlgorithm;
 import org.amalitech.dtos.postDtos.PostDto;
 import org.amalitech.dtos.postDtos.PostFilter;
+import org.amalitech.dtos.postDtos.UpdatePostRequest;
+import org.amalitech.mappers.PostMapper;
 import org.amalitech.repositories.TagRepository;
 import org.amalitech.entities.*;
 import org.amalitech.repositories.PostRepository;
@@ -17,6 +20,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -27,6 +31,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
+@AllArgsConstructor
 public class PostService {
 
     private final PostRepository postRepository;
@@ -35,20 +40,7 @@ public class PostService {
     private final TrendingSortAlgorithm trendingAlgorithm;
     private final UserRepository userRepository;
     private final TagService tagService;
-
-    public PostService(
-            PostRepository postRepository,
-            TagRepository tagRepository,
-            CommentService commentService,
-            TrendingSortAlgorithm trendingAlgorithm,
-            UserRepository userRepository, TagService tagService) {
-        this.postRepository = postRepository;
-        this.tagRepository = tagRepository;
-        this.commentService = commentService;
-        this.trendingAlgorithm = trendingAlgorithm;
-        this.userRepository = userRepository;
-        this.tagService = tagService;
-    }
+    private final PostMapper postMapper;
 
     /**
      * Find posts with filtering, pagination, search
@@ -131,6 +123,7 @@ public class PostService {
      * Create a new post
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
+    @PreAuthorize("hasRole('writer') or hasRole('admin')")
     @Caching(
             evict = {
             @CacheEvict(value = "allPosts", condition = "#post.status == 'PUBLISHED'",  allEntries = true),
@@ -150,22 +143,31 @@ public class PostService {
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
     @Caching(evict = {
-            @CacheEvict(value = "post:detail", key = "#post.id"),
+            @CacheEvict(value = "post:detail", key = "#postId"),
             @CacheEvict(value = "allPosts",  allEntries = true),
             @CacheEvict(value = "filteredPosts", allEntries = true)
     })
-    public void updatePost(Post post, List<Integer> newTagIds) {
+    public Post updatePost(Integer postId, UpdatePostRequest request) {
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+
+        postMapper.updateEntity(request, post);
+
         PostValidator.validateForUpdate(post);
+
         post.setUpdatedAt(Instant.now());
-        if ("PUBLISHED".equalsIgnoreCase(String.valueOf(post.getStatus())) && post.getPublishedAt() == null) {
+
+        if ("PUBLISHED".equalsIgnoreCase(String.valueOf(post.getStatus()))
+                && post.getPublishedAt() == null) {
             post.setPublishedAt(Instant.now());
         }
 
-        setTags(post, newTagIds);
+        setTags(post, request.getTagIds());
 
-        postRepository.save(post);
-
+        return postRepository.save(post);
     }
+
 
     /**
      * Delete a post
