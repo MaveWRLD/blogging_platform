@@ -3,7 +3,6 @@ package org.amalitech.dtos.userDtos;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-import org.amalitech.repositories.ValidPassword;
 
 @Data
 public class CreateUserRequest {
@@ -17,4 +16,10 @@ public class CreateUserRequest {
 
     @NotBlank(message = "Password cannot be empty")
     private String password;
+
+    @NotBlank(message = "First name cannot be empty")
+    private String firstName;
+
+    @NotBlank(message = "Last name cannot be empty")
+    private String lastName;
 }

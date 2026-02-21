@@ -18,6 +18,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -59,18 +61,14 @@ public class PostController {
     public ResponseEntity<ApiResponse<PostDto>> updatePost(
             @PathVariable Integer id,
             @Valid @RequestBody UpdatePostRequest request) {
-        Post existing = postService.findPostById(id)
-                .keySet()
-                .stream()
-                .findFirst().orElse(null);
 
-        postMapper.updateEntity(request, existing);
-        postService.updatePost(existing, request.getTagIds());
-        PostDto updatedDto = postMapper.toDto(existing);
+        Post updated = postService.updatePost(id, request);
+
         return ResponseEntity.ok(
-                ApiResponse.success("Post updated successfully", updatedDto)
+                ApiResponse.success("Post updated successfully",postMapper.toDto(updated))
         );
     }
+
 
     @GetMapping
     @Operation(
@@ -84,6 +82,9 @@ public class PostController {
             @RequestParam(required = false, defaultValue = "desc") String sortDir
     ) {
         PostPagination result = getPostpagination(page, size, sortBy, sortDir);
+
+        var userId = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        System.out.println("Authenticated user ID: " + userId);
 
         List<PostDto> posts = result.pagedPost().getContent();
 
