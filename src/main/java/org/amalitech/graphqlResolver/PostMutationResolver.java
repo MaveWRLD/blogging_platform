@@ -7,12 +7,10 @@ import org.amalitech.entities.Post;
 import org.amalitech.enums.PostStatus;
 import org.amalitech.service.CommentService;
 import org.amalitech.service.PostService;
-import org.amalitech.exception.ResourceNotFoundException;
 import org.springframework.graphql.data.method.annotation.Argument;
 import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.stereotype.Controller;
 
-import java.time.Instant;
 
 @Controller
 public class PostMutationResolver {
@@ -43,28 +41,9 @@ public class PostMutationResolver {
 
     @MutationMapping
     public Post updatePost(@Argument int id, @Argument UpdatePostRequest input) {
-
-        Post existing = postService.findPostById(id).keySet().stream().findFirst().orElseThrow(
-                () -> new ResourceNotFoundException("Post not found")
-        );
-
-        if (input.getTitle() != null) {
-            existing.setTitle(input.getTitle());
-        }
-        if (input.getBody() != null) {
-            existing.setBody(input.getBody());
-        }
-        if (input.getStatus() != null) {
-            existing.setStatus(PostStatus.valueOf(input.getStatus()));
-            if (existing.getPublishedAt() == null && "published".equals(existing.getStatus())) {
-                existing.setPublishedAt(Instant.now());
-            }
-        }
-
-        postService.updatePost(existing, null);
-
-        return existing;
+        return postService.updatePost(id, input);
     }
+
 
     @MutationMapping
     public Boolean deletePost(@Argument String id) {
@@ -73,36 +52,12 @@ public class PostMutationResolver {
         return true;
     }
 
-    @MutationMapping
-    public Post publishPost(@Argument String id) {
-        int postId = Integer.parseInt(id);
+   @MutationMapping
+   public Post likePost(@Argument String id) {
+       int postId = Integer.parseInt(id);
 
-        Post post = postService.findPostById(postId).keySet().stream().findFirst().orElseThrow(
-                () -> new ResourceNotFoundException("Post not found")
-        );
-
-        if (PostStatus.published != post.getStatus()) {
-            post.setStatus(PostStatus.valueOf("published"));
-            post.setPublishedAt(Instant.now());
-            postService.updatePost(post, null);
-        }
-
-        return post;
-    }
-
-    @MutationMapping
-    public Post likePost(@Argument String id) {
-        int postId = Integer.parseInt(id);
-
-        Post post = postService.findPostById(postId).keySet().stream().findFirst().orElseThrow(
-                () -> new ResourceNotFoundException("Post not found")
-        );
-
-        post.setLikeCount(post.getLikeCount() + 1);
-        postService.updatePost(post, null);
-
-        return post;
-    }
+       return postService.incrementLikeCount(postId);
+   }
 
     @MutationMapping
     public Comment createComment(@Argument CreateCommentRequest input) {

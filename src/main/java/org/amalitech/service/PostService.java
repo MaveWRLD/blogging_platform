@@ -168,6 +168,23 @@ public class PostService {
         return postRepository.save(post);
     }
 
+    @Transactional(isolation = Isolation.READ_COMMITTED)
+    @Caching(evict = {
+            @CacheEvict(value = "post:detail", key = "#postId"),
+            @CacheEvict(value = "allPosts", allEntries = true),
+            @CacheEvict(value = "filteredPosts", allEntries = true)
+    })
+    public Post incrementLikeCount(int postId) {
+        if (postId <= 0) throw new ValidationException("Invalid post ID");
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found with ID: " + postId));
+
+        post.setLikeCount(post.getLikeCount() + 1);
+
+        return postRepository.save(post);
+    }
+
 
     /**
      * Delete a post
