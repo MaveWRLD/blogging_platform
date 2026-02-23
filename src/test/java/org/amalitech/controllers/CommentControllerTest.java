@@ -61,9 +61,6 @@ class CommentControllerTest {
         sampleCommentDto.setBody("A great post!");
     }
 
-    // -------------------------------------------------------------------------
-    // POST /api/comments
-    // -------------------------------------------------------------------------
     @Nested
     @DisplayName("POST /api/comments")
     class CreateComment {
@@ -121,9 +118,6 @@ class CommentControllerTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // GET /api/comments/{postId}
-    // -------------------------------------------------------------------------
     @Nested
     @DisplayName("GET /api/comments/{postId}")
     class GetCommentsByPostId {
@@ -169,9 +163,6 @@ class CommentControllerTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // PUT /api/comments/{commentId}
-    // -------------------------------------------------------------------------
     @Nested
     @DisplayName("PUT /api/comments/{commentId}")
     class UpdateComment {
@@ -235,10 +226,7 @@ class CommentControllerTest {
                     .andExpect(status().isBadRequest());
         }
     }
-
-    // -------------------------------------------------------------------------
-    // DELETE /api/comments/{commentId}
-    // -------------------------------------------------------------------------
+    
     @Nested
     @DisplayName("DELETE /api/comments/{commentId}")
     class DeleteComment {

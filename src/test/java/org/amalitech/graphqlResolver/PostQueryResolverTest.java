@@ -13,6 +13,7 @@ import org.amalitech.exception.ValidationException;
 import org.amalitech.mappers.CommentMapper;
 import org.amalitech.mappers.PostMapper;
 import org.amalitech.mappers.UserMapper;
+import org.amalitech.dtos.userDtos.UserDto;
 import org.amalitech.service.PostService;
 import org.amalitech.service.UserService;
 import org.junit.jupiter.api.DisplayName;
@@ -224,13 +225,14 @@ class PostQueryResolverTest {
 
            PostDto postDto = mock(PostDto.class);
            CommentDto commentDto = mock(CommentDto.class);
-       User user = User.registerReader(
-               "user-" + userId,
-               "user" + userId + "@example.com",
-               "password",
-               "First",
-               "Last"
-       );
+           User user = User.registerReader(
+                   "user-42",
+                   "user42@example.com",
+                   "password",
+                   "First",
+                   "Last"
+           );
+           user.setId(42L);
            UserDto userDto = mock(UserDto.class);
 
            when(postService.findPostById(1)).thenReturn(postMap);
