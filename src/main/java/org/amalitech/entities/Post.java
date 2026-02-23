@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-@Builder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -76,21 +75,10 @@ public class Post {
             inverseJoinColumns = @JoinColumn(name = "tag_id"))
     private Set<Tag> tags = new LinkedHashSet<>();
 
-
     @Column(name = "status", columnDefinition = "post_status")
     @Enumerated(EnumType.STRING)
     private PostStatus status;
 
     @Transient
     private double trendingScore;
-
-
-
-
-    /*
- TODO [Reverse Engineering] create field to map the 'search_vector' column
- Available actions: Define target Java type | Uncomment as is | Remove column mapping
-    @Column(name = "search_vector", columnDefinition = "tsvector")
-    private Object searchVector;
-*/
 }
