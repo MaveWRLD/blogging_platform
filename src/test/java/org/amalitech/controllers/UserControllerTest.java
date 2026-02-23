@@ -54,10 +54,14 @@ class UserControllerTest {
 
     @BeforeEach
     void setUp() {
-        sampleUser = new User();
+        sampleUser = User.registerReader(
+                "johndoe",
+                "john@example.com",
+                "secret123",
+                "John",
+                "Doe"
+        );
         sampleUser.setId(1L);
-        sampleUser.setUsername("johndoe");
-        sampleUser.setEmail("john@example.com");
 
         sampleUserDto = new UserDto();
         sampleUserDto.setId(1L);
@@ -85,7 +89,7 @@ class UserControllerTest {
             request.setEmail("john@example.com");
             request.setPassword("secret123");
 
-            when(userMapper.toEntity(any(CreateUserRequest.class))).thenReturn(sampleUser);
+            when(userMapper.createUser(any(CreateUserRequest.class))).thenReturn(sampleUser);
             when(userService.createUser(any(User.class)))
                     .thenThrow(new ValidationException("Username already exists"));
 
@@ -126,7 +130,13 @@ class UserControllerTest {
         @Test
         @DisplayName("maps each user through the mapper")
         void multipleUsers_mapsAll() throws Exception {
-            User second = new User();
+            User second = User.registerReader(
+                    "janedoe",
+                    "jane@example.com",
+                    "secret123",
+                    "Jane",
+                    "Doe"
+            );
             second.setId(2L);
             UserDto secondDto = new UserDto();
             secondDto.setId(2L);
