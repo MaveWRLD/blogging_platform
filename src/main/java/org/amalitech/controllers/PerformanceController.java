@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.amalitech.aspect.PerformanceMonitoringAspect;
 import org.amalitech.dtos.perf.PerformanceStatsDto;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +26,7 @@ public class PerformanceController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('admin')")
     @Operation(
             summary = "Get Performance Metrics",
             description = "Retrieve aggregated performance metrics for all monitored methods, including average execution time, total calls, and min/max execution times. Requires admin privileges."
