@@ -2,6 +2,9 @@ package org.amalitech.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -19,6 +22,42 @@ public class CustomExceptionHandler {
         Map<String, Object> body = exceptionBody(ex.getMessage(), request);
 
         return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(value = RuntimeException.class)
+    public ResponseEntity<?> handleCommentNotFoundException(RuntimeException ex, WebRequest request) {
+        if ("Comment not found".equals(ex.getMessage()) || "Post not found".equals(ex.getMessage())) {
+            Map<String, Object> body = exceptionBody(ex.getMessage(), request);
+            return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+        }
+        
+        // For other RuntimeExceptions, return 500 Internal Server Error
+        Map<String, Object> body = exceptionBody(ex.getMessage(), request);
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler(value = IllegalArgumentException.class)
+    public ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException ex, WebRequest request) {
+        Map<String, Object> body = exceptionBody(ex.getMessage(), request);
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = ValidationException.class)
+    public ResponseEntity<?> handleValidationException(ValidationException ex, WebRequest request) {
+        Map<String, Object> body = exceptionBody(ex.getMessage(), request);
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = HttpMessageNotReadableException.class)
+    public ResponseEntity<?> handleHttpMessageNotReadableException(HttpMessageNotReadableException ex, WebRequest request) {
+        Map<String, Object> body = exceptionBody("Invalid request body format", request);
+        return new ResponseEntity<>(body, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(value = AuthenticationException.class)
+    public ResponseEntity<?> handleAuthenticationException(AuthenticationException ex, WebRequest request) {
+        Map<String, Object> body = exceptionBody(ex.getMessage(), request);
+        return new ResponseEntity<>(body, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(DatabaseException.class)

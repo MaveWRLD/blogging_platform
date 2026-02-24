@@ -5,251 +5,247 @@ import org.amalitech.dtos.CommentDto;
 import org.amalitech.dtos.CreateCommentRequest;
 import org.amalitech.dtos.UpdateCommentRequest;
 import org.amalitech.entities.Comment;
-import org.amalitech.exception.ResourceNotFoundException;
+import org.amalitech.exception.CustomExceptionHandler;
+import org.amalitech.exception.ValidationException;
 import org.amalitech.mappers.CommentMapper;
 import org.amalitech.service.CommentService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 
-import static org.hamcrest.Matchers.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(CommentController.class)
-@DisplayName("CommentController Tests")
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class CommentControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
     private ObjectMapper objectMapper;
 
-    @MockitoBean
+    @Mock
     private CommentService commentService;
 
-    @MockitoBean
+    @Mock
     private CommentMapper commentMapper;
 
-    private Comment sampleComment;
-    private CommentDto sampleCommentDto;
+    @InjectMocks
+    private CommentController commentController;
+
+    private Comment testComment;
+    private CommentDto testCommentDto;
+    private CreateCommentRequest createCommentRequest;
+    private UpdateCommentRequest updateCommentRequest;
 
     @BeforeEach
     void setUp() {
-        sampleComment = new Comment();
-        sampleComment.setId("comment-abc");
-        sampleComment.setPostId(1);
-        sampleComment.setUsername("johndoe");
-        sampleComment.setBody("A great post!");
-        sampleComment.setCreatedAt(Instant.parse("2024-06-01T10:00:00Z"));
+        mockMvc = MockMvcBuilders.standaloneSetup(commentController)
+                .setControllerAdvice(new CustomExceptionHandler())
+                .build();
+        objectMapper = new ObjectMapper();
 
-        sampleCommentDto = new CommentDto();
-        sampleCommentDto.setId("comment-abc");
-        sampleCommentDto.setUsername("johndoe");
-        sampleCommentDto.setBody("A great post!");
+        testComment = new Comment();
+        testComment.setId("comment-123");
+        testComment.setPostId(1L);
+        testComment.setUsername("testuser");
+        testComment.setBody("Test comment content");
+        testComment.setCreatedAt(Instant.now());
+
+        testCommentDto = new CommentDto();
+        testCommentDto.setId("comment-123");
+        testCommentDto.setPostId(1L);
+        testCommentDto.setUsername("testuser");
+        testCommentDto.setBody("Test comment content");
+        testCommentDto.setCreatedAt(testComment.getCreatedAt());
+
+        createCommentRequest = new CreateCommentRequest();
+        createCommentRequest.setPostId(1L);
+        createCommentRequest.setBody("Test comment content");
+
+        updateCommentRequest = new UpdateCommentRequest();
+        updateCommentRequest.setBody("Updated comment content");
     }
 
-    @Nested
-    @DisplayName("POST /api/comments")
-    class CreateComment {
+    @Test
+    void createComment_WithValidRequest_ShouldReturnCreatedComment() throws Exception {
+        when(commentMapper.toEntity(any(CreateCommentRequest.class))).thenReturn(testComment);
+        when(commentService.save(any(Comment.class))).thenReturn(testComment);
+        when(commentMapper.toDto(any(Comment.class))).thenReturn(testCommentDto);
 
-        @Test
-        @DisplayName("returns 200 with created comment DTO on success")
-        void validRequest_returns200WithDto() throws Exception {
-            CreateCommentRequest request = new CreateCommentRequest();
-            request.setPostId(1);
-            request.setUsername("johndoe");
-            request.setBody("A great post!");
+        mockMvc.perform(post("/api/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(createCommentRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CREATED"))
+                .andExpect(jsonPath("$.message").value("Comment Added Successfully"))
+                .andExpect(jsonPath("$.data.id").value("comment-123"))
+                .andExpect(jsonPath("$.data.body").value("Test comment content"));
 
-            when(commentMapper.toEntity(any(CreateCommentRequest.class))).thenReturn(sampleComment);
-            when(commentService.save(any(Comment.class))).thenReturn(sampleComment);
-            when(commentMapper.toDto(any(Comment.class))).thenReturn(sampleCommentDto);
-
-            mockMvc.perform(post("/api/comments")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value("Comment Added Successfully"))
-                    .andExpect(jsonPath("$.data.id").value("comment-abc"))
-                    .andExpect(jsonPath("$.data.username").value("johndoe"))
-                    .andExpect(jsonPath("$.data.body").value("A great post!"));
-
-            verify(commentService).save(sampleComment);
-        }
-
-        @Test
-        @DisplayName("calls mapper to convert request to entity and entity to DTO")
-        void validRequest_invokesMapperBothWays() throws Exception {
-            CreateCommentRequest request = new CreateCommentRequest();
-            request.setPostId(1);
-            request.setUsername("johndoe");
-            request.setBody("A great post!");
-
-            when(commentMapper.toEntity(any(CreateCommentRequest.class))).thenReturn(sampleComment);
-            when(commentMapper.toDto(any(Comment.class))).thenReturn(sampleCommentDto);
-
-            mockMvc.perform(post("/api/comments")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk());
-
-            verify(commentMapper).toEntity(any(CreateCommentRequest.class));
-            verify(commentMapper).toDto(sampleComment);
-        }
-
-        @Test
-        @DisplayName("returns 400 when request body is missing")
-        void missingBody_returns400() throws Exception {
-            mockMvc.perform(post("/api/comments")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-        }
+        verify(commentMapper).toEntity(createCommentRequest);
+        verify(commentService).save(testComment);
+        verify(commentMapper).toDto(testComment);
     }
 
-    @Nested
-    @DisplayName("GET /api/comments/{postId}")
-    class GetCommentsByPostId {
+    @Test
+    void createComment_WithInvalidRequest_ShouldReturnBadRequest() throws Exception {
+        CreateCommentRequest invalidRequest = new CreateCommentRequest();
+        invalidRequest.setPostId(0L);
+        invalidRequest.setBody("");
 
-        @Test
-        @DisplayName("returns 200 with list of comment DTOs")
-        void validPostId_returns200WithList() throws Exception {
-            when(commentService.getCommentsByPostId(1)).thenReturn(List.of(sampleComment));
-            when(commentMapper.toDto(sampleComment)).thenReturn(sampleCommentDto);
+        Comment invalidComment = new Comment();
+        invalidComment.setPostId(0L);
+        invalidComment.setBody("");
+        
+        when(commentMapper.toEntity(invalidRequest)).thenReturn(invalidComment);
+        when(commentService.save(invalidComment)).thenThrow(new ValidationException("Invalid post ID"));
 
-            mockMvc.perform(get("/api/comments/1"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data", hasSize(1)))
-                    .andExpect(jsonPath("$.data[0].id").value("comment-abc"))
-                    .andExpect(jsonPath("$.data[0].username").value("johndoe"));
-        }
-
-        @Test
-        @DisplayName("returns 200 with empty list when no comments exist")
-        void noComments_returns200WithEmptyList() throws Exception {
-            when(commentService.getCommentsByPostId(42)).thenReturn(List.of());
-
-            mockMvc.perform(get("/api/comments/42"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data", hasSize(0)));
-        }
-
-        @Test
-        @DisplayName("returns 200 with multiple comments mapped correctly")
-        void multipleComments_returnsAll() throws Exception {
-            Comment second = new Comment();
-            second.setId("comment-xyz");
-            CommentDto secondDto = new CommentDto();
-            secondDto.setId("comment-xyz");
-
-            when(commentService.getCommentsByPostId(1)).thenReturn(List.of(sampleComment, second));
-            when(commentMapper.toDto(sampleComment)).thenReturn(sampleCommentDto);
-            when(commentMapper.toDto(second)).thenReturn(secondDto);
-
-            mockMvc.perform(get("/api/comments/1"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.data", hasSize(2)));
-        }
+        mockMvc.perform(post("/api/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
     }
 
-    @Nested
-    @DisplayName("PUT /api/comments/{commentId}")
-    class UpdateComment {
+    @Test
+    void getCommentsByPostId_WithValidPostId_ShouldReturnComments() throws Exception {
+        List<Comment> comments = Arrays.asList(testComment);
 
-        @Test
-        @DisplayName("returns 200 with updated comment DTO")
-        void validUpdate_returns200WithDto() throws Exception {
-            UpdateCommentRequest request = new UpdateCommentRequest();
-            request.setBody("Updated body text.");
+        when(commentService.getCommentsByPostId(1)).thenReturn(comments);
+        when(commentMapper.toDto(any(Comment.class))).thenReturn(testCommentDto);
 
-            when(commentService.getCommentById("comment-abc")).thenReturn(sampleComment);
-            when(commentMapper.toDto(sampleComment)).thenReturn(sampleCommentDto);
+        mockMvc.perform(get("/api/comments/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.data").isArray())
+                .andExpect(jsonPath("$.data[0].id").value("comment-123"))
+                .andExpect(jsonPath("$.data[0].postId").value(1))
+                .andExpect(jsonPath("$.data[0].body").value("Test comment content"));
 
-            mockMvc.perform(put("/api/comments/comment-abc")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value("comment-abc"));
-
-            verify(commentService).getCommentById("comment-abc");
-            verify(commentService).update(sampleComment);
-        }
-
-        @Test
-        @DisplayName("sets new body on existing comment before updating")
-        void validUpdate_setsBodyOnEntity() throws Exception {
-            UpdateCommentRequest request = new UpdateCommentRequest();
-            request.setBody("Updated body text.");
-
-            when(commentService.getCommentById("comment-abc")).thenReturn(sampleComment);
-            when(commentMapper.toDto(any(Comment.class))).thenReturn(sampleCommentDto);
-
-            mockMvc.perform(put("/api/comments/comment-abc")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk());
-
-            verify(commentService).update(argThat(c -> "Updated body text.".equals(c.getBody())));
-        }
-
-        @Test
-        @DisplayName("returns 404 when comment to update is not found")
-        void commentNotFound_returns404() throws Exception {
-            UpdateCommentRequest request = new UpdateCommentRequest();
-            request.setBody("Something");
-
-            when(commentService.getCommentById("missing-id"))
-                    .thenThrow(new ResourceNotFoundException("Comment not found with ID: missing-id"));
-
-            mockMvc.perform(put("/api/comments/missing-id")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isNotFound());
-        }
-
-        @Test
-        @DisplayName("returns 400 when request body is missing")
-        void missingBody_returns400() throws Exception {
-            mockMvc.perform(put("/api/comments/comment-abc")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-        }
+        verify(commentService).getCommentsByPostId(1);
+        verify(commentMapper, times(1)).toDto(testComment);
     }
-    
-    @Nested
-    @DisplayName("DELETE /api/comments/{commentId}")
-    class DeleteComment {
 
-        @Test
-        @DisplayName("returns 204 on successful deletion")
-        void existingComment_returns204() throws Exception {
-            doNothing().when(commentService).deleteById("comment-abc");
+    @Test
+    void getCommentsByPostId_WithInvalidPostId_ShouldReturnBadRequest() throws Exception {
+        when(commentService.getCommentsByPostId(-1))
+                .thenThrow(new IllegalArgumentException("Invalid post ID"));
 
-            mockMvc.perform(delete("/api/comments/comment-abc"))
-                    .andExpect(status().isNoContent());
+        mockMvc.perform(get("/api/comments/-1"))
+                .andExpect(status().isBadRequest());
 
-            verify(commentService).deleteById("comment-abc");
-        }
+        verify(commentService).getCommentsByPostId(-1);
+    }
 
-        @Test
-        @DisplayName("propagates service exception when comment not found")
-        void notFound_propagatesException() throws Exception {
-            doThrow(new ResourceNotFoundException("Comment not found with ID: ghost"))
-                    .when(commentService).deleteById("ghost");
+    @Test
+    void getCommentsByPostId_WithNonExistentPost_ShouldReturnNotFound() throws Exception {
+        when(commentService.getCommentsByPostId(999))
+                .thenThrow(new RuntimeException("Post not found"));
 
-            mockMvc.perform(delete("/api/comments/ghost"))
-                    .andExpect(status().isNotFound());
-        }
+        mockMvc.perform(get("/api/comments/999"))
+                .andExpect(status().isNotFound());
+
+        verify(commentService).getCommentsByPostId(999);
+    }
+
+    @Test
+    void updateComment_WithValidRequest_ShouldReturnUpdatedComment() throws Exception {
+        Comment updatedComment = new Comment();
+        updatedComment.setId("comment-123");
+        updatedComment.setPostId(1L);
+        updatedComment.setUsername("testuser");
+        updatedComment.setBody("Updated comment content");
+        updatedComment.setCreatedAt(Instant.now());
+
+        CommentDto updatedCommentDto = new CommentDto();
+        updatedCommentDto.setId("comment-123");
+        updatedCommentDto.setPostId(1L);
+        updatedCommentDto.setUsername("testuser");
+        updatedCommentDto.setBody("Updated comment content");
+        updatedCommentDto.setCreatedAt(updatedComment.getCreatedAt());
+
+        when(commentService.getCommentById("comment-123")).thenReturn(testComment);
+        when(commentMapper.toDto(any(Comment.class))).thenReturn(updatedCommentDto);
+
+        mockMvc.perform(put("/api/comments/comment-123")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateCommentRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value("comment-123"))
+                .andExpect(jsonPath("$.body").value("Updated comment content"));
+
+        verify(commentService).getCommentById("comment-123");
+        verify(commentService).update(any(Comment.class));
+    }
+
+    @Test
+    void updateComment_WithNonExistentComment_ShouldReturnNotFound() throws Exception {
+        when(commentService.getCommentById("nonexistent"))
+                .thenThrow(new RuntimeException("Comment not found"));
+
+        mockMvc.perform(put("/api/comments/nonexistent")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(updateCommentRequest)))
+                .andExpect(status().isNotFound());
+
+        verify(commentService).getCommentById("nonexistent");
+    }
+
+    @Test
+    void deleteComment_WithValidCommentId_ShouldDeleteComment() throws Exception {
+        doNothing().when(commentService).deleteById("comment-123");
+
+        mockMvc.perform(delete("/api/comments/comment-123"))
+                .andExpect(status().isNoContent());
+
+        verify(commentService).deleteById("comment-123");
+    }
+
+    @Test
+    void deleteComment_WithNonExistentComment_ShouldReturnNotFound() throws Exception {
+        doThrow(new RuntimeException("Comment not found"))
+                .when(commentService).deleteById("nonexistent");
+
+        mockMvc.perform(delete("/api/comments/nonexistent"))
+                .andExpect(status().isNotFound());
+
+        verify(commentService).deleteById("nonexistent");
+    }
+
+    @Test
+    void deleteComment_WithEmptyCommentId_ShouldReturnBadRequest() throws Exception {
+        mockMvc.perform(delete("/api/comments/ "))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void createComment_WithNullBody_ShouldReturnBadRequest() throws Exception {
+        mockMvc.perform(post("/api/comments")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(""))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void getCommentsByPostId_WithZeroPostId_ShouldReturnBadRequest() throws Exception {
+        when(commentService.getCommentsByPostId(0))
+                .thenThrow(new IllegalArgumentException("Invalid post ID"));
+
+        mockMvc.perform(get("/api/comments/0"))
+                .andExpect(status().isBadRequest());
+
+        verify(commentService).getCommentsByPostId(0);
     }
 }

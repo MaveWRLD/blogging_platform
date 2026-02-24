@@ -9,18 +9,23 @@ import org.amalitech.enums.PostStatus;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.service.CommentService;
 import org.amalitech.service.PostService;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.isNull;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostMutationResolver")
@@ -218,13 +223,13 @@ class PostMutationResolverTest {
        @DisplayName("creates and saves a comment with correct fields")
        void createComment_setsFieldsAndSaves() {
            CreateCommentRequest input = mock(CreateCommentRequest.class);
-           when(input.getPostId()).thenReturn(10);
+           when(input.getPostId()).thenReturn(10L);
            when(input.getBody()).thenReturn("Nice post!");
 
            Comment result = resolver.createComment(input);
 
            assertThat(result).isNotNull();
-           assertThat(result.getPostId()).isEqualTo(10);
+           assertThat(result.getPostId()).isEqualTo(10L);
            assertThat(result.getBody()).isEqualTo("Nice post!");
            assertThat(result.getUsername()).isEqualTo("current_user");
            verify(commentService).save(result);
@@ -234,7 +239,7 @@ class PostMutationResolverTest {
        @DisplayName("hardcodes username as 'current_user'")
        void createComment_usernameIsAlwaysCurrentUser() {
            CreateCommentRequest input = mock(CreateCommentRequest.class);
-           when(input.getPostId()).thenReturn(1);
+           when(input.getPostId()).thenReturn(1L);
            when(input.getBody()).thenReturn("Test");
 
            Comment result = resolver.createComment(input);
@@ -246,7 +251,7 @@ class PostMutationResolverTest {
        @DisplayName("returns the comment that was passed to commentService.save")
        void createComment_returnsSavedComment() {
            CreateCommentRequest input = mock(CreateCommentRequest.class);
-           when(input.getPostId()).thenReturn(5);
+           when(input.getPostId()).thenReturn(5L);
            when(input.getBody()).thenReturn("A comment");
 
            ArgumentCaptor<Comment> captor = ArgumentCaptor.forClass(Comment.class);
