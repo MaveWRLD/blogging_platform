@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
 import org.amalitech.dtos.ApiResponse;
 import org.amalitech.dtos.CommentDto;
 import org.amalitech.dtos.CreateCommentRequest;
@@ -17,6 +18,7 @@ import org.amalitech.entities.Comment;
 import org.amalitech.service.CommentService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,18 +30,14 @@ import java.util.List;
         description = "Endpoints for managing comments and replies"
 )
 @SecurityRequirement(name = "bearerAuth")
+@AllArgsConstructor
 public class CommentController {
 
     private final CommentService commentService;
     private final CommentMapper commentMapper;
 
-    public CommentController(CommentService commentService, CommentMapper commentMapper) {
-        this.commentService = commentService;
-        this.commentMapper = commentMapper;
-    }
-
     /**
-     * Create a new comment (top-level or reply)
+     * Create a new comment
      */
     @PostMapping
     @Operation(
@@ -131,6 +129,7 @@ public class CommentController {
      * Update a comment's body
      */
     @PutMapping("/{commentId}")
+    @PreAuthorize("@authorizationService.canUpdateComment(#commentId)")
     @Operation(
             summary = "Update a comment",
             description = "Update the body of an existing comment. Only the body can be updated. Requires authentication and proper authorization."
@@ -190,6 +189,7 @@ public class CommentController {
      * Delete a single comment by its ObjectId
      */
     @DeleteMapping("/{commentId}")
+    @PreAuthorize("@authorizationService.canDeleteComment(#commentId)")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
             summary = "Delete a comment",
@@ -229,6 +229,9 @@ public class CommentController {
     public void deleteComment(
             @Parameter(description = "Comment ID", required = true, example = "1")
             @PathVariable String commentId) {
+        if (commentId == null || commentId.trim().isEmpty()) {
+            throw new IllegalArgumentException("Comment ID cannot be null or empty");
+        }
         commentService.deleteById(commentId);
     }
 }
