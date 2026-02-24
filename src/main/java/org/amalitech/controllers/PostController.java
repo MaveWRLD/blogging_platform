@@ -21,12 +21,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 
 import java.util.List;
@@ -45,6 +43,7 @@ public class PostController {
     private final CommentMapper commentMapper;
 
     @PostMapping
+    @PreAuthorize("hasRole('writer') or hasRole('admin')")
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
             summary = "Create a new post",
@@ -90,7 +89,8 @@ public class PostController {
 
         var createdPost = postService.createPost(post, request.getTagNames());
 
-        return ResponseEntity.ok(ApiResponse.success(HttpStatus.CREATED, "Post created successfully", postMapper.toDto(createdPost)));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success(HttpStatus.CREATED, "Post created successfully", postMapper.toDto(createdPost)));
     }
 
 
@@ -224,7 +224,7 @@ public class PostController {
                     content = @Content(schema = @Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Failed to retrieve user posts\",\"path\":\"/api/posts/user/1\"}"))
             )
     })
-    public ResponseEntity<PagedPostsResponse> getPostsByUserId(
+    public ResponseEntity<ApiResponse<PagedPostsResponse>> getPostsByUserId(
             @Parameter(description = "User ID", required = true, example = "1")
             @PathVariable Long userId,
             @Parameter(description = "Page number (0-based)", example = "0")
@@ -233,20 +233,21 @@ public class PostController {
             @RequestParam(required = false, defaultValue = "10") int size
     ) {
         var posts = postService.findPostsByUserId(userId, page, size);
+        var postDtos = posts.getContent();
+
+        if (postDtos.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
         var totalPosts = posts.getTotalElements();
         var hasNextPage = posts.hasNext();
         var hasPreviousPage = posts.hasPrevious();
 
-        var postDtos = posts.getContent();
-
-        if (posts.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
 
         return ResponseEntity.ok(
-                new PagedPostsResponse(
+                ApiResponse.success("Posts retrieved successfully", new PagedPostsResponse(
                         postDtos, posts.getNumber(), posts.getSize(), totalPosts, posts.getTotalPages(), hasPreviousPage, hasNextPage
-                )
+                ))
         );
     }
 
@@ -272,7 +273,7 @@ public class PostController {
                     content = @Content(schema = @Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Failed to retrieve trending posts\",\"path\":\"/api/posts/trending\"}"))
             )
     })
-    public ResponseEntity<PagedPostsResponse> getTrendingPosts(
+    public ResponseEntity<ApiResponse<PagedPostsResponse>> getTrendingPosts(
             @Parameter(description = "Maximum number of trending posts to return", example = "10")
             @RequestParam(required = false, defaultValue = "10") Integer limit,
             @Parameter(description = "Page number (0-based)", example = "0")
@@ -295,9 +296,9 @@ public class PostController {
                 .toList();
 
         return ResponseEntity.ok(
-                new PagedPostsResponse(
+                ApiResponse.success("Trending posts retrieved successfully", new PagedPostsResponse(
                         postDtos, trendingDtos.getNumber(), trendingDtos.getSize(), totalPosts, trendingDtos.getTotalPages(), hasPreviousPage, hasNextPage
-                )
+                ))
         );
     }
 
@@ -338,10 +339,11 @@ public class PostController {
                     content = @Content(schema = @Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Failed to delete post\",\"path\":\"/api/posts/1\"}"))
             )
     })
-    public void deletePost(
+    public ResponseEntity<Void> deletePost(
             @Parameter(description = "Post ID", required = true, example = "1")
             @PathVariable Integer id) {
         postService.deletePost(id);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
