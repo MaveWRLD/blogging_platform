@@ -21,6 +21,8 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     
     @PreAuthorize("hasRole('admin') or @authorizationService.canAccessUser(#id)")
     Optional<User> findById(Long id);
+
+    Optional<User> findByEmail(String email);
     
     @PreAuthorize("permitAll()")
     Optional<User> findByUsername(String username);
