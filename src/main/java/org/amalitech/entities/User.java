@@ -6,10 +6,13 @@ import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;
+import org.springframework.data.rest.core.annotation.RestResource;
 
 import java.time.Instant;
 
-
+/**
+ * User entity
+ */
 @Getter
 @Setter
 @Entity
@@ -51,6 +54,7 @@ public class User {
     @Column(name = "created_at")
     private Instant createdAt;
 
+    @RestResource(exported = false)
     @Column(name = "password", nullable = false)
     private String password;
 

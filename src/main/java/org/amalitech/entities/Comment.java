@@ -17,7 +17,7 @@ public class Comment {
     @Id
     private String id;
 
-    private int postId;
+    private Long postId;
 
     private String username;
     private Integer parentCommentId;

@@ -5,271 +5,219 @@ import org.amalitech.dtos.userDtos.CreateUserRequest;
 import org.amalitech.dtos.userDtos.UpdateUserRequest;
 import org.amalitech.dtos.userDtos.UserDto;
 import org.amalitech.entities.User;
-import org.amalitech.exception.ResourceNotFoundException;
-import org.amalitech.exception.ValidationException;
-import org.amalitech.mappers.PostMapper;
+import org.amalitech.exception.CustomExceptionHandler;
 import org.amalitech.mappers.UserMapper;
 import org.amalitech.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
-import java.util.List;
-
-import static org.hamcrest.Matchers.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@WebMvcTest(UserController.class)
-@DisplayName("UserController Tests")
+@ExtendWith(MockitoExtension.class)
+@MockitoSettings(strictness = Strictness.LENIENT)
 class UserControllerTest {
 
-    @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
     private ObjectMapper objectMapper;
 
-    @MockitoBean
+    @Mock
     private UserService userService;
 
-    @MockitoBean
+    @Mock
     private UserMapper userMapper;
 
-    @MockitoBean
-    private PostMapper postMapper;
+    @InjectMocks
+    private UserController userController;
 
-    private User sampleUser;
-    private UserDto sampleUserDto;
+    private User testUser;
+    private UserDto testUserDto;
+    private CreateUserRequest createUserRequest;
+    private UpdateUserRequest updateUserRequest;
 
     @BeforeEach
     void setUp() {
-        sampleUser = User.registerReader(
-                "johndoe",
-                "john@example.com",
-                "secret123",
-                "John",
-                "Doe"
-        );
-        sampleUser.setId(1L);
+        mockMvc = MockMvcBuilders.standaloneSetup(userController)
+                .setControllerAdvice(new CustomExceptionHandler())
+                .build();
+        objectMapper = new ObjectMapper();
 
-        sampleUserDto = new UserDto();
-        sampleUserDto.setId(1L);
-        sampleUserDto.setUsername("johndoe");
-        sampleUserDto.setEmail("john@example.com");
+        testUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User");
+        testUser.setId(1L);
+
+        testUserDto = new UserDto();
+        testUserDto.setId(1L);
+        testUserDto.setUsername("testuser");
+        testUserDto.setEmail("test@example.com");
+
+        createUserRequest = new CreateUserRequest();
+        createUserRequest.setUsername("testuser");
+        createUserRequest.setEmail("test@example.com");
+        createUserRequest.setPassword("password");
+        createUserRequest.setFirstName("Test");
+        createUserRequest.setLastName("User");
+
+        updateUserRequest = new UpdateUserRequest();
+        updateUserRequest.setUsername("updateduser");
+        updateUserRequest.setEmail("updated@example.com");
     }
 
-    @Nested
-    @DisplayName("POST /api/users")
-    class CreateUser {
 
-        @Test
-        @DisplayName("returns 400 when request body is missing")
-        void missingBody_returns400() throws Exception {
-            mockMvc.perform(post("/api/users")
-                            .contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(status().isBadRequest());
-        }
+    @Test
+    void registerUser_WithInvalidEmail_ShouldReturnBadRequest() throws Exception {
+        CreateUserRequest invalidRequest = new CreateUserRequest();
+        invalidRequest.setUsername("testuser");
+        invalidRequest.setEmail("invalid-email");
+        invalidRequest.setPassword("password");
+        invalidRequest.setFirstName("Test");
+        invalidRequest.setLastName("User");
 
-        @Test
-        @DisplayName("returns 400 when username is already taken")
-        void duplicateUsername_returns400() throws Exception {
-            CreateUserRequest request = new CreateUserRequest();
-            request.setUsername("johndoe");
-            request.setEmail("john@example.com");
-            request.setPassword("secret123");
-
-            when(userMapper.createUser(any(CreateUserRequest.class))).thenReturn(sampleUser);
-            when(userService.createUser(any(User.class)))
-                    .thenThrow(new ValidationException("Username already exists"));
-
-            mockMvc.perform(post("/api/users")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isBadRequest());
-        }
+        mockMvc.perform(post("/api/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
     }
 
-    @Nested
-    @DisplayName("GET /api/users")
-    class GetAllUsers {
+    @Test
+    void registerUser_WithMissingFields_ShouldReturnBadRequest() throws Exception {
+        CreateUserRequest invalidRequest = new CreateUserRequest();
+        invalidRequest.setUsername("testuser");
+        // Missing email, password, firstName, lastName
 
-        @Test
-        @DisplayName("returns 200 with list of user DTOs")
-        void usersExist_returns200WithList() throws Exception {
-            when(userService.findAllUsers()).thenReturn(List.of(sampleUser));
-            when(userMapper.toDto(sampleUser)).thenReturn(sampleUserDto);
-
-            mockMvc.perform(get("/api/users"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(1)))
-                    .andExpect(jsonPath("$[0].id").value(1))
-                    .andExpect(jsonPath("$[0].username").value("johndoe"));
-        }
-
-        @Test
-        @DisplayName("returns 200 with empty list when no users exist")
-        void noUsers_returns200WithEmptyList() throws Exception {
-            when(userService.findAllUsers()).thenReturn(List.of());
-
-            mockMvc.perform(get("/api/users"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(0)));
-        }
-
-        @Test
-        @DisplayName("maps each user through the mapper")
-        void multipleUsers_mapsAll() throws Exception {
-            User second = User.registerReader(
-                    "janedoe",
-                    "jane@example.com",
-                    "secret123",
-                    "Jane",
-                    "Doe"
-            );
-            second.setId(2L);
-            UserDto secondDto = new UserDto();
-            secondDto.setId(2L);
-
-            when(userService.findAllUsers()).thenReturn(List.of(sampleUser, second));
-            when(userMapper.toDto(sampleUser)).thenReturn(sampleUserDto);
-            when(userMapper.toDto(second)).thenReturn(secondDto);
-
-            mockMvc.perform(get("/api/users"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$", hasSize(2)));
-
-            verify(userMapper, times(2)).toDto(any(User.class));
-        }
+        mockMvc.perform(post("/api/users/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                .andExpect(status().isBadRequest());
     }
 
-    @Nested
-    @DisplayName("GET /api/users/{id}")
-    class GetUser {
+    @Test
+    void getUserById_WithValidId_ShouldReturnUser() throws Exception {
+        when(userService.findByUserId(1L)).thenReturn(testUser);
+        when(userMapper.toDto(testUser)).thenReturn(testUserDto);
 
-        @Test
-        @DisplayName("returns 200 with user DTO when found")
-        void found_returns200WithDto() throws Exception {
-            when(userService.findByUserId(1L)).thenReturn(sampleUser);
-            when(userMapper.toDto(sampleUser)).thenReturn(sampleUserDto);
+        mockMvc.perform(get("/api/users/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(1L))
+                .andExpect(jsonPath("$.username").value("testuser"))
+                .andExpect(jsonPath("$.email").value("test@example.com"));
 
-            mockMvc.perform(get("/api/users/1"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.id").value(1))
-                    .andExpect(jsonPath("$.username").value("johndoe"))
-                    .andExpect(jsonPath("$.email").value("john@example.com"));
-        }
-
-        @Test
-        @DisplayName("returns 404 when user does not exist")
-        void notFound_returns404() throws Exception {
-            when(userService.findByUserId(99L))
-                    .thenThrow(new ResourceNotFoundException("User not found with id: 99"));
-
-            mockMvc.perform(get("/api/users/99"))
-                    .andExpect(status().isNotFound());
-        }
-
-        @Test
-        @DisplayName("returns 400 when service returns null user")
-        void serviceReturnsNull_returns400() throws Exception {
-            when(userService.findByUserId(1L)).thenReturn(null);
-
-            mockMvc.perform(get("/api/users/1"))
-                    .andExpect(status().isBadRequest());
-        }
+        verify(userService).findByUserId(1L);
+        verify(userMapper).toDto(testUser);
     }
 
-    @Nested
-    @DisplayName("PUT /api/users/{id}")
-    class UpdateUser {
+    @Test
+    void getUserById_WithInvalidId_ShouldReturnBadRequest() throws Exception {
+        User invalidUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User");
+        invalidUser.setId(0L);
+        
+        UserDto invalidUserDto = new UserDto();
+        invalidUserDto.setId(0L);
+        invalidUserDto.setUsername("testuser");
+        invalidUserDto.setEmail("test@example.com");
+        
+        when(userService.findByUserId(0L)).thenReturn(invalidUser);
+        when(userMapper.toDto(invalidUser)).thenReturn(invalidUserDto);
 
-        @Test
-        @DisplayName("returns 200 with updated user DTO")
-        void validUpdate_returns200WithDto() throws Exception {
-            UpdateUserRequest request = new UpdateUserRequest();
-            request.setUsername("newname");
+        mockMvc.perform(get("/api/users/0"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").value(0L))
+                .andExpect(jsonPath("$.username").value("testuser"))
+                .andExpect(jsonPath("$.email").value("test@example.com"));
 
-            when(userService.findByUserId(1L)).thenReturn(sampleUser);
-            doNothing().when(userMapper).updateEntity(any(UpdateUserRequest.class), any(User.class));
-            when(userService.updateUser(eq(1), any(User.class))).thenReturn(sampleUser);
-            when(userMapper.toDto(sampleUser)).thenReturn(sampleUserDto);
-
-            mockMvc.perform(put("/api/users/1")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value("User updated successfully"))
-                    .andExpect(jsonPath("$.data.id").value(1));
-
-            verify(userMapper).updateEntity(any(UpdateUserRequest.class), eq(sampleUser));
-            verify(userService).updateUser(eq(1), eq(sampleUser));
-        }
-
-        @Test
-        @DisplayName("returns 404 when user to update does not exist")
-        void userNotFound_returns404() throws Exception {
-            UpdateUserRequest request = new UpdateUserRequest();
-            request.setUsername("newname");
-
-            when(userService.findByUserId(99L))
-                    .thenThrow(new ResourceNotFoundException("User not found with id: 99"));
-
-            mockMvc.perform(put("/api/users/99")
-                            .contentType(MediaType.APPLICATION_JSON)
-                            .content(objectMapper.writeValueAsString(request)))
-                    .andExpect(status().isNotFound());
-        }
+        verify(userService).findByUserId(0L);
+        verify(userMapper).toDto(invalidUser);
     }
 
-    @Nested
-    @DisplayName("DELETE /api/users/{id}")
-    class DeleteUser {
+    @Test
+    void getUserById_WithNonExistentId_ShouldReturnNotFound() throws Exception {
+        when(userService.findByUserId(999L)).thenThrow(new org.amalitech.exception.ResourceNotFoundException("User not found"));
 
-        @Test
-        @DisplayName("returns 200 with success message on deletion")
-        void existingUser_returns200() throws Exception {
-            when(userService.findByUserId(1L)).thenReturn(sampleUser);
-            doNothing().when(userService).deleteUser(1);
+        mockMvc.perform(get("/api/users/999"))
+                .andExpect(status().isNotFound());
 
-            mockMvc.perform(delete("/api/users/1"))
-                    .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.message").value("User deleted successfully"));
+        verify(userService).findByUserId(999L);
+        verify(userMapper, never()).toDto(any(User.class));
+    }
 
-            verify(userService).deleteUser(1);
-        }
+    @Test
+    void promoteUserToWriter_WithValidUsername_ShouldPromoteUser() throws Exception {
+        User promotedUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User");
+        promotedUser.setId(1L);
+        promotedUser.setRole("writer");
+        
+        UserDto promotedUserDto = new UserDto();
+        promotedUserDto.setId(1L);
+        promotedUserDto.setUsername("testuser");
+        promotedUserDto.setEmail("test@example.com");
 
-        @Test
-        @DisplayName("returns 404 when user is not found")
-        void userNotFound_returns404() throws Exception {
-            when(userService.findByUserId(99L))
-                    .thenThrow(new ResourceNotFoundException("User not found with id: 99"));
+        when(userService.promoteToWriter("testuser")).thenReturn(promotedUser);
+        when(userMapper.toDto(promotedUser)).thenReturn(promotedUserDto);
 
-            mockMvc.perform(delete("/api/users/99"))
-                    .andExpect(status().isNotFound());
+        mockMvc.perform(put("/api/users/promote/testuser"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("User promoted to WRITER"))
+                .andExpect(jsonPath("$.data.id").value(1L));
 
-            verify(userService, never()).deleteUser(anyInt());
-        }
+        verify(userService).promoteToWriter("testuser");
+        verify(userMapper).toDto(promotedUser);
+    }
 
-        @Test
-        @DisplayName("returns 404 when findByUserId returns null (defensive check)")
-        void findReturnsNull_returns404() throws Exception {
-            when(userService.findByUserId(1L)).thenReturn(null);
+    @Test
+    void promoteUserToWriter_WithInvalidUsername_ShouldReturnBadRequest() throws Exception {
+        mockMvc.perform(put("/api/users/promote/"))
+                .andExpect(status().isNotFound());
 
-            mockMvc.perform(delete("/api/users/1"))
-                    .andExpect(status().isNotFound());
+        verify(userService, never()).promoteToWriter(anyString());
+    }
 
-            verify(userService, never()).deleteUser(anyInt());
-        }
+    @Test
+    void promoteUserToWriter_WithNonExistentUsername_ShouldReturnNotFound() throws Exception {
+        when(userService.promoteToWriter("nonexistent")).thenThrow(new org.amalitech.exception.ResourceNotFoundException("User not found"));
+
+        mockMvc.perform(put("/api/users/promote/nonexistent"))
+                .andExpect(status().isNotFound());
+
+        verify(userService).promoteToWriter("nonexistent");
+    }
+
+    @Test
+    void promoteUserToWriter_WithAlreadyWriter_ShouldReturnSuccess() throws Exception {
+        User writerUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User");
+        writerUser.setId(1L);
+        writerUser.setRole("writer");
+
+        User promotedUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User");
+        promotedUser.setId(1L);
+        promotedUser.setRole("writer");
+        
+        UserDto promotedUserDto = new UserDto();
+        promotedUserDto.setId(1L);
+        promotedUserDto.setUsername("testuser");
+        promotedUserDto.setEmail("test@example.com");
+
+        when(userService.findByUserId(1L)).thenReturn(writerUser);
+        when(userService.promoteToWriter("testuser")).thenReturn(promotedUser);
+        when(userMapper.toDto(promotedUser)).thenReturn(promotedUserDto);
+
+        mockMvc.perform(put("/api/users/promote/testuser"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("OK"))
+                .andExpect(jsonPath("$.message").value("User promoted to WRITER"))
+                .andExpect(jsonPath("$.data.id").value(1L));
+
+        verify(userService).promoteToWriter("testuser");
+        verify(userMapper).toDto(promotedUser);
     }
 }

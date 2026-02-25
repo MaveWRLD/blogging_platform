@@ -1,10 +1,16 @@
 package org.amalitech.graphqlResolver;
 
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.amalitech.dtos.CommentDto;
 import org.amalitech.dtos.postDtos.PagedPostsResponse;
 import org.amalitech.dtos.postDtos.PostDto;
 import org.amalitech.dtos.postDtos.PostFilter;
 import org.amalitech.dtos.postDtos.PostResponse;
+import org.amalitech.dtos.userDtos.UserDto;
 import org.amalitech.entities.Comment;
 import org.amalitech.entities.Post;
 import org.amalitech.entities.User;
@@ -13,27 +19,23 @@ import org.amalitech.exception.ValidationException;
 import org.amalitech.mappers.CommentMapper;
 import org.amalitech.mappers.PostMapper;
 import org.amalitech.mappers.UserMapper;
-import org.amalitech.dtos.userDtos.UserDto;
 import org.amalitech.service.PostService;
 import org.amalitech.service.UserService;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
-
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("PostQueryResolver")

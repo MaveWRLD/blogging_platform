@@ -15,6 +15,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -29,6 +30,9 @@ class UserServiceTest {
 
    @Mock
    private UserRepository userRepository;
+
+   @Mock
+   private PasswordEncoder passwordEncoder;
 
    @InjectMocks
    private UserService userService;
@@ -134,16 +138,13 @@ class UserServiceTest {
            when(userRepository.existsByUsername("johndoe")).thenReturn(false);
            when(userRepository.existsByEmail("john@example.com")).thenReturn(false);
            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+           when(passwordEncoder.encode("plainpassword")).thenReturn("hashedpassword");
 
-           try (MockedStatic<PasswordHasher> hasherMock = mockStatic(PasswordHasher.class)) {
-               hasherMock.when(() -> PasswordHasher.hash("plainpassword")).thenReturn("hashedpassword");
+           User result = userService.createUser(sampleUser);
 
-               User result = userService.createUser(sampleUser);
-
-               assertThat(sampleUser.getPassword()).isEqualTo("hashedpassword");
-               assertThat(result).isEqualTo(sampleUser);
-               verify(userRepository).save(sampleUser);
-           }
+           assertThat(sampleUser.getPassword()).isEqualTo("hashedpassword");
+           assertThat(result).isEqualTo(sampleUser);
+           verify(userRepository).save(sampleUser);
        }
 
        @Test
@@ -301,14 +302,11 @@ class UserServiceTest {
 
            when(userRepository.findById(1)).thenReturn(Optional.of(sampleUser));
            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
+           when(passwordEncoder.encode("newpassword")).thenReturn("newhashedpw");
 
-           try (MockedStatic<PasswordHasher> hasherMock = mockStatic(PasswordHasher.class)) {
-               hasherMock.when(() -> PasswordHasher.hash("newpassword")).thenReturn("newhashedpw");
+           userService.updateUser(1, updatedData);
 
-               userService.updateUser(1, updatedData);
-
-               assertThat(sampleUser.getPassword()).isEqualTo("newhashedpw");
-           }
+           assertThat(sampleUser.getPassword()).isEqualTo("newhashedpw");
        }
 
        @Test
@@ -386,14 +384,11 @@ class UserServiceTest {
        void validCredentials_returnsUser() {
            sampleUser.setPassword("hashedpassword");
            when(userRepository.findByUsername("johndoe")).thenReturn(Optional.of(sampleUser));
+           when(passwordEncoder.matches("rawpassword", "hashedpassword")).thenReturn(true);
 
-           try (MockedStatic<UserValidator> validatorMock = mockStatic(UserValidator.class);
-                MockedStatic<PasswordHasher> hasherMock = mockStatic(PasswordHasher.class)) {
-
+           try (MockedStatic<UserValidator> validatorMock = mockStatic(UserValidator.class)) {
                validatorMock.when(() -> UserValidator.validateCredentials("johndoe", "rawpassword"))
                        .thenAnswer(inv -> null);
-               hasherMock.when(() -> PasswordHasher.check("rawpassword", "hashedpassword"))
-                       .thenReturn(true);
 
                User result = userService.authenticate("johndoe", "rawpassword");
 
@@ -402,18 +397,15 @@ class UserServiceTest {
        }
 
        @Test
-       @DisplayName("throws ValidationException when password does not match")
+       @DisplayName("throws ValidationException when password is wrong")
        void wrongPassword_throwsValidationException() {
            sampleUser.setPassword("hashedpassword");
            when(userRepository.findByUsername("johndoe")).thenReturn(Optional.of(sampleUser));
+           when(passwordEncoder.matches("wrongpw", "hashedpassword")).thenReturn(false);
 
-           try (MockedStatic<UserValidator> validatorMock = mockStatic(UserValidator.class);
-                MockedStatic<PasswordHasher> hasherMock = mockStatic(PasswordHasher.class)) {
-
+           try (MockedStatic<UserValidator> validatorMock = mockStatic(UserValidator.class)) {
                validatorMock.when(() -> UserValidator.validateCredentials("johndoe", "wrongpw"))
                        .thenAnswer(inv -> null);
-               hasherMock.when(() -> PasswordHasher.check("wrongpw", "hashedpassword"))
-                       .thenReturn(false);
 
                assertThatThrownBy(() -> userService.authenticate("johndoe", "wrongpw"))
                        .isInstanceOf(ValidationException.class)

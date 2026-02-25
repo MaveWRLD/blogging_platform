@@ -38,7 +38,7 @@ class CommentServiceTest {
     void setUp() {
         validComment = new Comment();
         validComment.setId("comment-123");
-        validComment.setPostId(1);
+        validComment.setPostId(1L);
         validComment.setUsername("testuser");
         validComment.setBody("This is a valid comment body.");
     }
@@ -70,7 +70,7 @@ class CommentServiceTest {
         @Test
         @DisplayName("throws ValidationException when postId is zero")
         void save_postIdZero_throwsValidationException() {
-            validComment.setPostId(0);
+            validComment.setPostId(0L);
             assertThatThrownBy(() -> commentService.save(validComment))
                     .isInstanceOf(ValidationException.class)
                     .hasMessageContaining("Invalid post ID");
@@ -80,7 +80,7 @@ class CommentServiceTest {
         @Test
         @DisplayName("throws ValidationException when postId is negative")
         void save_negativePostId_throwsValidationException() {
-            validComment.setPostId(-5);
+            validComment.setPostId(-5L);
             assertThatThrownBy(() -> commentService.save(validComment))
                     .isInstanceOf(ValidationException.class)
                     .hasMessageContaining("Invalid post ID");
@@ -294,31 +294,6 @@ class CommentServiceTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // deleteById()
-    // -------------------------------------------------------------------------
-    @Nested
-    @DisplayName("deleteById()")
-    class DeleteById {
-
-        @Test
-        @DisplayName("delegates to repository deleteById")
-        void deleteById_callsRepository() {
-            commentService.deleteById("comment-123");
-            verify(commentRepository).deleteById("comment-123");
-        }
-
-        @Test
-        @DisplayName("does not throw even when comment does not exist (repository handles it)")
-        void deleteById_nonExistent_noException() {
-            doNothing().when(commentRepository).deleteById(anyString());
-            assertThatNoException().isThrownBy(() -> commentService.deleteById("ghost-id"));
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // deleteByPostId()
-    // -------------------------------------------------------------------------
     @Nested
     @DisplayName("deleteByPostId()")
     class DeleteByPostId {

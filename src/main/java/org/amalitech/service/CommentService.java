@@ -56,6 +56,9 @@ public class CommentService {
 
     @Transactional
     public void deleteById(String commentId) {
+        if (!commentRepository.existsById(commentId)) {
+            throw new RuntimeException("Comment not found");
+        }
         commentRepository.deleteById(commentId);
     }
 

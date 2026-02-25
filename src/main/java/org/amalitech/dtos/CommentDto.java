@@ -13,6 +13,7 @@ import java.time.Instant;
 @Builder
 public class CommentDto {
     private String id;
+    private Long postId;
     private String username;
     private String body;
     private Instant createdAt;

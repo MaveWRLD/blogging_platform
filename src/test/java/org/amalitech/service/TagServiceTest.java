@@ -50,8 +50,6 @@ class TagServiceTest {
         @Test
         @DisplayName("returns empty set when input is empty")
         void emptyInput_returnsEmptySet() {
-            when(tagRepository.findByNameIn(Set.of())).thenReturn(Set.of());
-
             Set<Tag> result = tagService.findOrCreateTagsByName(Set.of());
 
             assertThat(result).isEmpty();

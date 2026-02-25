@@ -15,12 +15,14 @@ import org.amalitech.util.PostValidator;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
 
+import org.springframework.boot.actuate.endpoint.SecurityContext;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
@@ -134,20 +136,23 @@ public class PostService {
 
         Set<Tag> tags = tagService.findOrCreateTagsByName(tagNames);
 
+        var auth = SecurityContextHolder.getContext().getAuthentication();
+        var userId = (Long) auth.getPrincipal();
         post.setTags(tags);
-        var user = userRepository.findById(1).orElseThrow();
+        var user = userRepository.findById(userId).orElseThrow();
         post.setUser(user);
 
         return postRepository.save(post);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
+    @PreAuthorize("@authorizationService.canUpdatePost(#postId)")
     @Caching(evict = {
             @CacheEvict(value = "post:detail", key = "#postId"),
             @CacheEvict(value = "allPosts",  allEntries = true),
             @CacheEvict(value = "filteredPosts", allEntries = true)
     })
-    public Post updatePost(Integer postId, UpdatePostRequest request) {
+    public Post updatePost(int postId, UpdatePostRequest request) {
 
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
@@ -190,6 +195,7 @@ public class PostService {
      * Delete a post
      */
     @Transactional(isolation = Isolation.READ_COMMITTED)
+    @PreAuthorize("@authorizationService.canDeletePost(#id)")
     @Caching(evict = {
             @CacheEvict(value = "post:detail", key = "#id"),
             @CacheEvict(value = "allPosts",  allEntries = true),
