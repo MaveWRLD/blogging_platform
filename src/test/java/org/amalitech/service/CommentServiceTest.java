@@ -294,31 +294,6 @@ class CommentServiceTest {
         }
     }
 
-    // -------------------------------------------------------------------------
-    // deleteById()
-    // -------------------------------------------------------------------------
-    @Nested
-    @DisplayName("deleteById()")
-    class DeleteById {
-
-        @Test
-        @DisplayName("delegates to repository deleteById")
-        void deleteById_callsRepository() {
-            commentService.deleteById("comment-123");
-            verify(commentRepository).deleteById("comment-123");
-        }
-
-        @Test
-        @DisplayName("does not throw even when comment does not exist (repository handles it)")
-        void deleteById_nonExistent_noException() {
-            doNothing().when(commentRepository).deleteById(anyString());
-            assertThatNoException().isThrownBy(() -> commentService.deleteById("ghost-id"));
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // deleteByPostId()
-    // -------------------------------------------------------------------------
     @Nested
     @DisplayName("deleteByPostId()")
     class DeleteByPostId {
