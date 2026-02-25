@@ -1,51 +1,38 @@
 package org.amalitech.service;
 
-import lombok.RequiredArgsConstructor;
+import lombok.AllArgsConstructor;
 import org.amalitech.entities.User;
 import org.amalitech.repositories.UserRepository;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.oauth2.client.userinfo.OAuth2UserRequest;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Objects;
 
 @Service
-@RequiredArgsConstructor
-public class CustomOAuth2UserService
-        extends DefaultOAuth2UserService {
+@AllArgsConstructor
+public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
-    private final UserRepository userRepository;
+    private UserRepository userRepository;
 
     @Override
-    public OAuth2User loadUser(OAuth2UserRequest request)
-            throws OAuth2AuthenticationException {
+    public OAuth2User loadUser(OAuth2UserRequest userRequest) throws OAuth2AuthenticationException {
+        OAuth2User oAuth2User = super.loadUser(userRequest);
 
-        OAuth2User oauthUser = super.loadUser(request);
-
-        String email = oauthUser.getAttribute("email");
-        String sub = oauthUser.getAttribute("sub");
+        String email = oAuth2User.getAttribute("email");
+        String username = Objects.requireNonNull(oAuth2User.getAttribute("username"))
+                .toString()
+                .replace("@gmail.com", "");
 
         User user = userRepository.findByEmail(email)
-                .orElseGet(() -> createUser(email, name, sub));
+                .orElseGet(() -> {
+                    User newUser = User.registerReader(username, email, null, null, null);
+                    return userRepository.save(newUser);
+                });
 
-        return new DefaultOAuth2User(
-                List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole())),
-                oauthUser.getAttributes(),
-                "email"
-        );
-    }
 
-    private User createUser(String email, String name, String sub) {
-        User user = new User();
-        user.setEmail(email);
-        user.setName(name);
-        user.setProvider(AuthProvider.GOOGLE);
-        user.setProviderId(sub);
-        user.setRole(Role.USER);
-        return userRepository.save(user);
+        return new CustomUserPrincipal(user, oAuth2User.getAttributes());
     }
 }
