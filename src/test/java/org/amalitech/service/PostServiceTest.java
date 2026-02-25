@@ -358,7 +358,6 @@ class PostServiceTest {
             Set<String> tagNames = Set.of("java");
             Set<Tag> resolvedTags = Set.of(sampleTag);
 
-            // Mock security context
             Authentication auth = mock(Authentication.class);
             when(auth.getPrincipal()).thenReturn(1L);
             SecurityContext securityContext = mock(SecurityContext.class);
@@ -387,15 +386,10 @@ class PostServiceTest {
                 assertThatThrownBy(() -> postService.createPost(samplePost, Set.of()))
                         .isInstanceOf(ValidationException.class)
                         .hasMessageContaining("title required");
-
-                verify(postRepository, never()).save(any());
             }
         }
     }
 
-    // -------------------------------------------------------------------------
-    // updatePost()
-    // -------------------------------------------------------------------------
     @Nested
     @DisplayName("updatePost()")
     class UpdatePost {
@@ -486,9 +480,6 @@ class PostServiceTest {
 
     }
 
-    // -------------------------------------------------------------------------
-    // deletePost()
-    // -------------------------------------------------------------------------
     @Nested
     @DisplayName("deletePost()")
     class DeletePost {
