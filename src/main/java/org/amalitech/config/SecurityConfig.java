@@ -76,10 +76,11 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/users/promote").hasRole("admin")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("admin")
                         .requestMatchers(
-                                        "/error",
-                                        "/api/auth/**",
-                                        "/swagger-ui/**",
-                                        "/v3/api-docs/**"
+                                "/error",
+                                "/api/auth/**",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**",
+                                "/actuator/**"
                                 ).permitAll()
                         .anyRequest().authenticated()
                 )
