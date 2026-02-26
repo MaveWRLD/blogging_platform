@@ -7,6 +7,7 @@ import org.amalitech.enums.TokenType;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Set;
 
 public class Jwt {
@@ -47,13 +48,11 @@ public class Jwt {
 
     public Set<String> getRoles() {
         try {
-            // Try to get roles directly as a Set
             return claims.get("roles", Set.class);
         } catch (Exception e) {
-            // If that fails (e.g., it's an ArrayList), get as List and convert to Set
             var rolesList = claims.get("roles", java.util.List.class);
             if (rolesList != null) {
-                return new java.util.HashSet<>(rolesList);
+                return new HashSet<>(rolesList);
             }
             return java.util.Collections.emptySet();
         }
