@@ -7,6 +7,7 @@ import org.amalitech.enums.TokenType;
 import javax.crypto.SecretKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Set;
 
 public class Jwt {
 
@@ -23,7 +24,6 @@ public class Jwt {
         String type = claims.get("token_type", String.class);
         return TokenType.from(type);
     }
-
 
     public boolean isExpired() {
         return claims.getExpiration().before(new Date());
@@ -45,7 +45,13 @@ public class Jwt {
         return Instant.ofEpochMilli(claims.getExpiration().getTime());
     }
 
+    @SuppressWarnings("unchecked")
+    public Set<String> getRoles() {
+        return claims.get("role", Set.class);
+    }
+
     public String getRole() {
-        return claims.get("role", String.class);
+        Set<String> roles = getRoles();
+        return roles != null && !roles.isEmpty() ? roles.iterator().next() : null;
     }
 }

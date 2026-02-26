@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.stream.Collectors;
 
 @Service
 public class RefreshTokenStrategy implements TokenStrategy {
@@ -25,7 +26,9 @@ public class RefreshTokenStrategy implements TokenStrategy {
                 .add("token_type", TokenType.REFRESH)
                 .add("email", user.getEmail())
                 .add("username", user.getUsername())
-                .add("role", user.getRoles())
+                .add("role", user.getRoles().stream()
+                        .map(role -> role.getName())
+                        .collect(Collectors.toSet()))
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * REFRESH_EXPIRATION))
                 .build();

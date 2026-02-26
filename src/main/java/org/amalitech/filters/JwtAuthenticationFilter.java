@@ -18,6 +18,7 @@ import org.amalitech.token.TokenBlacklistService;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Component
 @AllArgsConstructor
@@ -58,8 +59,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
 
-        Set<GrantedAuthority> authorities =
-                Set.of(new SimpleGrantedAuthority("ROLE_" + jwt.getRole()));
+        Set<GrantedAuthority> authorities = jwt.getRoles().stream()
+                .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                .collect(Collectors.toSet());
 
         var authentication = new UsernamePasswordAuthenticationToken(
                 jwt.getUserId(),
