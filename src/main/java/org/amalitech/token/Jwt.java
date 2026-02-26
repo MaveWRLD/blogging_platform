@@ -15,7 +15,6 @@ public class Jwt {
     private final Claims claims;
     private final SecretKey securityKey;
 
-
     public Jwt(Claims claims, SecretKey securityKey) {
         this.claims = claims;
         this.securityKey = securityKey;

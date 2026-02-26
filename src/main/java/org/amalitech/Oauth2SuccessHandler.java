@@ -32,22 +32,16 @@ public class Oauth2SuccessHandler implements AuthenticationSuccessHandler, OAuth
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response, Authentication authentication) throws IOException, ServletException {
         Object userPrincipal = authentication.getPrincipal();
-        if (!(userPrincipal instanceof OAuth2User)) {
+        if (!(userPrincipal instanceof OAuth2User oAuth2User)) {
             log.warn("Principal is not an OAuth2User: {}", userPrincipal.getClass().getSimpleName());
             return;
         }
 
-        OAuth2User oAuth2User = (OAuth2User) userPrincipal;
         Map<String, Object> attrs = oAuth2User.getAttributes();
 
         String email = extractEmail(attrs);
         if (email == null || email.isBlank()) {
             log.error("Could not extract email from OAuth2 attributes");
-            return;
-        }
-
-        if (userRepository.findByEmail(email).isPresent()) {
-            log.debug("User with email {} already exists", email);
             return;
         }
 
