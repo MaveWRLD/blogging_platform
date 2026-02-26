@@ -1,6 +1,7 @@
 package org.amalitech.service;
 
 import org.amalitech.entities.User;
+import org.amalitech.entities.Role;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
 import org.amalitech.repositories.UserRepository;
@@ -19,6 +20,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -38,17 +41,30 @@ class UserServiceTest {
    private UserService userService;
 
    private User sampleUser;
+   private Set<Role> readerRoles;
 
    @BeforeEach
    void setUp() {
+       // Create a sample role for testing
+       Role readerRole = new Role();
+       readerRole.setId(1);
+       readerRole.setName("reader");
+       readerRoles = new HashSet<>();
+       readerRoles.add(readerRole);
+
        sampleUser = User.registerReader(
                "johndoe",
                "john@example.com",
                "plainpassword",
                "John",
-               "Doe"
+               "Doe",
+               readerRoles
        );
        sampleUser.setId(1L);
+   }
+
+   private User createTestUser(String username, String email, String password, String firstName, String lastName) {
+       return User.registerReader(username, email, password, firstName, lastName, readerRoles);
    }
 
    @Nested
@@ -209,7 +225,7 @@ class UserServiceTest {
        @Test
        @DisplayName("updates username when provided")
        void updatesUsername() {
-           User updatedData = User.registerReader(
+           User updatedData = createTestUser(
                    "newname",
                    "john@example.com",
                    "plainpassword",
@@ -229,7 +245,7 @@ class UserServiceTest {
        @Test
        @DisplayName("updates email when new email is different and not already taken")
        void updatesEmail_whenNewAndAvailable() {
-           User updatedData = User.registerReader(
+           User updatedData = createTestUser(
                    "johndoe",
                    "newemail@example.com",
                    "plainpassword",
@@ -250,7 +266,7 @@ class UserServiceTest {
        @Test
        @DisplayName("throws ValidationException when new email is already in use")
        void emailInUse_throwsValidationException() {
-           User updatedData = User.registerReader(
+           User updatedData = createTestUser(
                    "johndoe",
                    "taken@example.com",
                    "plainpassword",
@@ -275,9 +291,9 @@ class UserServiceTest {
                    "john@example.com",
                    "plainpassword",
                    "John",
-                   "Doe"
+                   "Doe",
+                   readerRoles
            );
-           updatedData.setEmail("john@example.com"); 
 
            when(userRepository.findById(1)).thenReturn(Optional.of(sampleUser));
            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
@@ -287,11 +303,10 @@ class UserServiceTest {
            verify(userRepository, never()).existsByEmail(anyString());
            assertThat(sampleUser.getEmail()).isEqualTo("john@example.com");
        }
-
        @Test
        @DisplayName("hashes and updates password when provided")
        void updatesHashedPassword() {
-           User updatedData = User.registerReader(
+           User updatedData = createTestUser(
                    "johndoe",
                    "john@example.com",
                    "newpassword",
@@ -314,7 +329,7 @@ class UserServiceTest {
        void userNotFound_throwsResourceNotFoundException() {
            when(userRepository.findById(99)).thenReturn(Optional.empty());
 
-           User updatedData = User.registerReader(
+           User updatedData = createTestUser(
                    "ghost",
                    "ghost@example.com",
                    "password",
@@ -330,7 +345,7 @@ class UserServiceTest {
        @Test
        @DisplayName("does not update username when updatedUser username is null")
        void nullUsername_retainsExistingUsername() {
-           User updatedData = User.registerReader(
+           User updatedData = createTestUser(
                    "johndoe",
                    "john@example.com",
                    "plainpassword",

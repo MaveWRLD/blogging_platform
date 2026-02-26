@@ -1,7 +1,9 @@
 package org.amalitech.service;
 
+import org.amalitech.entities.Role;
 import org.amalitech.entities.User;
 import org.amalitech.repositories.UserRepository;
+import org.amalitech.service.RoleService;
 import org.amalitech.util.UserValidator;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
@@ -19,10 +21,12 @@ public class UserService {
 
     private final PasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final RoleService roleService;
 
-    public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository) {
+    public UserService(PasswordEncoder passwordEncoder, UserRepository userRepository, RoleService roleService) {
         this.passwordEncoder = passwordEncoder;
         this.userRepository = userRepository;
+        this.roleService = roleService;
     }
 
     @Transactional(readOnly = true, isolation = Isolation.READ_COMMITTED)
@@ -108,7 +112,8 @@ public class UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with username: " + username));
 
-        user.setRole("writer");
+        Role writerRole = roleService.getRoleByName("writer");
+        user.getRoles().add(writerRole);
         return userRepository.save(user);
     }
 }

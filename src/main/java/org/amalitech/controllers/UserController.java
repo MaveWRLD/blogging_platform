@@ -9,6 +9,7 @@ import org.amalitech.mappers.UserMapper;
 import org.amalitech.entities.User;
 import org.amalitech.service.AuthorizationService;
 import org.amalitech.service.UserService;
+import org.amalitech.service.RoleService;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +22,7 @@ public class UserController implements UserApi {
 
     private final UserService userService;
     private final UserMapper userMapper;
+    private final RoleService roleService;
 
     @Override
     public ResponseEntity<UserDto> getUser(Long id) {
@@ -34,7 +36,7 @@ public class UserController implements UserApi {
     @Override
     public ResponseEntity<CustomApiResponse<UserDto>> register(CreateUserRequest request) {
 
-        User user = userMapper.createUser(request);
+        User user = userMapper.createUser(request, roleService);
 
         userService.createUser(user);
 

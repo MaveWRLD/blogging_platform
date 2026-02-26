@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.amalitech.dtos.userDtos.CreateUserRequest;
 import org.amalitech.dtos.userDtos.UpdateUserRequest;
 import org.amalitech.dtos.userDtos.UserDto;
+import org.amalitech.entities.Role;
 import org.amalitech.entities.User;
 import org.amalitech.exception.CustomExceptionHandler;
 import org.amalitech.mappers.UserMapper;
@@ -19,6 +20,9 @@ import org.mockito.quality.Strictness;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -45,6 +49,7 @@ class UserControllerTest {
     private UserDto testUserDto;
     private CreateUserRequest createUserRequest;
     private UpdateUserRequest updateUserRequest;
+    private Set<Role> readerRoles;
 
     @BeforeEach
     void setUp() {
@@ -53,7 +58,14 @@ class UserControllerTest {
                 .build();
         objectMapper = new ObjectMapper();
 
-        testUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User");
+        // Create default READER role
+        Role readerRole = new Role();
+        readerRole.setId(1);
+        readerRole.setName("READER");
+        readerRoles = new HashSet<>();
+        readerRoles.add(readerRole);
+
+        testUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User", readerRoles);
         testUser.setId(1L);
 
         testUserDto = new UserDto();
@@ -118,7 +130,7 @@ class UserControllerTest {
 
     @Test
     void getUserById_WithInvalidId_ShouldReturnBadRequest() throws Exception {
-        User invalidUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User");
+        User invalidUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User", readerRoles);
         invalidUser.setId(0L);
         
         UserDto invalidUserDto = new UserDto();
@@ -152,9 +164,15 @@ class UserControllerTest {
 
     @Test
     void promoteUserToWriter_WithValidUsername_ShouldPromoteUser() throws Exception {
-        User promotedUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User");
+        User promotedUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User", readerRoles);
         promotedUser.setId(1L);
-        promotedUser.setRole("writer");
+        
+        Set<Role> writerRoles = new HashSet<>();
+        Role writerRole = new Role();
+        writerRole.setId(2);
+        writerRole.setName("writer");
+        writerRoles.add(writerRole);
+        promotedUser.setRoles(writerRoles);
         
         UserDto promotedUserDto = new UserDto();
         promotedUserDto.setId(1L);
@@ -194,13 +212,25 @@ class UserControllerTest {
 
     @Test
     void promoteUserToWriter_WithAlreadyWriter_ShouldReturnSuccess() throws Exception {
-        User writerUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User");
+        User writerUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User", readerRoles);
         writerUser.setId(1L);
-        writerUser.setRole("writer");
+        
+        Set<Role> writerRoles = new HashSet<>();
+        Role writerRole = new Role();
+        writerRole.setId(2);
+        writerRole.setName("writer");
+        writerRoles.add(writerRole);
+        writerUser.setRoles(writerRoles);
 
-        User promotedUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User");
+        User promotedUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User", readerRoles);
         promotedUser.setId(1L);
-        promotedUser.setRole("writer");
+        
+        Set<Role> promotedWriterRoles = new HashSet<>();
+        Role promotedWriterRole = new Role();
+        promotedWriterRole.setId(2);
+        promotedWriterRole.setName("writer");
+        promotedWriterRoles.add(promotedWriterRole);
+        promotedUser.setRoles(promotedWriterRoles);
         
         UserDto promotedUserDto = new UserDto();
         promotedUserDto.setId(1L);

@@ -6,6 +6,7 @@ import org.amalitech.dtos.postDtos.PostFilter;
 import org.amalitech.dtos.postDtos.UpdatePostRequest;
 import org.amalitech.entities.Comment;
 import org.amalitech.entities.Post;
+import org.amalitech.entities.Role;
 import org.amalitech.entities.Tag;
 import org.amalitech.entities.User;
 import org.amalitech.enums.PostStatus;
@@ -80,12 +81,14 @@ class PostServiceTest {
 
     @BeforeEach
     void setUp() {
+        Set<Role> readerRoles = Set.of(new Role());
         sampleUser =  User.registerReader(
                 "author",
                 "john@example.com",
                 "plainpassword",
                 "John",
-                "Doe"
+                "Doe",
+                readerRoles
         );
 
         sampleTag = new Tag();
