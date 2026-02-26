@@ -46,6 +46,16 @@ public class Jwt {
     }
 
     public Set<String> getRoles() {
-        return claims.get("roles", Set.class);
+        try {
+            // Try to get roles directly as a Set
+            return claims.get("roles", Set.class);
+        } catch (Exception e) {
+            // If that fails (e.g., it's an ArrayList), get as List and convert to Set
+            var rolesList = claims.get("roles", java.util.List.class);
+            if (rolesList != null) {
+                return new java.util.HashSet<>(rolesList);
+            }
+            return java.util.Collections.emptySet();
+        }
     }
 }

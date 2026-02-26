@@ -56,7 +56,7 @@ public class User {
     private Instant createdAt;
 
     @RestResource(exported = false)
-    @Column(name = "password", nullable = false)
+    @Column(name = "password")
     private String password;
 
     @Column(name = "first_name")

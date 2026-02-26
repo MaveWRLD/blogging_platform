@@ -34,16 +34,22 @@ spring:
           google:
             clientId: ${GOOGLE_CLIENT_ID}
             clientSecret: ${GOOGLE_CLIENT_SECRET}
-          scope:
-          - profile
-          - email
-          - openid
+            redirectUri: http://localhost:8080/login/oauth2/code/google
+            scope:
+              - profile
+              - email
+              - openid
+        provider:
+          google:
+            authorizationUri: https://accounts.google.com/o/oauth2/v2/auth
+            tokenUri: https://www.googleapis.com/oauth2/v4/token
+            userInfoUri: https://www.googleapis.com/oauth2/v2/userinfo
 
 
 logging:
   level:
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-#    org.springframework.security: Trace
+    org.springframework.security: Trace
 
 
