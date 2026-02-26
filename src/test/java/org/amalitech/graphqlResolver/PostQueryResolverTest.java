@@ -2,8 +2,10 @@ package org.amalitech.graphqlResolver;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.amalitech.dtos.CommentDto;
 import org.amalitech.dtos.postDtos.PagedPostsResponse;
@@ -13,6 +15,7 @@ import org.amalitech.dtos.postDtos.PostResponse;
 import org.amalitech.dtos.userDtos.UserDto;
 import org.amalitech.entities.Comment;
 import org.amalitech.entities.Post;
+import org.amalitech.entities.Role;
 import org.amalitech.entities.User;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
@@ -51,12 +54,14 @@ class PostQueryResolverTest {
    private PostQueryResolver resolver;
 
    private Post buildPost(Long userId) {
+       Set<Role> roles = new HashSet<>();
        User user = User.registerReader(
                "user-" + userId,
                "user" + userId + "@example.com",
                "password",
                "First",
-               "Last"
+               "Last",
+               roles
        );
        user.setId(userId);
        Post post = new Post();
@@ -232,7 +237,8 @@ class PostQueryResolverTest {
                    "user42@example.com",
                    "password",
                    "First",
-                   "Last"
+                   "Last",
+                   Set.of()
            );
            user.setId(42L);
            UserDto userDto = mock(UserDto.class);

@@ -27,6 +27,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import jakarta.servlet.http.Cookie;
 import java.time.Instant;
 import java.util.Optional;
+import java.util.Set;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -69,7 +70,7 @@ class AuthControllerTest {
                 .build();
         objectMapper = new ObjectMapper();
 
-        testUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User");
+        testUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User", Set.of());
         testUser.setId(1L);
 
         // Create mock JWT objects using reflection or by mocking the strategy behavior

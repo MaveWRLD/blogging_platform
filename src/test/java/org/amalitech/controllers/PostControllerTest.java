@@ -3,6 +3,7 @@ package org.amalitech.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.amalitech.dtos.postDtos.*;
 import org.amalitech.entities.Post;
+import org.amalitech.entities.Role;
 import org.amalitech.entities.User;
 import org.amalitech.exception.CustomExceptionHandler;
 import org.amalitech.exception.ResourceNotFoundException;
@@ -78,7 +79,10 @@ class PostControllerTest {
                 .build();
         objectMapper = new ObjectMapper();
 
-        testUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User");
+        Role readerRole = new Role();
+        readerRole.setName("READER");
+        Set<Role> readerRoles = new HashSet<>(Arrays.asList(readerRole));
+        testUser = User.registerReader("testuser", "test@example.com", "password", "Test", "User", readerRoles);
         testUser.setId(1L);
 
         testPost = new Post("Test Title", "Test Body", org.amalitech.enums.PostStatus.draft, Instant.now(), null);

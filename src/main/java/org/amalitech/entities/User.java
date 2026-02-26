@@ -9,6 +9,7 @@ import org.hibernate.annotations.ColumnDefault;
 import org.springframework.data.rest.core.annotation.RestResource;
 
 import java.time.Instant;
+import java.util.Set;
 
 /**
  * User entity
@@ -21,18 +22,18 @@ public class User {
 
     protected User() {}
 
-    private User(String username, String email, String password, String firstName, String lastName, String role, String status) {
+    private User(String username, String email, String password, String firstName, String lastName, Set<Role> roles, String status) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.role = role;
+        this.roles = roles;
         this.status = status;
     }
 
-    public static User registerReader(String username, String email, String password, String firstName, String lastName) {
-        return new User(username, email, password, firstName, lastName, "reader", "active");
+    public static User registerReader(String username, String email, String password, String firstName, String lastName, Set<Role> roles) {
+        return new User(username, email, password, firstName, lastName, roles, "active");
     }
 
     @Id
@@ -64,10 +65,12 @@ public class User {
     @Column(name = "last_name")
     private String lastName;
 
-    @Size(max = 20)
-    @NotNull
-    @ColumnDefault("'reader'")
-    @Column(name = "role", nullable = false, length = 20)
-    private String role;
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set<Role> roles;
 
 }

@@ -41,7 +41,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         var token = authHeader.replace("Bearer ", "");
 
-        // ✅ logout enforcement
         if (blacklistService.isBlacklisted(token)) {
             filterChain.doFilter(request, response);
             return;

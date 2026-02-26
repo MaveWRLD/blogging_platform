@@ -25,7 +25,7 @@ public class RefreshTokenStrategy implements TokenStrategy {
                 .add("token_type", TokenType.REFRESH)
                 .add("email", user.getEmail())
                 .add("username", user.getUsername())
-                .add("role", user.getRole())
+                .add("role", user.getRoles())
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * REFRESH_EXPIRATION))
                 .build();
