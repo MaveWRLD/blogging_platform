@@ -21,7 +21,7 @@ public class AccessTokenStrategy implements TokenStrategy {
     @Override
     public Jwt generateToken(User user) {
 
-        var roles = user.getRoles().stream()
+        var userRoles = user.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.toSet());
 
@@ -31,7 +31,7 @@ public class AccessTokenStrategy implements TokenStrategy {
                 .add("token_type", TokenType.ACCESS)
                 .add("email", user.getEmail())
                 .add("username", user.getUsername())
-                .add("role", roles)
+                .add("roles", userRoles)
                 .issuedAt(new Date())
                 .expiration(new Date(System.currentTimeMillis() + 1000 * ACCESS_EXPIRATION))
                 .build();

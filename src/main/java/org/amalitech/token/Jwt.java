@@ -45,9 +45,8 @@ public class Jwt {
         return Instant.ofEpochMilli(claims.getExpiration().getTime());
     }
 
-    @SuppressWarnings("unchecked")
     public Set<String> getRoles() {
-        return claims.get("role", Set.class);
+        return claims.get("roles", Set.class);
     }
 
     public String getRole() {
