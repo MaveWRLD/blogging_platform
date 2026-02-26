@@ -1,6 +1,7 @@
 package org.amalitech.service;
 
 import lombok.Getter;
+import org.amalitech.entities.Role;
 import org.amalitech.entities.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -9,7 +10,6 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Stream;
 
 @Getter
 public class CustomUserPrincipal implements OAuth2User, UserDetails, Serializable {
@@ -26,12 +26,11 @@ public class CustomUserPrincipal implements OAuth2User, UserDetails, Serializabl
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        String roles = user.getRole();
-        if (roles == null || roles.isBlank()) return Collections.emptyList();
+        if (user.getRoles() == null || user.getRoles().isEmpty()) return Collections.emptyList();
 
-        return Stream.of(roles.split(","))
-                .map(String::trim)
-                .filter(r -> !r.isEmpty())
+        return user.getRoles().stream()
+                .map(Role::getName)
+                .filter(Objects::nonNull)
                 .map(r -> r.startsWith("ROLE_") ? r : "ROLE_" + r)
                 .map(SimpleGrantedAuthority::new)
                 .toList();
@@ -39,11 +38,11 @@ public class CustomUserPrincipal implements OAuth2User, UserDetails, Serializabl
 
     @Override
     public String getPassword() {
-        return null;
+        return user.getPassword();
     }
 
     @Override
-    public String getUsername() { return user.getEmail(); }
+    public String getUsername() { return user.getUsername(); }
 
     @Override public boolean isAccountNonExpired() { return true;}
     @Override public boolean isAccountNonLocked() { return true;}
