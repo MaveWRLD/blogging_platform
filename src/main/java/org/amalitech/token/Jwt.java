@@ -48,9 +48,4 @@ public class Jwt {
     public Set<String> getRoles() {
         return claims.get("roles", Set.class);
     }
-
-    public String getRole() {
-        Set<String> roles = getRoles();
-        return roles != null && !roles.isEmpty() ? roles.iterator().next() : null;
-    }
 }
