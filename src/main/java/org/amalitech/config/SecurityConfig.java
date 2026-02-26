@@ -2,9 +2,11 @@ package org.amalitech.config;
 
 
 import lombok.AllArgsConstructor;
+import org.amalitech.Oauth2SuccessHandler;
 import org.amalitech.exception.entryPointErrors.CustomAccessDeniedHandler;
 import org.amalitech.exception.entryPointErrors.CustomAuthenticationEntryPoint;
 import org.amalitech.filters.JwtAuthenticationFilter;
+import org.amalitech.service.CustomOAuth2UserService;
 import org.amalitech.service.UserDetailService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,6 +42,8 @@ public class SecurityConfig {
 
     private final CustomAuthenticationEntryPoint entryPoint;
     private final CustomAccessDeniedHandler deniedHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    final Oauth2SuccessHandler oauth2SuccessHandler;
 
     private final UserDetailService userDetailService;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
@@ -81,7 +85,7 @@ public class SecurityConfig {
 
         http
                 .sessionManagement(
-                        c -> c.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                        c -> c.sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(c -> c
                         .requestMatchers(HttpMethod.POST, "/api/users/register").permitAll()
@@ -94,12 +98,16 @@ public class SecurityConfig {
                                         "/error",
                                         "/api/auth/**",
                                         "/swagger-ui/**",
-                                        "/v3/api-docs/**"
+                                        "/v3/api-docs/**",
+                                        "/login/**",
+                                        "/oauth2/**"
                                 ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtAuthenticationFilter, AuthorizationFilter.class)
-                .oauth2Login(Customizer.withDefaults());
+                .oauth2Login(oauth -> oauth
+                        .userInfoEndpoint(u -> u.userService(customOAuth2UserService))
+                        .successHandler(oauth2SuccessHandler));
 
         return http.build();
     }
