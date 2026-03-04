@@ -49,13 +49,6 @@ public class AuthorizationService {
         return false;
     }
 
-    public boolean canUpdatePost(Integer postId) {
-        Long requesterId = getRequesterId();
-        if (requesterId == null) return false;
-
-        return postRepository.existsByIdAndUser_Id(postId, requesterId);
-    }
-
     public boolean canDeletePost(Integer postId) {
         Long requesterId = getRequesterId();
         if (requesterId == null) return false;
