@@ -36,8 +36,7 @@ input UpdatePostInput {
 }
 
 input CreateCommentInput {
-    postId: ID!
-    content: String!
+    body: String!
 }
 
 type Post {
@@ -97,5 +96,5 @@ type Mutation {
     publishPost(id: ID!): Post!
     likePost(id: ID!): Post!
 
-    createComment(input: CreateCommentInput!): Comment!
+    createComment(postId: ID!, input: CreateCommentInput!): Comment!
 }

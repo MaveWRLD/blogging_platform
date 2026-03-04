@@ -1,7 +1,7 @@
 package org.amalitech.controllers;
 
 import jakarta.validation.Valid;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.amalitech.api.doc.CommentApi;
 import org.amalitech.dtos.CustomApiResponse;
 import org.amalitech.dtos.CommentDto;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/comments")
-@AllArgsConstructor
+@RequestMapping("/api/posts/{postId}/comments")
+@RequiredArgsConstructor
 public class CommentController implements CommentApi {
 
     private final CommentService commentService;
@@ -27,18 +27,20 @@ public class CommentController implements CommentApi {
     @Override
     @PostMapping
     public ResponseEntity<CustomApiResponse<CommentDto>> createComment(
-            @Valid @RequestBody CreateCommentRequest request) {
+            @Valid @RequestBody CreateCommentRequest request,
+            @PathVariable Long postId
+            ) {
         Comment comment = commentMapper.toEntity(request);
-        commentService.save(comment);
+        commentService.save(postId, comment);
         CommentDto dto = commentMapper.toDto(comment);
         return ResponseEntity.ok(CustomApiResponse.success(HttpStatus.CREATED, "Comment Added Successfully", dto));
     }
 
     @Override
-    @GetMapping("/{postId}")
+    @GetMapping
     public ResponseEntity<CustomApiResponse<List<CommentDto>>> getComment(
-            @PathVariable int postId) {
-        var comments = commentService.getCommentsByPostId(postId);
+            @PathVariable Long postId) {
+        var comments = commentService.getCommentsByPostId(postId.intValue());
         var commentDto = comments.stream().map(commentMapper::toDto).toList();
         return ResponseEntity.ok(CustomApiResponse.success(commentDto));
     }
@@ -46,6 +48,7 @@ public class CommentController implements CommentApi {
     @Override
     @PutMapping("/{commentId}")
     public ResponseEntity<CommentDto> updateComment(
+            @PathVariable Long postId,
             @PathVariable String commentId,
             @Valid @RequestBody UpdateCommentRequest request) {
 
@@ -61,6 +64,7 @@ public class CommentController implements CommentApi {
     @DeleteMapping("/{commentId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteComment(
+            @PathVariable Long postId,
             @PathVariable String commentId) {
         if (commentId == null || commentId.trim().isEmpty()) {
             throw new IllegalArgumentException("Comment ID cannot be null or empty");
