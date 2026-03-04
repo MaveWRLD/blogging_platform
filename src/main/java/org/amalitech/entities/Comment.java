@@ -2,6 +2,7 @@ package org.amalitech.entities;
 
 import jakarta.persistence.Id;
 import lombok.*;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.Instant;
@@ -17,6 +18,7 @@ public class Comment {
     @Id
     private String id;
 
+    @Indexed
     private Long postId;
 
     private String username;
