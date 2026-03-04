@@ -1,37 +1,33 @@
 package org.amalitech.algorithm;
 
-import org.amalitech.entities.Post;
-
-import org.springframework.stereotype.Component;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.PriorityQueue;
+
+import org.amalitech.entities.Post;
+import org.springframework.stereotype.Component;
 
 @Component
 public class TrendingSortAlgorithm {
 
     public double calculateTrendingScore(Post post) {
-        if (post.getCreatedAt() == null) {
-            return 0.0;
-        }
+        if (post.getCreatedAt() == null) return 0.0;
 
-        Instant now = Instant.now();
-        long hoursOld = Duration.between(post.getCreatedAt(), now).toHours();
-
+        long hoursOld = Duration.between(post.getCreatedAt(), Instant.now()).toHours();
         double timeFactor = 1.0 / Math.pow(Math.max(hoursOld, 1) + 2, 1.8);
 
-        int likes = Math.max(post.getLikeCount(), 0);
-        int comments = Math.max(post.getCommentCount(), 0);
-        int views = Math.max(post.getViewCount(), 0);
-
-        double engagement = (likes * 3.0) + (comments * 5.0) + (views * 0.1);
+        double engagement =
+                (post.getLikeCount() * 3.0) +
+                        (post.getCommentCount() * 5.0) +
+                        (post.getViewCount() * 0.1);
 
         return engagement * timeFactor;
     }
+
 
     /**
      * Sort list in-place by trending score (descending)
@@ -50,27 +46,42 @@ public class TrendingSortAlgorithm {
      * Get top K trending posts efficiently using min-heap
      */
     public List<Post> getTopTrending(List<Post> posts, int k) {
+
         if (posts == null || posts.isEmpty() || k <= 0) {
             return Collections.emptyList();
         }
 
-        PriorityQueue<Post> minHeap = new PriorityQueue<>(
-                (a, b) -> Double.compare(calculateTrendingScore(a), calculateTrendingScore(b))
+        if (k >= posts.size()) {
+            return posts.stream()
+                    .sorted((a, b) -> Double.compare(
+                            calculateTrendingScore(b),
+                            calculateTrendingScore(a)
+                    ))
+                    .toList();
+        }
+
+        PriorityQueue<PostScore> minHeap = new PriorityQueue<>(
+                Comparator.comparingDouble(ps -> ps.score)
         );
 
         for (Post post : posts) {
-            minHeap.offer(post);
+            double score = calculateTrendingScore(post);
+            minHeap.offer(new PostScore(post, score));
+
             if (minHeap.size() > k) {
                 minHeap.poll();
             }
         }
 
-        List<Post> topK = new ArrayList<>(minHeap.size());
-        while (!minHeap.isEmpty()) {
-            topK.add(minHeap.poll());
-        }
+        List<PostScore> topK = new ArrayList<>(minHeap);
 
-        Collections.reverse(topK);
-        return topK;
+        topK.sort((a, b) -> Double.compare(b.score, a.score));
+
+        return topK.stream()
+                .map(ps -> ps.post)
+                .toList();
+    }
+
+    private record PostScore(Post post, double score) {
     }
 }

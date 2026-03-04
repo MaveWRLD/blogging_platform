@@ -8,9 +8,6 @@ import java.util.Set;
 
 @Data
 public class CreatePostRequest {
-    @NotNull(message = "User ID cannot be null")
-    private Long userId;
-
     @NotBlank(message = "Title cannot be empty")
     private String title;
 

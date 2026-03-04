@@ -53,21 +53,21 @@ public class PostMutationResolver {
     }
 
    @MutationMapping
-   public Post likePost(@Argument String id) {
+   public void likePost(@Argument String id) {
        int postId = Integer.parseInt(id);
 
-       return postService.incrementLikeCount(postId);
+       postService.incrementLikeCount(postId);
    }
 
     @MutationMapping
-    public Comment createComment(@Argument CreateCommentRequest input) {
+    public Comment createComment(@Argument Long postId, @Argument CreateCommentRequest input) {
 
         Comment comment = new Comment();
-        comment.setPostId(input.getPostId());
+        comment.setPostId(postId);
         comment.setBody(input.getBody());
         comment.setUsername("current_user");
 
-        commentService.save(comment);
+        commentService.save(postId, comment);
 
         return comment;
     }

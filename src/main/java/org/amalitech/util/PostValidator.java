@@ -74,16 +74,5 @@ public class PostValidator {
             throw new ValidationException("Post body cannot exceed " + MAX_BODY_LENGTH + " characters");
         }
     }
-
-    /**
-     * Validate user ID (post author).
-     * @param userId the user ID
-     * @throws ValidationException if user ID is invalid
-     */
-    private static void validateUserId(int userId) {
-        if (userId <= 0) {
-            throw new ValidationException("Post author user ID must be positive");
-        }
-    }
 }
 
