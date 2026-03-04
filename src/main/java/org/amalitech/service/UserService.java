@@ -47,14 +47,7 @@ public class UserService {
 
     @Transactional
     public User createUser(User user) {
-        if (userRepository.existsByUsername(user.getUsername())) {
-            throw new ValidationException("Username already exists");
-        }
-        if (userRepository.existsByEmail(user.getEmail())) {
-            throw new ValidationException("Email already exists");
-        }
-
-        if (user.getPassword() != null && !user.getPassword().isBlank()) {
+                if (user.getPassword() != null && !user.getPassword().isBlank()) {
             user.setPassword(passwordEncoder.encode(user.getPassword()));
         }
 
