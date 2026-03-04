@@ -79,6 +79,11 @@ public class Post {
     @Enumerated(EnumType.STRING)
     private PostStatus status;
 
+    @PreUpdate
+    public void onUpdate() {
+        this.updatedAt = Instant.now();
+    }
+
     @Transient
     private double trendingScore;
 }
