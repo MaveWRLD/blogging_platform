@@ -6,6 +6,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import org.amalitech.dtos.perf.PerformanceMethodMetricsDto;
@@ -14,6 +15,7 @@ import org.amalitech.dtos.perf.PerformanceStatsDto;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -85,6 +87,29 @@ public class PerformanceMonitoringAspect {
             Object result = joinPoint.proceed();
             long durationNs = System.nanoTime() - startNs;
 
+            recordMetricsAsync(methodKey, durationNs);
+
+            return result;
+
+        } catch (Throwable e) {
+            long durationNs = System.nanoTime() - startNs;
+
+            recordErrorAsync(methodKey, durationNs);
+
+            throw e;
+        }
+    }
+
+    /**
+     * Asynchronously records successful method execution metrics.
+     * Uses CompletableFuture to allow the main thread to continue without waiting.
+     *
+     * @param methodKey the method identifier
+     * @param durationNs the execution time in nanoseconds
+     */
+    @Async("performanceExecutor")
+    public CompletableFuture<Void> recordMetricsAsync(String methodKey, long durationNs) {
+        return CompletableFuture.runAsync(() -> {
             MethodMetrics metrics = metricsMap.computeIfAbsent(methodKey, k -> new MethodMetrics());
             metrics.addExecution(durationNs);
 
@@ -98,19 +123,25 @@ public class PerformanceMonitoringAspect {
                         String.format("%.3f", durationMs),
                         String.format("%.3f", metrics.getAverageMs()));
             }
+        });
+    }
 
-            return result;
-
-        } catch (Throwable e) {
-            long durationNs = System.nanoTime() - startNs;
+    /**
+     * Asynchronously records method execution errors.
+     * Uses CompletableFuture to allow the main thread to continue without waiting.
+     *
+     * @param methodKey the method identifier
+     * @param durationNs the execution time before failure in nanoseconds
+     */
+    @Async("performanceExecutor")
+    public CompletableFuture<Void> recordErrorAsync(String methodKey, long durationNs) {
+        return CompletableFuture.runAsync(() -> {
             double durationMs = durationNs / 1_000_000.0;
 
             logger.error("PERFORMANCE ERROR -> {} failed after {} ms",
                     methodKey,
                     String.format("%.3f", durationMs));
-
-            throw e;
-        }
+        });
     }
 
     public PerformanceStatsDto snapshot() {
