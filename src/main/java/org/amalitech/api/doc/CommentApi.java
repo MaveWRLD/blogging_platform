@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@RequestMapping("/api/comments")
+@RequestMapping("/api/posts/{postId}/comments")
 @Tag(
         name = "Comments",
         description = "Endpoints for managing comments and replies"
@@ -29,7 +29,7 @@ public interface CommentApi {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
             summary = "Create a new comment",
-            description = "Create a new comment. If parentId is provided, the comment will be a reply to the specified parent comment. Requires authentication."
+            description = "Create a new comment on a specific post. If parentId is provided, the comment will be a reply to the specified parent comment. Requires authentication."
     )
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -40,22 +40,22 @@ public interface CommentApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
                     description = "Bad request - Invalid comment data or missing required fields",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"errors\":{\"body\":\"Comment body is required\",\"postId\":\"Post ID is required\"},\"message\":\"Validation failed\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"errors\":{\"body\":\"Comment body is required\"},\"message\":\"Validation failed\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "Unauthorized - Authentication required",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"error\":\"Unauthorized\",\"message\":\"Full authentication is required to access this resource\",\"path\":\"/api/comments\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"error\":\"Unauthorized\",\"message\":\"Full authentication is required to access this resource\",\"path\":\"/api/posts/1/comments\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "403",
                     description = "Forbidden - User does not have permission to comment",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"error\":\"Forbidden\",\"message\":\"You do not have permission to comment\",\"path\":\"/api/comments\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"error\":\"Forbidden\",\"message\":\"You do not have permission to comment\",\"path\":\"/api/posts/1/comments\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "Post not found - The post to comment on does not exist",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Post not found\",\"path\":\"/api/comments\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Post not found\",\"path\":\"/api/posts/999/comments\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "422",
@@ -65,15 +65,17 @@ public interface CommentApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "500",
                     description = "Internal server error - Database or system failure",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Failed to create comment\",\"path\":\"/api/comments\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Failed to create comment\",\"path\":\"/api/posts/1/comments\"}"))
             )
     })
     ResponseEntity<CustomApiResponse<CommentDto>> createComment(
             @Parameter(description = "Comment creation request", required = true)
-            @Valid @RequestBody CreateCommentRequest request
+            @Valid @RequestBody CreateCommentRequest request,
+            @Parameter(description = "Post ID to add comment to", required = true, example = "1")
+            @PathVariable Long postId
     );
 
-    @GetMapping("/{postId}")
+    @GetMapping
     @Operation(
             summary = "Get comments by post ID",
             description = "Retrieve all comments for a specific post. No authentication required."
@@ -87,22 +89,22 @@ public interface CommentApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
                     description = "Bad request - Invalid post ID",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Invalid post ID\",\"path\":\"/api/comments/invalid\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Invalid post ID\",\"path\":\"/api/posts/invalid/comments\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "Post not found",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Post not found\",\"path\":\"/api/comments/999\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Post not found\",\"path\":\"/api/posts/999/comments\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "500",
                     description = "Internal server error - Database or system failure",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Failed to retrieve comments\",\"path\":\"/api/comments/1\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Failed to retrieve comments\",\"path\":\"/api/posts/1/comments\"}"))
             )
     })
     ResponseEntity<CustomApiResponse<List<CommentDto>>> getComment(
             @Parameter(description = "Post ID to retrieve comments for", required = true, example = "1")
-            @PathVariable int postId
+            @PathVariable Long postId
     );
 
     @PutMapping("/{commentId}")
@@ -120,22 +122,22 @@ public interface CommentApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
                     description = "Bad request - Invalid comment ID or update data",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Invalid comment ID\",\"path\":\"/api/comments/invalid\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Invalid comment ID\",\"path\":\"/api/posts/1/comments/invalid\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "Unauthorized - Authentication required",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"error\":\"Unauthorized\",\"message\":\"Full authentication is required to access this resource\",\"path\":\"/api/comments/1\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"error\":\"Unauthorized\",\"message\":\"Full authentication is required to access this resource\",\"path\":\"/api/posts/1/comments/1\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "403",
                     description = "Forbidden - User does not have permission to update this comment",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"error\":\"Forbidden\",\"message\":\"You can only update your own comments\",\"path\":\"/api/comments/1\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"error\":\"Forbidden\",\"message\":\"You can only update your own comments\",\"path\":\"/api/posts/1/comments/1\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "Comment not found",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Comment not found\",\"path\":\"/api/comments/1\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Comment not found\",\"path\":\"/api/posts/1/comments/1\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "422",
@@ -145,10 +147,12 @@ public interface CommentApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "500",
                     description = "Internal server error - Database or system failure",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Failed to update comment\",\"path\":\"/api/comments/1\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Failed to update comment\",\"path\":\"/api/posts/1/comments/1\"}"))
             )
     })
     ResponseEntity<CommentDto> updateComment(
+            @Parameter(description = "Post ID", required = true, example = "1")
+            @PathVariable Long postId,
             @Parameter(description = "Comment ID", required = true, example = "1")
             @PathVariable String commentId,
             @Parameter(description = "Comment update request", required = true)
@@ -170,30 +174,32 @@ public interface CommentApi {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "400",
                     description = "Bad request - Invalid comment ID",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Invalid comment ID\",\"path\":\"/api/comments/invalid\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Invalid comment ID\",\"path\":\"/api/posts/1/comments/invalid\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "401",
                     description = "Unauthorized - Authentication required",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"error\":\"Unauthorized\",\"message\":\"Full authentication is required to access this resource\",\"path\":\"/api/comments/1\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"error\":\"Unauthorized\",\"message\":\"Full authentication is required to access this resource\",\"path\":\"/api/posts/1/comments/1\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "403",
                     description = "Forbidden - User does not have permission to delete this comment",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"error\":\"Forbidden\",\"message\":\"You can only delete your own comments\",\"path\":\"/api/comments/1\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"error\":\"Forbidden\",\"message\":\"You can only delete your own comments\",\"path\":\"/api/posts/1/comments/1\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "404",
                     description = "Comment not found",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Comment not found\",\"path\":\"/api/comments/1\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Comment not found\",\"path\":\"/api/posts/1/comments/1\"}"))
             ),
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "500",
                     description = "Internal server error - Database or system failure",
-                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Failed to delete comment\",\"path\":\"/api/comments/1\"}"))
+                    content = @io.swagger.v3.oas.annotations.media.Content(schema = @io.swagger.v3.oas.annotations.media.Schema(example = "{\"timestamp\":\"2024-01-01T12:00:00\",\"message\":\"Failed to delete comment\",\"path\":\"/api/posts/1/comments/1\"}"))
             )
     })
     void deleteComment(
+            @Parameter(description = "Post ID", required = true, example = "1")
+            @PathVariable Long postId,
             @Parameter(description = "Comment ID", required = true, example = "1")
             @PathVariable String commentId
     );
