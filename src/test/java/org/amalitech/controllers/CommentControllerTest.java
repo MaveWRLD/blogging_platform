@@ -24,6 +24,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
@@ -51,6 +52,8 @@ class CommentControllerTest {
     private CreateCommentRequest createCommentRequest;
     private UpdateCommentRequest updateCommentRequest;
 
+    private final Long POST_ID = 1L;
+
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders.standaloneSetup(commentController)
@@ -60,33 +63,33 @@ class CommentControllerTest {
 
         testComment = new Comment();
         testComment.setId("comment-123");
-        testComment.setPostId(1L);
+        testComment.setPostId(POST_ID);
         testComment.setUsername("testuser");
         testComment.setBody("Test comment content");
         testComment.setCreatedAt(Instant.now());
 
         testCommentDto = new CommentDto();
         testCommentDto.setId("comment-123");
-        testCommentDto.setPostId(1L);
+        testCommentDto.setPostId(POST_ID);
         testCommentDto.setUsername("testuser");
         testCommentDto.setBody("Test comment content");
         testCommentDto.setCreatedAt(testComment.getCreatedAt());
 
         createCommentRequest = new CreateCommentRequest();
-        createCommentRequest.setPostId(1L);
         createCommentRequest.setBody("Test comment content");
 
         updateCommentRequest = new UpdateCommentRequest();
         updateCommentRequest.setBody("Updated comment content");
     }
 
+    // ================== CREATE COMMENT ==================
     @Test
     void createComment_WithValidRequest_ShouldReturnCreatedComment() throws Exception {
         when(commentMapper.toEntity(any(CreateCommentRequest.class))).thenReturn(testComment);
-        when(commentService.save(any(Comment.class))).thenReturn(testComment);
+        when(commentService.save(eq(POST_ID), eq(testComment))).thenReturn(testComment);
         when(commentMapper.toDto(any(Comment.class))).thenReturn(testCommentDto);
 
-        mockMvc.perform(post("/api/comments")
+        mockMvc.perform(post("/api/posts/{postId}/comments", POST_ID)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(createCommentRequest)))
                 .andExpect(status().isOk())
@@ -96,37 +99,39 @@ class CommentControllerTest {
                 .andExpect(jsonPath("$.data.body").value("Test comment content"));
 
         verify(commentMapper).toEntity(createCommentRequest);
-        verify(commentService).save(testComment);
+        verify(commentService).save(eq(POST_ID), eq(testComment));
         verify(commentMapper).toDto(testComment);
     }
 
     @Test
     void createComment_WithInvalidRequest_ShouldReturnBadRequest() throws Exception {
         CreateCommentRequest invalidRequest = new CreateCommentRequest();
-        invalidRequest.setPostId(0L);
         invalidRequest.setBody("");
 
         Comment invalidComment = new Comment();
         invalidComment.setPostId(0L);
         invalidComment.setBody("");
-        
-        when(commentMapper.toEntity(invalidRequest)).thenReturn(invalidComment);
-        when(commentService.save(invalidComment)).thenThrow(new ValidationException("Invalid post ID"));
 
-        mockMvc.perform(post("/api/comments")
+        when(commentMapper.toEntity(invalidRequest)).thenReturn(invalidComment);
+        doThrow(new ValidationException("Invalid post ID")).when(commentService).save(eq(0L), eq(invalidComment));
+
+        mockMvc.perform(post("/api/posts/{postId}/comments", 0)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(invalidRequest)))
                 .andExpect(status().isBadRequest());
+
+        verify(commentService).save(eq(0L), eq(invalidComment));
     }
 
+    // ================== GET COMMENTS ==================
     @Test
     void getCommentsByPostId_WithValidPostId_ShouldReturnComments() throws Exception {
         List<Comment> comments = Arrays.asList(testComment);
 
-        when(commentService.getCommentsByPostId(1)).thenReturn(comments);
+        when(commentService.getCommentsByPostId(POST_ID.intValue())).thenReturn(comments);
         when(commentMapper.toDto(any(Comment.class))).thenReturn(testCommentDto);
 
-        mockMvc.perform(get("/api/comments/1"))
+        mockMvc.perform(get("/api/posts/{postId}/comments", POST_ID))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.data").isArray())
@@ -134,7 +139,7 @@ class CommentControllerTest {
                 .andExpect(jsonPath("$.data[0].postId").value(1))
                 .andExpect(jsonPath("$.data[0].body").value("Test comment content"));
 
-        verify(commentService).getCommentsByPostId(1);
+        verify(commentService).getCommentsByPostId(POST_ID.intValue());
         verify(commentMapper, times(1)).toDto(testComment);
     }
 
@@ -143,7 +148,7 @@ class CommentControllerTest {
         when(commentService.getCommentsByPostId(-1))
                 .thenThrow(new IllegalArgumentException("Invalid post ID"));
 
-        mockMvc.perform(get("/api/comments/-1"))
+        mockMvc.perform(get("/api/posts/{postId}/comments", -1))
                 .andExpect(status().isBadRequest());
 
         verify(commentService).getCommentsByPostId(-1);
@@ -154,24 +159,25 @@ class CommentControllerTest {
         when(commentService.getCommentsByPostId(999))
                 .thenThrow(new RuntimeException("Post not found"));
 
-        mockMvc.perform(get("/api/comments/999"))
+        mockMvc.perform(get("/api/posts/{postId}/comments", 999))
                 .andExpect(status().isNotFound());
 
         verify(commentService).getCommentsByPostId(999);
     }
 
+    // ================== UPDATE COMMENT ==================
     @Test
     void updateComment_WithValidRequest_ShouldReturnUpdatedComment() throws Exception {
         Comment updatedComment = new Comment();
         updatedComment.setId("comment-123");
-        updatedComment.setPostId(1L);
+        updatedComment.setPostId(POST_ID);
         updatedComment.setUsername("testuser");
         updatedComment.setBody("Updated comment content");
         updatedComment.setCreatedAt(Instant.now());
 
         CommentDto updatedCommentDto = new CommentDto();
         updatedCommentDto.setId("comment-123");
-        updatedCommentDto.setPostId(1L);
+        updatedCommentDto.setPostId(POST_ID);
         updatedCommentDto.setUsername("testuser");
         updatedCommentDto.setBody("Updated comment content");
         updatedCommentDto.setCreatedAt(updatedComment.getCreatedAt());
@@ -179,7 +185,7 @@ class CommentControllerTest {
         when(commentService.getCommentById("comment-123")).thenReturn(testComment);
         when(commentMapper.toDto(any(Comment.class))).thenReturn(updatedCommentDto);
 
-        mockMvc.perform(put("/api/comments/comment-123")
+        mockMvc.perform(put("/api/posts/{postId}/comments/{commentId}", POST_ID, "comment-123")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateCommentRequest)))
                 .andExpect(status().isOk())
@@ -195,7 +201,7 @@ class CommentControllerTest {
         when(commentService.getCommentById("nonexistent"))
                 .thenThrow(new RuntimeException("Comment not found"));
 
-        mockMvc.perform(put("/api/comments/nonexistent")
+        mockMvc.perform(put("/api/posts/{postId}/comments/{commentId}", POST_ID, "nonexistent")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(updateCommentRequest)))
                 .andExpect(status().isNotFound());
@@ -203,11 +209,12 @@ class CommentControllerTest {
         verify(commentService).getCommentById("nonexistent");
     }
 
+    // ================== DELETE COMMENT ==================
     @Test
     void deleteComment_WithValidCommentId_ShouldDeleteComment() throws Exception {
         doNothing().when(commentService).deleteById("comment-123");
 
-        mockMvc.perform(delete("/api/comments/comment-123"))
+        mockMvc.perform(delete("/api/posts/{postId}/comments/{commentId}", POST_ID, "comment-123"))
                 .andExpect(status().isNoContent());
 
         verify(commentService).deleteById("comment-123");
@@ -218,7 +225,7 @@ class CommentControllerTest {
         doThrow(new RuntimeException("Comment not found"))
                 .when(commentService).deleteById("nonexistent");
 
-        mockMvc.perform(delete("/api/comments/nonexistent"))
+        mockMvc.perform(delete("/api/posts/{postId}/comments/{commentId}", POST_ID, "nonexistent"))
                 .andExpect(status().isNotFound());
 
         verify(commentService).deleteById("nonexistent");
@@ -226,14 +233,14 @@ class CommentControllerTest {
 
     @Test
     void deleteComment_WithEmptyCommentId_ShouldReturnBadRequest() throws Exception {
-        mockMvc.perform(delete("/api/comments/ "))
+        mockMvc.perform(delete("/api/posts/{postId}/comments/{commentId}", POST_ID, " "))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
     void createComment_WithNullBody_ShouldReturnBadRequest() throws Exception {
-        mockMvc.perform(post("/api/comments")
-                        .contentType(MediaType.APPLICATION_JSON)
+        mockMvc.perform(post("/api/posts/{postId}/comments", POST_ID)
+                        .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
                         .content(""))
                 .andExpect(status().isBadRequest());
     }
@@ -243,7 +250,7 @@ class CommentControllerTest {
         when(commentService.getCommentsByPostId(0))
                 .thenThrow(new IllegalArgumentException("Invalid post ID"));
 
-        mockMvc.perform(get("/api/comments/0"))
+        mockMvc.perform(get("/api/posts/{postId}/comments", 0))
                 .andExpect(status().isBadRequest());
 
         verify(commentService).getCommentsByPostId(0);

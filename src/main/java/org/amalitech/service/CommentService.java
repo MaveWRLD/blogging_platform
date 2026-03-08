@@ -4,24 +4,34 @@ import org.amalitech.repositories.CommentRepository;
 import org.amalitech.entities.Comment;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
+import org.amalitech.repositories.UserRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class CommentService {
 
     private final CommentRepository commentRepository;
+    private final UserRepository userRepository;
+    private final ConcurrentHashMap<Integer, Object> postLocks = new ConcurrentHashMap<>();
 
-    public CommentService(CommentRepository commentRepository) {
+    public CommentService(CommentRepository commentRepository, UserRepository userRepository) {
         this.commentRepository = commentRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
-    public Comment save(Comment comment) {
+    public Comment save(Long postId, Comment comment) {
+        String username = getAuthenticatedUsername();
+        comment.setUsername(username);
         validateComment(comment);
+        comment.setPostId(postId);
         comment.setCreatedAt(Instant.now());
         return commentRepository.insert(comment);
     }
@@ -31,7 +41,6 @@ public class CommentService {
         if (id == null || id.trim().isEmpty()) {
             throw new IllegalArgumentException("Comment ID cannot be null or empty");
         }
-
         return commentRepository.findById(id).orElseThrow(
                 () ->  new ResourceNotFoundException("Comment not found with ID: " + id)
         );
@@ -50,7 +59,9 @@ public class CommentService {
         if (comment == null || comment.getId() == null) {
             throw new IllegalArgumentException("Comment or ID cannot be null");
         }
-        validateComment(comment);
+        if (comment.getBody() == null || comment.getBody().trim().isEmpty()) {
+            throw new ValidationException("Comment body cannot be empty");
+        }
         commentRepository.save(comment);
     }
 
@@ -83,5 +94,14 @@ public class CommentService {
         if (comment.getBody().length() > 5000) {
             throw new ValidationException("Comment body cannot exceed 5000 characters");
         }
+    }
+
+    private String getAuthenticatedUsername() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        var userId = (Long) auth.getPrincipal();
+
+        var user = userRepository.findById(userId).orElseThrow();
+
+        return user.getUsername();
     }
 }
