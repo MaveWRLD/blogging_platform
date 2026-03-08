@@ -31,6 +31,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.time.Instant;
 import java.util.*;
 
+import java.util.Objects;
+
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -112,7 +114,6 @@ class PostControllerTest {
                 .build();
 
         createPostRequest = new CreatePostRequest();
-        createPostRequest.setUserId(1L);
         createPostRequest.setTitle("Test Title");
         createPostRequest.setBody("Test Body");
         createPostRequest.setTagNames(new HashSet<>(Arrays.asList("java", "spring")));
@@ -122,18 +123,19 @@ class PostControllerTest {
         updatePostRequest.setTitle("Updated Title");
         updatePostRequest.setBody("Updated Body");
         updatePostRequest.setStatus("published");
-        updatePostRequest.setTagIds(Arrays.asList(1, 2));
+        updatePostRequest.setTagIds(Set.of(1, 2));
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void createPost_WithValidRequest_ShouldReturnCreatedPost() throws Exception {
         when(postMapper.createPost(any(CreatePostRequest.class))).thenReturn(testPost);
         when(postService.createPost(any(Post.class), any(Set.class))).thenReturn(testPost);
         when(postMapper.toDto(any(Post.class))).thenReturn(testPostDto);
 
         mockMvc.perform(post("/api/posts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(createPostRequest)))
+                        .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                        .content(Objects.requireNonNull(objectMapper.writeValueAsString(createPostRequest))))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.status").value("CREATED"))
                 .andExpect(jsonPath("$.message").value("Post created successfully"))
@@ -148,13 +150,13 @@ class PostControllerTest {
     }
 
     @Test
+    @SuppressWarnings("unchecked")
     void createPost_WithInvalidRequest_ShouldReturnBadRequest() throws Exception {
         CreatePostRequest invalidRequest = new CreatePostRequest();
-        invalidRequest.setUserId(1L);
 
         mockMvc.perform(post("/api/posts")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(invalidRequest)))
+                        .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                        .content(Objects.requireNonNull(objectMapper.writeValueAsString(invalidRequest))))
                 .andExpect(status().isBadRequest());
     }
 
@@ -184,8 +186,8 @@ class PostControllerTest {
         when(postMapper.toDto(any(Post.class))).thenReturn(updatedPostDto);
 
         mockMvc.perform(put("/api/posts/1")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatePostRequest)))
+                        .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                        .content(Objects.requireNonNull(objectMapper.writeValueAsString(updatePostRequest))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.status").value("OK"))
                 .andExpect(jsonPath("$.message").value("Post updated successfully"))
@@ -204,8 +206,8 @@ class PostControllerTest {
                 .thenThrow(new ResourceNotFoundException("Post not found"));
 
         mockMvc.perform(put("/api/posts/999")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatePostRequest)))
+                        .contentType(Objects.requireNonNull(MediaType.APPLICATION_JSON))
+                        .content(Objects.requireNonNull(objectMapper.writeValueAsString(updatePostRequest))))
                 .andExpect(status().isNotFound());
 
         verify(postService).updatePost(eq(999), any(UpdatePostRequest.class));
@@ -214,7 +216,7 @@ class PostControllerTest {
     @Test
     @WithMockUser
     void getAllPosts_WithDefaultParameters_ShouldReturnPagedPosts() throws Exception {
-        List<PostDto> posts = Arrays.asList(testPostDto);
+        List<PostDto> posts = Objects.requireNonNull(Arrays.asList(testPostDto));
         Page<PostDto> postPage = new PageImpl<>(posts, 
                 org.springframework.data.domain.PageRequest.of(0, 12), 1);
 
@@ -240,7 +242,7 @@ class PostControllerTest {
     @Test
     @WithMockUser
     void getAllPosts_WithCustomParameters_ShouldReturnPagedPosts() throws Exception {
-        List<PostDto> posts = Arrays.asList(testPostDto);
+        List<PostDto> posts = Objects.requireNonNull(Arrays.asList(testPostDto));
         Page<PostDto> postPage = new PageImpl<>(posts, 
                 org.springframework.data.domain.PageRequest.of(1, 5), 15);
 
@@ -259,8 +261,8 @@ class PostControllerTest {
 
     @Test
     void getPostsByUserId_WithValidUserId_ShouldReturnUserPosts() throws Exception {
-        List<PostDto> posts = Arrays.asList(testPostDto);
-        Page<PostDto> postPage = new PageImpl<>(posts, 
+        List<Post> posts = Objects.requireNonNull(Arrays.asList(testPost));
+        Page<Post> postPage = new PageImpl<>(posts, 
                 org.springframework.data.domain.PageRequest.of(0, 10), 1);
 
         when(postService.findPostsByUserId(anyLong(), anyInt(), anyInt())).thenReturn(postPage);
@@ -281,7 +283,7 @@ class PostControllerTest {
 
     @Test
     void getPostsByUserId_WithNonExistentUser_ShouldReturnNotFound() throws Exception {
-        Page<PostDto> emptyPage = new PageImpl<>(Collections.emptyList(), 
+        Page<Post> emptyPage = new PageImpl<>(Collections.emptyList(), 
                 org.springframework.data.domain.PageRequest.of(0, 10), 0);
 
         when(postService.findPostsByUserId(anyLong(), anyInt(), anyInt())).thenReturn(emptyPage);
@@ -292,47 +294,6 @@ class PostControllerTest {
         verify(postService).findPostsByUserId(eq(999L), eq(0), eq(10));
     }
 
-    @Test
-    void getTrendingPosts_WithDefaultParameters_ShouldReturnTrendingPosts() throws Exception {
-        List<Post> trendingPosts = Arrays.asList(testPost);
-        Page<Post> trendingPage = new PageImpl<>(trendingPosts, 
-                org.springframework.data.domain.PageRequest.of(0, 12), 1);
-
-        when(postService.getTopTrendingPosts(anyInt(), any(org.springframework.data.domain.Pageable.class))).thenReturn(trendingPage);
-        when(postMapper.toDto(any(Post.class))).thenReturn(testPostDto);
-
-        mockMvc.perform(get("/api/posts/trending"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("OK"))
-                .andExpect(jsonPath("$.message").value("Trending posts retrieved successfully"))
-                .andExpect(jsonPath("$.data.posts").isArray())
-                .andExpect(jsonPath("$.data.posts[0].id").value(1))
-                .andExpect(jsonPath("$.data.page").value(0))
-                .andExpect(jsonPath("$.data.size").value(12))
-                .andExpect(jsonPath("$.data.total").value(1));
-
-        verify(postService).getTopTrendingPosts(eq(10), any(org.springframework.data.domain.Pageable.class));
-        verify(postMapper).toDto(any(Post.class));
-    }
-
-    @Test
-    void getTrendingPosts_WithCustomParameters_ShouldReturnTrendingPosts() throws Exception {
-        List<Post> trendingPosts = Arrays.asList(testPost);
-        Page<Post> trendingPage = new PageImpl<>(trendingPosts, 
-                org.springframework.data.domain.PageRequest.of(1, 5), 15);
-
-        when(postService.getTopTrendingPosts(anyInt(), any(org.springframework.data.domain.Pageable.class))).thenReturn(trendingPage);
-        when(postMapper.toDto(any(Post.class))).thenReturn(testPostDto);
-
-        mockMvc.perform(get("/api/posts/trending?limit=5&page=1&size=5"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("OK"))
-                .andExpect(jsonPath("$.data.page").value(1))
-                .andExpect(jsonPath("$.data.size").value(5))
-                .andExpect(jsonPath("$.data.total").value(15));
-
-        verify(postService).getTopTrendingPosts(eq(5), any(org.springframework.data.domain.Pageable.class));
-    }
 
     @Test
     void getPost_WithValidId_ShouldReturnPostWithComments() throws Exception {

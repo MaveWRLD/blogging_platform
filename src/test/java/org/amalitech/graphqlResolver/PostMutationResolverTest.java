@@ -17,10 +17,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isNull;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -181,24 +183,23 @@ class PostMutationResolverTest {
    class LikePost {
 
        @Test
-       @DisplayName("delegates to postService.incrementLikeCount and returns result")
-       void likePost_delegatesAndReturnsResult() {
+       @DisplayName("delegates to postService.incrementLikeCount")
+       void likePost_delegates() {
            Post post = new Post();
            post.setLikeCount(6);
 
-           when(postService.incrementLikeCount(3)).thenReturn(post);
+           doNothing().when(postService).incrementLikeCount(3);
 
-           Post result = resolver.likePost("3");
+           resolver.likePost("3");
 
-           assertThat(result).isSameAs(post);
            verify(postService).incrementLikeCount(3);
        }
 
        @Test
        @DisplayName("throws ResourceNotFoundException when post is missing")
        void likePost_postNotFound_throwsException() {
-           when(postService.incrementLikeCount(404))
-                   .thenThrow(new ResourceNotFoundException("Post not found"));
+           doThrow(new ResourceNotFoundException("Post not found"))
+                   .when(postService).incrementLikeCount(404);
 
            assertThatThrownBy(() -> resolver.likePost("404"))
                    .isInstanceOf(ResourceNotFoundException.class)
@@ -213,8 +214,6 @@ class PostMutationResolverTest {
        }
    }
 
-
-
    @Nested
    @DisplayName("createComment")
    class CreateComment {
@@ -223,26 +222,24 @@ class PostMutationResolverTest {
        @DisplayName("creates and saves a comment with correct fields")
        void createComment_setsFieldsAndSaves() {
            CreateCommentRequest input = mock(CreateCommentRequest.class);
-           when(input.getPostId()).thenReturn(10L);
            when(input.getBody()).thenReturn("Nice post!");
 
-           Comment result = resolver.createComment(input);
+           Comment result = resolver.createComment(10L, input);
 
            assertThat(result).isNotNull();
            assertThat(result.getPostId()).isEqualTo(10L);
            assertThat(result.getBody()).isEqualTo("Nice post!");
            assertThat(result.getUsername()).isEqualTo("current_user");
-           verify(commentService).save(result);
+           verify(commentService).save(10L, result);
        }
 
        @Test
        @DisplayName("hardcodes username as 'current_user'")
        void createComment_usernameIsAlwaysCurrentUser() {
            CreateCommentRequest input = mock(CreateCommentRequest.class);
-           when(input.getPostId()).thenReturn(1L);
            when(input.getBody()).thenReturn("Test");
 
-           Comment result = resolver.createComment(input);
+           Comment result = resolver.createComment(1L, input);
 
            assertThat(result.getUsername()).isEqualTo("current_user");
        }
@@ -251,13 +248,12 @@ class PostMutationResolverTest {
        @DisplayName("returns the comment that was passed to commentService.save")
        void createComment_returnsSavedComment() {
            CreateCommentRequest input = mock(CreateCommentRequest.class);
-           when(input.getPostId()).thenReturn(5L);
            when(input.getBody()).thenReturn("A comment");
 
            ArgumentCaptor<Comment> captor = ArgumentCaptor.forClass(Comment.class);
-           Comment result = resolver.createComment(input);
+           Comment result = resolver.createComment(5L, input);
 
-           verify(commentService).save(captor.capture());
+           verify(commentService).save(eq(5L), captor.capture());
            assertThat(result).isSameAs(captor.getValue());
        }
    }
