@@ -258,96 +258,18 @@ class PostServiceTest {
         @Test
         @DisplayName("delegates to repository with correct pageable")
         void delegatesToRepository() {
-            Page<PostDto> expected = Page.empty();
-            when(postRepository.findPostsByUserId(eq(1L), any(Pageable.class))).thenReturn(expected);
+            Page<Post> expected = Page.empty();
+            when(postRepository.findByUserId(eq(1L), any(Pageable.class))).thenReturn(expected);
 
-            Page<PostDto> result = postService.findPostsByUserId(1L, 0, 10);
+            Page<Post> result = postService.findPostsByUserId(1L, 0, 10);
 
             assertThat(result).isEqualTo(expected);
 
             @SuppressWarnings("unchecked")
             ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-            verify(postRepository).findPostsByUserId(eq(1L), pageableCaptor.capture());
+            verify(postRepository).findByUserId(eq(1L), pageableCaptor.capture());
             assertThat(pageableCaptor.getValue().getPageNumber()).isZero();
             assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(10);
-        }
-    }
-
-    // -------------------------------------------------------------------------
-    // getTopTrendingPosts()
-    // -------------------------------------------------------------------------
-    @Nested
-    @DisplayName("getTopTrendingPosts()")
-    class GetTopTrendingPosts {
-
-        @Test
-        @DisplayName("returns empty page when no recent posts exist")
-        void noCandidates_returnsEmptyPage() {
-            Pageable pageable = PageRequest.of(0, 10);
-            when(postRepository.findRecentPublishedPosts(any(Instant.class), eq(pageable)))
-                    .thenReturn(Page.empty());
-
-            Page<Post> result = postService.getTopTrendingPosts(5, pageable);
-
-            assertThat(result.getContent()).isEmpty();
-            verifyNoInteractions(trendingAlgorithm);
-        }
-
-        @Test
-        @DisplayName("delegates to trending algorithm with correct limit")
-        void hasCandidates_callsAlgorithm() {
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Post> candidates = new PageImpl<>(List.of(samplePost), pageable, 1);
-            when(postRepository.findRecentPublishedPosts(any(Instant.class), eq(pageable)))
-                    .thenReturn(candidates);
-            when(trendingAlgorithm.getTopTrending(anyList(), eq(5))).thenReturn(List.of(samplePost));
-
-            Page<Post> result = postService.getTopTrendingPosts(5, pageable);
-
-            assertThat(result.getContent()).containsExactly(samplePost);
-            verify(trendingAlgorithm).getTopTrending(anyList(), eq(5));
-        }
-
-        @Test
-        @DisplayName("defaults limit to 10 when limit is zero")
-        void limitIsZero_defaultsToTen() {
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Post> candidates = new PageImpl<>(List.of(samplePost), pageable, 1);
-            when(postRepository.findRecentPublishedPosts(any(Instant.class), eq(pageable)))
-                    .thenReturn(candidates);
-            when(trendingAlgorithm.getTopTrending(anyList(), eq(10))).thenReturn(List.of(samplePost));
-
-            postService.getTopTrendingPosts(0, pageable);
-
-            verify(trendingAlgorithm).getTopTrending(anyList(), eq(10));
-        }
-
-        @Test
-        @DisplayName("defaults limit to 10 when limit exceeds 100")
-        void limitExceeds100_defaultsToTen() {
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Post> candidates = new PageImpl<>(List.of(samplePost), pageable, 1);
-            when(postRepository.findRecentPublishedPosts(any(Instant.class), eq(pageable)))
-                    .thenReturn(candidates);
-            when(trendingAlgorithm.getTopTrending(anyList(), eq(10))).thenReturn(List.of(samplePost));
-
-            postService.getTopTrendingPosts(101, pageable);
-
-            verify(trendingAlgorithm).getTopTrending(anyList(), eq(10));
-        }
-
-        @Test
-        @DisplayName("preserves total elements from candidate page")
-        void preservesTotalElements() {
-            Pageable pageable = PageRequest.of(0, 10);
-            Page<Post> candidates = new PageImpl<>(List.of(samplePost), pageable, 50);
-            when(postRepository.findRecentPublishedPosts(any(Instant.class), eq(pageable)))
-                    .thenReturn(candidates);
-            when(trendingAlgorithm.getTopTrending(anyList(), eq(10))).thenReturn(List.of(samplePost));
-
-            Page<Post> result = postService.getTopTrendingPosts(10, pageable);
-
-            assertThat(result.getTotalElements()).isEqualTo(50);
         }
     }
 
@@ -433,7 +355,7 @@ class PostServiceTest {
                         .thenAnswer(inv -> null);
 
                 UpdatePostRequest request = new UpdatePostRequest();
-                request.setTagIds(List.of(2));
+                request.setTagIds(Set.of(2));
                 postService.updatePost(samplePost.getId(), request);
 
                 assertThat(samplePost.getTags()).containsExactly(newTag);
@@ -453,7 +375,7 @@ class PostServiceTest {
                         .thenAnswer(inv -> null);
 
                 UpdatePostRequest request = new UpdatePostRequest();
-                request.setTagIds(List.of(1, 999));
+                request.setTagIds(Set.of(1, 999));
                 assertThatThrownBy(() -> postService.updatePost(samplePost.getId(), request))
                         .isInstanceOf(ResourceNotFoundException.class)
                         .hasMessageContaining("One or more tags not found");
@@ -472,7 +394,7 @@ class PostServiceTest {
                         .thenAnswer(inv -> null);
 
                 UpdatePostRequest request = new UpdatePostRequest();
-                request.setTagIds(List.of());
+                request.setTagIds(Set.of());
                 postService.updatePost(samplePost.getId(), request);
 
                 assertThat(samplePost.getTags()).isEmpty();
