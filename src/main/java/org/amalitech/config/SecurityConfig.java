@@ -1,6 +1,5 @@
 package org.amalitech.config;
 
-
 import lombok.AllArgsConstructor;
 import org.amalitech.Oauth2SuccessHandler;
 import org.amalitech.exception.entryPointErrors.CustomAccessDeniedHandler;
@@ -30,7 +29,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.Arrays;
 import java.util.List;
 
 
@@ -113,13 +111,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    CorsConfigurationSource corsConfigurationSource() {
+     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://Localhost:5173"));
-        configuration.setAllowedMethods(List.of("GET"));
-        configuration.setAllowedHeaders(List.of( "Authorization"));
+        configuration.setAllowedOrigins(List.of("http://localhost:5173"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        configuration.setExposedHeaders(List.of("Location"));
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration( "/**", configuration);
+        source.registerCorsConfiguration("/**", configuration);
         return source;
     }
 }
