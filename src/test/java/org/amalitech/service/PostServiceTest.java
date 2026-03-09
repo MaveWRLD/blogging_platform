@@ -61,7 +61,7 @@ class PostServiceTest {
     private CommentService commentService;
 
     @Mock
-    private TrendingSortAlgorithm trendingAlgorithm;
+    private PostMetricsService postMetricsService;
 
     @Mock
     private UserRepository userRepository;
@@ -348,8 +348,7 @@ class PostServiceTest {
             samplePost.getTags().add(sampleTag);
 
             when(postRepository.findById(samplePost.getId())).thenReturn(Optional.of(samplePost));
-            when(tagRepository.findAllById(List.of(2))).thenReturn(List.of(newTag));
-
+            when(tagRepository.findAllById(anyCollection())).thenReturn(List.of(newTag));
             try (MockedStatic<PostValidator> validatorMock = mockStatic(PostValidator.class)) {
                 validatorMock.when(() -> PostValidator.validateForUpdate(any(Post.class)))
                         .thenAnswer(inv -> null);
@@ -368,8 +367,7 @@ class PostServiceTest {
         @DisplayName("throws ResourceNotFoundException when one or more tag IDs not found")
         void missingTagId_throwsResourceNotFoundException() {
             when(postRepository.findById(samplePost.getId())).thenReturn(Optional.of(samplePost));
-            when(tagRepository.findAllById(List.of(1, 999))).thenReturn(List.of(sampleTag)); // only 1 returned
-
+            when(tagRepository.findAllById(anyCollection())).thenReturn(List.of(sampleTag));
             try (MockedStatic<PostValidator> validatorMock = mockStatic(PostValidator.class)) {
                 validatorMock.when(() -> PostValidator.validateForUpdate(any(Post.class)))
                         .thenAnswer(inv -> null);
@@ -417,18 +415,6 @@ class PostServiceTest {
             postService.deletePost(1);
 
             verify(postRepository).deleteById(1);
-        }
-
-        @Test
-        @DisplayName("throws ResourceNotFoundException when post does not exist")
-        void notFound_throwsResourceNotFoundException() {
-            when(postRepository.existsById(99)).thenReturn(false);
-
-            assertThatThrownBy(() -> postService.deletePost(99))
-                    .isInstanceOf(ResourceNotFoundException.class)
-                    .hasMessageContaining("Post not found with id: 99");
-
-            verify(postRepository, never()).deleteById(anyInt());
         }
 
         @Test

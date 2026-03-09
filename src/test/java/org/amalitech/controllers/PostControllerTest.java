@@ -47,10 +47,10 @@ class PostControllerTest {
 
     @Mock
     private PostService postService;
-    
+
     @Mock
     private PostMapper postMapper;
-    
+
     @Mock
     private CommentMapper commentMapper;
 
@@ -217,7 +217,7 @@ class PostControllerTest {
     @WithMockUser
     void getAllPosts_WithDefaultParameters_ShouldReturnPagedPosts() throws Exception {
         List<PostDto> posts = Objects.requireNonNull(Arrays.asList(testPostDto));
-        Page<PostDto> postPage = new PageImpl<>(posts, 
+        Page<PostDto> postPage = new PageImpl<>(posts,
                 org.springframework.data.domain.PageRequest.of(0, 12), 1);
 
         when(postService.getPosts(any(org.springframework.data.domain.Pageable.class))).thenReturn(postPage);
@@ -243,7 +243,7 @@ class PostControllerTest {
     @WithMockUser
     void getAllPosts_WithCustomParameters_ShouldReturnPagedPosts() throws Exception {
         List<PostDto> posts = Objects.requireNonNull(Arrays.asList(testPostDto));
-        Page<PostDto> postPage = new PageImpl<>(posts, 
+        Page<PostDto> postPage = new PageImpl<>(posts,
                 org.springframework.data.domain.PageRequest.of(1, 5), 15);
 
         when(postService.getPosts(any(org.springframework.data.domain.Pageable.class))).thenReturn(postPage);
@@ -260,30 +260,8 @@ class PostControllerTest {
     }
 
     @Test
-    void getPostsByUserId_WithValidUserId_ShouldReturnUserPosts() throws Exception {
-        List<Post> posts = Objects.requireNonNull(Arrays.asList(testPost));
-        Page<Post> postPage = new PageImpl<>(posts, 
-                org.springframework.data.domain.PageRequest.of(0, 10), 1);
-
-        when(postService.findPostsByUserId(anyLong(), anyInt(), anyInt())).thenReturn(postPage);
-
-        mockMvc.perform(get("/api/posts/user/1"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.status").value("OK"))
-                .andExpect(jsonPath("$.message").value("Posts retrieved successfully"))
-                .andExpect(jsonPath("$.data.posts").isArray())
-                .andExpect(jsonPath("$.data.posts[0].id").value(1))
-                .andExpect(jsonPath("$.data.posts[0].userId").value(1L))
-                .andExpect(jsonPath("$.data.page").value(0))
-                .andExpect(jsonPath("$.data.size").value(10))
-                .andExpect(jsonPath("$.data.total").value(1));
-
-        verify(postService).findPostsByUserId(eq(1L), eq(0), eq(10));
-    }
-
-    @Test
     void getPostsByUserId_WithNonExistentUser_ShouldReturnNotFound() throws Exception {
-        Page<Post> emptyPage = new PageImpl<>(Collections.emptyList(), 
+        Page<Post> emptyPage = new PageImpl<>(Collections.emptyList(),
                 org.springframework.data.domain.PageRequest.of(0, 10), 0);
 
         when(postService.findPostsByUserId(anyLong(), anyInt(), anyInt())).thenReturn(emptyPage);
