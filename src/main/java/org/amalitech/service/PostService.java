@@ -142,13 +142,15 @@ public class PostService {
 
         postMapper.updateEntity(request, post);
 
+        post.setUpdatedAt(Instant.now());
+
         if (post.getStatus() == PostStatus.published && post.getPublishedAt() == null) {
             post.setPublishedAt(Instant.now());
         }
 
         setTags(post, request.getTagIds());
 
-        return post;
+        return postRepository.save(post);
     }
 
     @Transactional(isolation = Isolation.READ_COMMITTED)
@@ -171,18 +173,8 @@ public class PostService {
             @CacheEvict(value = "filteredPosts", allEntries = true)
     })
     public void deletePost(int id) {
-
-        Object lock = getLock(id);
-
-        synchronized (lock) {
-
-            Post post = postRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
-
-            postRepository.delete(post);
-        }
-
-        postLocks.remove(id);
+        if (id <= 0) throw new ValidationException("Invalid post ID");
+        postRepository.deleteById(id);
     }
 
     private void setTags(Post post, Set<Integer> newTagIds) {
@@ -191,21 +183,19 @@ public class PostService {
             return;
         }
 
-        Set<Integer> currentTagIds = post.getTags()
-                .stream()
-                .map(Tag::getId)
-                .collect(Collectors.toSet());
-
-        if (currentTagIds.equals(newTagIds)) {
+        if (newTagIds.isEmpty()) {
+            post.getTags().clear();
             return;
         }
 
-        Set<Tag> references = newTagIds.stream()
-                .map(tagRepository::getReferenceById)
-                .collect(Collectors.toSet());
+        List<Tag> tags = tagRepository.findAllById(newTagIds);
+
+        if (tags.size() != newTagIds.size()) {
+            throw new ResourceNotFoundException("One or more tags not found");
+        }
 
         post.getTags().clear();
-        post.getTags().addAll(references);
+        post.getTags().addAll(tags);
     }
 
     private Object getLock(int postId) {
