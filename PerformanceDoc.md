@@ -97,9 +97,9 @@ Optimizations focused on:
 
 #### Jmeter Response Time Graph Before and After Respectively
 
-![Throughput – After](pre%20optimization/pre_jmeter_response_time_graph.png)
+![Throughput – Before](pre%20optimization/pre_jmeter_response_time_graph.png)
 
-[INSERT SCREENSHOT: JMeter Statistics Table – After (or side-by-side if combined)]
+![Throughput – After](post%20optimization/post_optimization_jmeter.png)
 
 ### 4.2 Key Endpoint Improvements
 

@@ -12,14 +12,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class CommentService {
 
     private final CommentRepository commentRepository;
     private final UserRepository userRepository;
-    private final ConcurrentHashMap<Integer, Object> postLocks = new ConcurrentHashMap<>();
 
     public CommentService(CommentRepository commentRepository, UserRepository userRepository) {
         this.commentRepository = commentRepository;
