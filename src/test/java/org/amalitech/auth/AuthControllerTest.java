@@ -1,15 +1,15 @@
-package org.amalitech.controllers;
+package org.amalitech.auth;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.amalitech.dtos.LoginRequest;
+import org.amalitech.auth.dto.LoginRequest;
 import org.amalitech.user.User;
-import org.amalitech.enums.TokenType;
+import org.amalitech.auth.TokenType;
 import org.amalitech.exception.CustomExceptionHandler;
-import org.amalitech.factories.TokenFactory;
+import org.amalitech.auth.TokenFactory;
 import org.amalitech.user.UserService;
-import org.amalitech.token.Jwt;
-import org.amalitech.token.JwtParser;
-import org.amalitech.token.TokenBlacklistService;
+import org.amalitech.auth.Jwt;
+import org.amalitech.auth.JwtParser;
+import org.amalitech.auth.TokenBlacklistService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

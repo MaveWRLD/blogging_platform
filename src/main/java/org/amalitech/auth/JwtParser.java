@@ -1,4 +1,4 @@
-package org.amalitech.token;
+package org.amalitech.auth;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;

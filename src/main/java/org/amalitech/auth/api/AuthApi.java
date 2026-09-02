@@ -1,4 +1,4 @@
-package org.amalitech.api.doc;
+package org.amalitech.auth.api;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -6,8 +6,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.amalitech.dtos.JwtResponse;
-import org.amalitech.dtos.LoginRequest;
+import org.amalitech.auth.dto.JwtResponse;
+import org.amalitech.auth.dto.LoginRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

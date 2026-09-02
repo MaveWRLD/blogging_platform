@@ -1,10 +1,10 @@
-package org.amalitech.factories;
+package org.amalitech.auth;
 
 import org.amalitech.user.User;
-import org.amalitech.enums.TokenType;
-import org.amalitech.strategy.AccessTokenStrategy;
-import org.amalitech.strategy.RefreshTokenStrategy;
-import org.amalitech.token.Jwt;
+import org.amalitech.auth.TokenType;
+import org.amalitech.auth.AccessTokenStrategy;
+import org.amalitech.auth.RefreshTokenStrategy;
+import org.amalitech.auth.Jwt;
 import org.springframework.stereotype.Service;
 
 @Service

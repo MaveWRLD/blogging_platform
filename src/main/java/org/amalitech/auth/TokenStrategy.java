@@ -1,7 +1,7 @@
-package org.amalitech.strategy;
+package org.amalitech.auth;
 
 import org.amalitech.user.User;
-import org.amalitech.token.Jwt;
+import org.amalitech.auth.Jwt;
 
 public interface TokenStrategy {
     Jwt generateToken(User user);

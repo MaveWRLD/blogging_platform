@@ -1,4 +1,4 @@
-package org.amalitech.dtos;
+package org.amalitech.auth.dto;
 
 
 import jakarta.validation.constraints.NotBlank;

@@ -1,4 +1,4 @@
-package org.amalitech;
+package org.amalitech.auth;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -20,6 +20,14 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Note: injects UserRepository directly rather than going through
+ * UserService. This is an accepted exception, not a missed cleanup -
+ * UserService.createUser() enforces registration validation (password
+ * required, uniqueness checks assuming self-service signup) that doesn't
+ * fit this handler's job of silently provisioning a User on a user's
+ * first OAuth2 login.
+ */
 @Component
 @AllArgsConstructor
 public class Oauth2SuccessHandler implements AuthenticationSuccessHandler, OAuth2AuthorizationSuccessHandler {

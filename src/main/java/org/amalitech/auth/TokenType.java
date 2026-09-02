@@ -1,4 +1,4 @@
-package org.amalitech.enums;
+package org.amalitech.auth;
 
 public enum TokenType {
     ACCESS,

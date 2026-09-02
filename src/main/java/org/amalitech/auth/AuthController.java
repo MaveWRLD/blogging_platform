@@ -1,18 +1,18 @@
-package org.amalitech.controllers;
+package org.amalitech.auth;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.amalitech.api.doc.AuthApi;
-import org.amalitech.dtos.JwtResponse;
-import org.amalitech.dtos.LoginRequest;
+import org.amalitech.auth.api.AuthApi;
+import org.amalitech.auth.dto.JwtResponse;
+import org.amalitech.auth.dto.LoginRequest;
 import org.amalitech.user.User;
-import org.amalitech.enums.TokenType;
-import org.amalitech.factories.TokenFactory;
-import org.amalitech.token.Jwt;
-import org.amalitech.token.JwtParser;
+import org.amalitech.auth.TokenType;
+import org.amalitech.auth.TokenFactory;
+import org.amalitech.auth.Jwt;
+import org.amalitech.auth.JwtParser;
 import org.amalitech.user.UserService;
-import org.amalitech.token.TokenBlacklistService;
+import org.amalitech.auth.TokenBlacklistService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

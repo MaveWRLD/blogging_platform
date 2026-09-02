@@ -1,10 +1,10 @@
 package org.amalitech.config;
 
 import lombok.AllArgsConstructor;
-import org.amalitech.Oauth2SuccessHandler;
+import org.amalitech.auth.Oauth2SuccessHandler;
 import org.amalitech.exception.entryPointErrors.CustomAccessDeniedHandler;
 import org.amalitech.exception.entryPointErrors.CustomAuthenticationEntryPoint;
-import org.amalitech.filters.JwtAuthenticationFilter;
+import org.amalitech.auth.JwtAuthenticationFilter;
 import org.amalitech.user.CustomOAuth2UserService;
 import org.amalitech.user.UserDetailService;
 import org.springframework.context.annotation.Bean;

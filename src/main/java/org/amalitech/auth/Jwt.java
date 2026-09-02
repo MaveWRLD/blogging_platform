@@ -1,8 +1,8 @@
-package org.amalitech.token;
+package org.amalitech.auth;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import org.amalitech.enums.TokenType;
+import org.amalitech.auth.TokenType;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
