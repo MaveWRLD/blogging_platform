@@ -6,14 +6,14 @@ import org.amalitech.post.dto.PostFilter;
 import org.amalitech.post.dto.UpdatePostRequest;
 import org.amalitech.post.PostStatus;
 import org.amalitech.post.PostMapper;
-import org.amalitech.repositories.TagRepository;
-import org.amalitech.entities.Tag;
+import org.amalitech.post.tag.TagRepository;
+import org.amalitech.post.tag.Tag;
 import org.amalitech.entities.User;
 import org.amalitech.post.PostRepository;
 import org.amalitech.repositories.UserRepository;
 import org.amalitech.post.specifications.PostSpecification;
 import org.amalitech.post.PostValidator;
-import org.amalitech.service.TagService;
+import org.amalitech.post.tag.TagService;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
 

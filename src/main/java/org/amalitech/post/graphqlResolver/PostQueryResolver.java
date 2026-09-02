@@ -15,7 +15,7 @@ import org.amalitech.post.Post;
 import org.amalitech.post.PostService;
 // TODO(feature-migration): TagService/UserService still live in the old layered
 // org.amalitech.service package until Tag/User get their own package-by-feature pass.
-import org.amalitech.service.TagService;
+import org.amalitech.post.tag.TagService;
 import org.amalitech.service.UserService;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;

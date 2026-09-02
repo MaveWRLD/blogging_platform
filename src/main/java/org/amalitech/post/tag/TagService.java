@@ -1,8 +1,8 @@
-package org.amalitech.service;
+package org.amalitech.post.tag;
 
-import org.amalitech.repositories.TagRepository;
+import org.amalitech.post.tag.TagRepository;
 import org.amalitech.exception.ValidationException;
-import org.amalitech.entities.Tag;
+import org.amalitech.post.tag.Tag;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 

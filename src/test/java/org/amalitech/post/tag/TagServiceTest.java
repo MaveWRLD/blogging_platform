@@ -1,8 +1,8 @@
-package org.amalitech.service;
+package org.amalitech.post.tag;
 
-import org.amalitech.entities.Tag;
+import org.amalitech.post.tag.Tag;
 import org.amalitech.exception.ValidationException;
-import org.amalitech.repositories.TagRepository;
+import org.amalitech.post.tag.TagRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

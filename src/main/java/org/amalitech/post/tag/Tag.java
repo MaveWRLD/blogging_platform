@@ -1,4 +1,4 @@
-package org.amalitech.entities;
+package org.amalitech.post.tag;
 
 import jakarta.persistence.*;
 import org.amalitech.post.Post;

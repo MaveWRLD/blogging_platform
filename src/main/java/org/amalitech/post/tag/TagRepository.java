@@ -1,6 +1,6 @@
-package org.amalitech.repositories;
+package org.amalitech.post.tag;
 
-import org.amalitech.entities.Tag;
+import org.amalitech.post.tag.Tag;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.rest.core.annotation.RepositoryRestResource;
 import org.springframework.stereotype.Repository;
