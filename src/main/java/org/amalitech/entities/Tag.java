@@ -1,6 +1,7 @@
 package org.amalitech.entities;
 
 import jakarta.persistence.*;
+import org.amalitech.post.Post;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

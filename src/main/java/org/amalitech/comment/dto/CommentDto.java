@@ -1,0 +1,20 @@
+package org.amalitech.comment.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.time.Instant;
+
+@AllArgsConstructor
+@NoArgsConstructor
+@Data
+@Builder
+public class CommentDto {
+    private String id;
+    private Long postId;
+    private String username;
+    private String body;
+    private Instant createdAt;
+}
