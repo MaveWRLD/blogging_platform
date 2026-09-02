@@ -1,4 +1,4 @@
-package org.amalitech.entities;
+package org.amalitech.user;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;

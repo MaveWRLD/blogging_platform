@@ -1,8 +1,8 @@
-package org.amalitech.service;
+package org.amalitech.user;
 
 import lombok.RequiredArgsConstructor;
-import org.amalitech.entities.Role;
-import org.amalitech.repositories.RoleRepository;
+import org.amalitech.user.Role;
+import org.amalitech.user.RoleRepository;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;

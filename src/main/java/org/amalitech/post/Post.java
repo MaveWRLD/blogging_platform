@@ -3,7 +3,7 @@ package org.amalitech.post;
 import jakarta.persistence.*;
 import lombok.*;
 import org.amalitech.post.tag.Tag;
-import org.amalitech.entities.User;
+import org.amalitech.user.User;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;

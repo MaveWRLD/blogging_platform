@@ -1,6 +1,6 @@
-package org.amalitech.repositories;
+package org.amalitech.user;
 
-import org.amalitech.entities.User;
+import org.amalitech.user.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -19,7 +19,7 @@ import java.util.Optional;
 @RepositoryRestResource(collectionResourceRel = "users", path = "users")
 public interface UserRepository extends JpaRepository<User, Integer> {
     
-    @PreAuthorize("hasRole('admin') or @authorizationService.canAccessUser(#id)")
+    @PreAuthorize("hasRole('admin') or @userAuthorizationService.canAccessUser(#id)")
     Optional<User> findById(Long id);
 
     Optional<User> findByEmail(String email);
@@ -30,7 +30,7 @@ public interface UserRepository extends JpaRepository<User, Integer> {
     @PreAuthorize("hasRole('admin')")
     Page<User> findAll(Pageable pageable);
     
-    @PreAuthorize("hasRole('admin') or @authorizationService.canAccessUser(#id)")
+    @PreAuthorize("hasRole('admin') or @userAuthorizationService.canAccessUser(#id)")
     void deleteById(Long id);
 
     @PreAuthorize("permitAll()")

@@ -1,4 +1,4 @@
-package org.amalitech.dtos.userDtos;
+package org.amalitech.user.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

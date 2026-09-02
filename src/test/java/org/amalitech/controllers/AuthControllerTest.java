@@ -2,11 +2,11 @@ package org.amalitech.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.amalitech.dtos.LoginRequest;
-import org.amalitech.entities.User;
+import org.amalitech.user.User;
 import org.amalitech.enums.TokenType;
 import org.amalitech.exception.CustomExceptionHandler;
 import org.amalitech.factories.TokenFactory;
-import org.amalitech.service.UserService;
+import org.amalitech.user.UserService;
 import org.amalitech.token.Jwt;
 import org.amalitech.token.JwtParser;
 import org.amalitech.token.TokenBlacklistService;

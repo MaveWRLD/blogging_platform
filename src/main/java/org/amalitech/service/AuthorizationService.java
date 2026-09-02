@@ -5,9 +5,10 @@ import org.springframework.stereotype.Service;
 
 /**
  * Authorization checks for features not yet migrated to package-by-feature
- * (User, Performance). Post-specific and Comment-specific checks moved to
- * org.amalitech.post.PostAuthorizationService and
- * org.amalitech.comment.CommentAuthorizationService respectively.
+ * (Performance). Post-specific, Comment-specific, and User-specific checks
+ * moved to org.amalitech.post.PostAuthorizationService,
+ * org.amalitech.comment.CommentAuthorizationService, and
+ * org.amalitech.user.UserAuthorizationService respectively.
  */
 @Service
 public class AuthorizationService {
@@ -16,19 +17,6 @@ public class AuthorizationService {
 
     public AuthorizationService(AuthenticatedUserProvider authenticatedUserProvider) {
         this.authenticatedUserProvider = authenticatedUserProvider;
-    }
-
-    public boolean canAccessUser(Long targetUserId) {
-        Long requesterId = authenticatedUserProvider.getRequesterId();
-        if (requesterId == null) return false;
-
-        if (requesterId.equals(targetUserId)) return true;
-
-        return authenticatedUserProvider.hasAdminRole();
-    }
-
-    public boolean canPromoteUser() {
-        return authenticatedUserProvider.hasAdminRole();
     }
 
     public boolean canAccessPerformanceMetrics() {

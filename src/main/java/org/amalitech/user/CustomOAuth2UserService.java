@@ -1,7 +1,7 @@
-package org.amalitech.service;
+package org.amalitech.user;
 
 import lombok.AllArgsConstructor;
-import org.amalitech.repositories.UserRepository;
+import org.amalitech.user.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;

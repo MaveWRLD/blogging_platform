@@ -1,11 +1,11 @@
-package org.amalitech.mappers;
+package org.amalitech.user;
 
-import org.amalitech.dtos.userDtos.CreateUserRequest;
-import org.amalitech.dtos.userDtos.UpdateUserRequest;
-import org.amalitech.dtos.userDtos.UserDto;
-import org.amalitech.entities.Role;
-import org.amalitech.entities.User;
-import org.amalitech.service.RoleService;
+import org.amalitech.user.dto.CreateUserRequest;
+import org.amalitech.user.dto.UpdateUserRequest;
+import org.amalitech.user.dto.UserDto;
+import org.amalitech.user.Role;
+import org.amalitech.user.User;
+import org.amalitech.user.RoleService;
 import org.mapstruct.Mapper;
 import org.mapstruct.MappingTarget;
 import org.mapstruct.ObjectFactory;

@@ -1,7 +1,7 @@
-package org.amalitech.service;
+package org.amalitech.user;
 
 import lombok.RequiredArgsConstructor;
-import org.amalitech.repositories.UserRepository;
+import org.amalitech.user.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;

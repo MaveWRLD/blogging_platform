@@ -9,14 +9,14 @@ import org.amalitech.exception.ValidationException;
 import org.amalitech.comment.CommentMapper;
 import org.amalitech.comment.CommentService;
 import org.amalitech.post.PostMapper;
-import org.amalitech.mappers.UserMapper;
+import org.amalitech.user.UserMapper;
 import org.amalitech.comment.Comment;
 import org.amalitech.post.Post;
 import org.amalitech.post.PostService;
 // TODO(feature-migration): TagService/UserService still live in the old layered
 // org.amalitech.service package until Tag/User get their own package-by-feature pass.
 import org.amalitech.post.tag.TagService;
-import org.amalitech.service.UserService;
+import org.amalitech.user.UserService;
 import org.apache.coyote.BadRequestException;
 import org.springframework.data.domain.Page;
 import org.springframework.graphql.data.method.annotation.Argument;

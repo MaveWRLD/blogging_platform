@@ -1,12 +1,12 @@
 package org.amalitech.comment;
 
 import org.amalitech.comment.Comment;
-import org.amalitech.entities.User;
+import org.amalitech.user.User;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
 import org.amalitech.comment.CommentRepository;
 import org.amalitech.post.PostExistenceChecker;
-import org.amalitech.repositories.UserRepository;
+import org.amalitech.user.UserService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,7 +38,7 @@ class CommentServiceTest {
     private CommentRepository commentRepository;
 
     @Mock
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Mock
     private PostExistenceChecker postExistenceChecker;
@@ -81,7 +81,7 @@ class CommentServiceTest {
 
             lenient().when(authentication.getPrincipal()).thenReturn(42L);
 
-            lenient().when(userRepository.findById(42L)).thenReturn(Optional.of(mockUser));
+            lenient().when(userService.findByUserId(42L)).thenReturn(mockUser);
 
             lenient().when(postExistenceChecker.existsById(anyInt())).thenReturn(true);
         }

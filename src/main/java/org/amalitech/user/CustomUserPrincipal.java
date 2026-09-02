@@ -1,8 +1,8 @@
-package org.amalitech.service;
+package org.amalitech.user;
 
 import lombok.Getter;
-import org.amalitech.entities.Role;
-import org.amalitech.entities.User;
+import org.amalitech.user.Role;
+import org.amalitech.user.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

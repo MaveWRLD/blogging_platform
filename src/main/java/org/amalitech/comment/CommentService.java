@@ -5,7 +5,7 @@ import org.amalitech.comment.Comment;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
 import org.amalitech.post.PostExistenceChecker;
-import org.amalitech.repositories.UserRepository;
+import org.amalitech.user.UserService;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -18,12 +18,12 @@ import java.util.List;
 public class CommentService {
 
     private final CommentRepository commentRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final PostExistenceChecker postExistenceChecker;
 
-    public CommentService(CommentRepository commentRepository, UserRepository userRepository, PostExistenceChecker postExistenceChecker) {
+    public CommentService(CommentRepository commentRepository, UserService userService, PostExistenceChecker postExistenceChecker) {
         this.commentRepository = commentRepository;
-        this.userRepository = userRepository;
+        this.userService = userService;
         this.postExistenceChecker = postExistenceChecker;
     }
 
@@ -105,8 +105,6 @@ public class CommentService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         var userId = (Long) auth.getPrincipal();
 
-        var user = userRepository.findById(userId).orElseThrow();
-
-        return user.getUsername();
+        return userService.findByUserId(userId).getUsername();
     }
 }

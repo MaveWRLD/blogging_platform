@@ -1,14 +1,14 @@
-package org.amalitech.controllers;
+package org.amalitech.user;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.amalitech.dtos.userDtos.CreateUserRequest;
-import org.amalitech.dtos.userDtos.UpdateUserRequest;
-import org.amalitech.dtos.userDtos.UserDto;
-import org.amalitech.entities.Role;
-import org.amalitech.entities.User;
+import org.amalitech.user.dto.CreateUserRequest;
+import org.amalitech.user.dto.UpdateUserRequest;
+import org.amalitech.user.dto.UserDto;
+import org.amalitech.user.Role;
+import org.amalitech.user.User;
 import org.amalitech.exception.CustomExceptionHandler;
-import org.amalitech.mappers.UserMapper;
-import org.amalitech.service.UserService;
+import org.amalitech.user.UserMapper;
+import org.amalitech.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

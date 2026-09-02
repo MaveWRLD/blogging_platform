@@ -1,8 +1,8 @@
-package org.amalitech.rest;
+package org.amalitech.user;
 
-import org.amalitech.entities.User;
+import org.amalitech.user.User;
 import org.amalitech.exception.ValidationException;
-import org.amalitech.repositories.UserRepository;
+import org.amalitech.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.rest.core.annotation.HandleBeforeCreate;
 import org.springframework.data.rest.core.annotation.HandleBeforeSave;

@@ -1,4 +1,4 @@
-package org.amalitech.util;
+package org.amalitech.user;
 
 import org.amalitech.exception.ValidationException;
 

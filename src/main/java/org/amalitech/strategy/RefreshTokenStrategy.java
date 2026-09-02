@@ -2,8 +2,8 @@ package org.amalitech.strategy;
 
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.amalitech.entities.Role;
-import org.amalitech.entities.User;
+import org.amalitech.user.Role;
+import org.amalitech.user.User;
 import org.amalitech.enums.TokenType;
 import org.amalitech.token.Jwt;
 import org.springframework.beans.factory.annotation.Value;

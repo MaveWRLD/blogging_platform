@@ -1,4 +1,4 @@
-package org.amalitech.api.doc;
+package org.amalitech.user.api;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,8 +10,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.amalitech.dtos.CustomApiResponse;
-import org.amalitech.dtos.userDtos.CreateUserRequest;
-import org.amalitech.dtos.userDtos.UserDto;
+import org.amalitech.user.dto.CreateUserRequest;
+import org.amalitech.user.dto.UserDto;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -58,7 +58,7 @@ public interface UserApi {
             @Valid @RequestBody CreateUserRequest request);
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasRole('admin') or @authorizationService.canAccessUser(#id)")
+    @PreAuthorize("hasRole('admin') or @userAuthorizationService.canAccessUser(#id)")
     @Operation(
             summary = "Get user by ID",
             description = "Returns a single user with their role information based on the provided user ID. Requires writer role or user access authorization."
@@ -101,7 +101,7 @@ public interface UserApi {
     );
 
     @PutMapping("/promote/{username}")
-    @PreAuthorize("@authorizationService.canPromoteUser()")
+    @PreAuthorize("@userAuthorizationService.canPromoteUser()")
     @Operation(
             summary = "Promote user to writer",
             description = "Set a user's role to WRITER based on their username. Requires admin privileges."

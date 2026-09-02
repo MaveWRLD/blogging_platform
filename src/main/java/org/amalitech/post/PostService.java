@@ -8,9 +8,9 @@ import org.amalitech.post.PostStatus;
 import org.amalitech.post.PostMapper;
 import org.amalitech.post.tag.TagRepository;
 import org.amalitech.post.tag.Tag;
-import org.amalitech.entities.User;
+import org.amalitech.user.User;
 import org.amalitech.post.PostRepository;
-import org.amalitech.repositories.UserRepository;
+import org.amalitech.user.UserService;
 import org.amalitech.post.specifications.PostSpecification;
 import org.amalitech.post.PostValidator;
 import org.amalitech.post.tag.TagService;
@@ -41,7 +41,7 @@ public class PostService implements PostExistenceChecker {
     private final PostRepository postRepository;
     private final PostMetricsService postMetricsService;
     private final TagRepository tagRepository;
-    private final UserRepository userRepository;
+    private final UserService userService;
     private final TagService tagService;
     private final PostMapper postMapper;
 
@@ -136,7 +136,7 @@ public class PostService implements PostExistenceChecker {
         var auth = SecurityContextHolder.getContext().getAuthentication();
         var userId = (Long) auth.getPrincipal();
         post.setTags(tags);
-        var user = userRepository.findById(userId).orElseThrow();
+        var user = userService.findByUserId(userId);
         post.setUser(user);
 
         return postRepository.save(post);

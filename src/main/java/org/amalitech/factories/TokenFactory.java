@@ -1,6 +1,6 @@
 package org.amalitech.factories;
 
-import org.amalitech.entities.User;
+import org.amalitech.user.User;
 import org.amalitech.enums.TokenType;
 import org.amalitech.strategy.AccessTokenStrategy;
 import org.amalitech.strategy.RefreshTokenStrategy;

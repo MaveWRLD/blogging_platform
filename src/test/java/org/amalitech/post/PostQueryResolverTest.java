@@ -10,20 +10,20 @@ import org.amalitech.post.dto.PagedPostsResponse;
 import org.amalitech.post.dto.PostDto;
 import org.amalitech.post.dto.PostFilter;
 import org.amalitech.post.dto.PostResponse;
-import org.amalitech.dtos.userDtos.UserDto;
+import org.amalitech.user.dto.UserDto;
 import org.amalitech.comment.Comment;
 import org.amalitech.post.Post;
-import org.amalitech.entities.Role;
-import org.amalitech.entities.User;
+import org.amalitech.user.Role;
+import org.amalitech.user.User;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
 import org.amalitech.comment.CommentMapper;
 import org.amalitech.post.PostMapper;
-import org.amalitech.mappers.UserMapper;
+import org.amalitech.user.UserMapper;
 import org.amalitech.comment.CommentService;
 import org.amalitech.post.PostService;
 import org.amalitech.post.graphqlResolver.PostQueryResolver;
-import org.amalitech.service.UserService;
+import org.amalitech.user.UserService;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import org.junit.jupiter.api.DisplayName;
@@ -266,8 +266,8 @@ class PostQueryResolverTest {
            when(postService.findPostById(2)).thenReturn(post);
            when(commentService.getCommentsByPostId(2)).thenReturn(Collections.emptyList());
            when(postMapper.toDto(post)).thenReturn(mock(PostDto.class));
-           when(userService.findByUserId(5L)).thenReturn(mock(org.amalitech.entities.User.class));
-           when(userMapper.toDto(any())).thenReturn(mock(org.amalitech.dtos.userDtos.UserDto.class));
+           when(userService.findByUserId(5L)).thenReturn(mock(org.amalitech.user.User.class));
+           when(userMapper.toDto(any())).thenReturn(mock(org.amalitech.user.dto.UserDto.class));
 
            PostResponse response = resolver.post(2);
 
@@ -298,8 +298,8 @@ class PostQueryResolverTest {
            when(postMapper.toDto(post)).thenReturn(mock(PostDto.class));
            when(commentMapper.toDto(c1)).thenReturn(cd1);
            when(commentMapper.toDto(c2)).thenReturn(cd2);
-           when(userService.findByUserId(1L)).thenReturn(mock(org.amalitech.entities.User.class));
-           when(userMapper.toDto(any())).thenReturn(mock(org.amalitech.dtos.userDtos.UserDto.class));
+           when(userService.findByUserId(1L)).thenReturn(mock(org.amalitech.user.User.class));
+           when(userMapper.toDto(any())).thenReturn(mock(org.amalitech.user.dto.UserDto.class));
 
            PostResponse response = resolver.post(3);
 
@@ -314,8 +314,8 @@ class PostQueryResolverTest {
            when(postService.findPostById(4)).thenReturn(post);
            when(commentService.getCommentsByPostId(4)).thenReturn(Collections.emptyList());
            when(postMapper.toDto(post)).thenReturn(mock(PostDto.class));
-           when(userService.findByUserId(77L)).thenReturn(mock(org.amalitech.entities.User.class));
-           when(userMapper.toDto(any())).thenReturn(mock(org.amalitech.dtos.userDtos.UserDto.class));
+           when(userService.findByUserId(77L)).thenReturn(mock(org.amalitech.user.User.class));
+           when(userMapper.toDto(any())).thenReturn(mock(org.amalitech.user.dto.UserDto.class));
 
            resolver.post(4);
 

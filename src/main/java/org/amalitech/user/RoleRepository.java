@@ -1,6 +1,6 @@
-package org.amalitech.repositories;
+package org.amalitech.user;
 
-import org.amalitech.entities.Role;
+import org.amalitech.user.Role;
 import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.Optional;
 

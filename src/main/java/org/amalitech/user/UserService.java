@@ -1,10 +1,10 @@
-package org.amalitech.service;
+package org.amalitech.user;
 
-import org.amalitech.entities.Role;
-import org.amalitech.entities.User;
-import org.amalitech.repositories.UserRepository;
-import org.amalitech.service.RoleService;
-import org.amalitech.util.UserValidator;
+import org.amalitech.user.Role;
+import org.amalitech.user.User;
+import org.amalitech.user.UserRepository;
+import org.amalitech.user.RoleService;
+import org.amalitech.user.UserValidator;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -63,7 +63,7 @@ public class UserService {
     }
 
     @Transactional
-    @PreAuthorize("@authorizationService.canAccessUser(#id)")
+    @PreAuthorize("@userAuthorizationService.canAccessUser(#id)")
     public User updateUser(int id, User updatedUser) {
         User existing = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + id));
@@ -86,7 +86,7 @@ public class UserService {
     }
 
     @Transactional
-    @PreAuthorize("@authorizationService.canAccessUser(#id)")
+    @PreAuthorize("@userAuthorizationService.canAccessUser(#id)")
     public void deleteUser(int id) {
         if (!userRepository.existsById(id)) {
             throw new ResourceNotFoundException("User not found with id: " + id);

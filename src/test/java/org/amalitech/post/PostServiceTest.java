@@ -5,16 +5,16 @@ import org.amalitech.post.dto.PostDto;
 import org.amalitech.post.dto.PostFilter;
 import org.amalitech.post.dto.UpdatePostRequest;
 import org.amalitech.post.Post;
-import org.amalitech.entities.Role;
+import org.amalitech.user.Role;
 import org.amalitech.post.tag.Tag;
-import org.amalitech.entities.User;
+import org.amalitech.user.User;
 import org.amalitech.post.PostStatus;
 import org.amalitech.exception.ResourceNotFoundException;
 import org.amalitech.exception.ValidationException;
 import org.amalitech.post.PostMapper;
 import org.amalitech.post.PostRepository;
 import org.amalitech.post.tag.TagRepository;
-import org.amalitech.repositories.UserRepository;
+import org.amalitech.user.UserService;
 import org.amalitech.post.tag.TagService;
 import org.amalitech.post.PostValidator;
 import org.junit.jupiter.api.AfterEach;
@@ -61,7 +61,7 @@ class PostServiceTest {
     private PostMetricsService postMetricsService;
 
     @Mock
-    private UserRepository userRepository;
+    private UserService userService;
 
     @Mock
     private TagService tagService;
@@ -275,7 +275,7 @@ class PostServiceTest {
             SecurityContextHolder.setContext(securityContext);
 
             when(tagService.findOrCreateTagsByName(tagNames)).thenReturn(resolvedTags);
-            when(userRepository.findById(1L)).thenReturn(Optional.of(sampleUser));
+            when(userService.findByUserId(1L)).thenReturn(sampleUser);
             when(postRepository.save(any(Post.class))).thenReturn(samplePost);
 
             try (MockedStatic<PostValidator> validatorMock = mockStatic(PostValidator.class)) {

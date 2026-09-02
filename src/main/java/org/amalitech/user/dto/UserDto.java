@@ -1,4 +1,4 @@
-package org.amalitech.dtos.userDtos;
+package org.amalitech.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
