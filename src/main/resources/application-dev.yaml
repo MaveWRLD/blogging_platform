@@ -29,6 +29,13 @@ spring:
       uri: ${MONGODB_URI}
       database: ${MONGODB_DATABASE}
 
+  jpa:
+    hibernate:
+      # Dev-only: auto-create/update schema from entities. No migration tool
+      # (Flyway/Liquibase) exists in this project yet - prod does NOT set this
+      # and expects a schema already provisioned by a real migration.
+      ddl-auto: update
+
   jwt:
     secret: ${JWT_SECRET}
     expiration: ${JWT_EXPIRATION}

@@ -1,4 +1,3 @@
-```markdown
 # Blogging Platform API
 
 ![Java](https://img.shields.io/badge/Java-21-orange?style=for-the-badge&logo=java&logoColor=white)
@@ -45,54 +44,78 @@ Combines layered architecture, AOP (logging + performance monitoring), input val
 
 ## Quick Start
 
-### Prerequisites
+### Option A: Docker (recommended - no local Java/Postgres/Mongo install needed)
 
-- Java 21+
-- Maven 3.9+
-- PostgreSQL 15+ & MongoDB 6+ (or Docker)
-- Git
-
-### 1. Clone the repository
+**Prerequisites:** Docker + Docker Compose, Git.
 
 ```bash
-git clone https://github.com/yourusername/blogging-platform.git
-cd blogging-platform
+git clone https://github.com/MaveWRLD/blogging_platform.git
+cd blogging_platform
+
+cp .env.example .env
+# edit .env if you want real Google OAuth2 credentials or non-default DB creds -
+# the dummy defaults are enough to boot the app and use REST/GraphQL/JWT auth
+
+docker compose up --build
 ```
 
-### 2. Configure environment
+This starts three containers: the app (port `8080`), PostgreSQL (port `5432`),
+and MongoDB (port `27017`), wired together automatically. First boot builds
+the jar inside Docker, so no local Maven/JDK is required.
 
-Create `src/main/resources/application.yml` (or use `application-dev.yml`):
+To stop: `docker compose down` (add `-v` to also drop the database volumes).
 
-```yaml
-spring:
-  datasource:
-    url: jdbc:postgresql://localhost:5432/blogdb
-    username: postgres
-    password: yourpassword
-  data:
-    mongodb:
-      uri: mongodb://localhost:27017/blog_comments
-  graphql:
-    graphiql:
-      enabled: true
-    playground:
-      enabled: true
-server:
-  port: 8080
+If ports `8080`/`5432`/`27017` are already taken on your machine, override
+them before starting: `APP_HOST_PORT=18080 POSTGRES_HOST_PORT=15432 MONGO_HOST_PORT=17017 docker compose up --build`.
+
+> **Known issue:** there's no schema migration tool (Flyway/Liquibase) yet.
+> `Post.status` maps to a native Postgres enum type (`post_status`) that
+> nothing currently creates, so the very first `posts` table write/read on a
+> brand-new database will fail with `type "post_status" does not exist`.
+> This isn't Docker-specific - it hits a from-scratch manual Postgres setup
+> the same way. A migration tool is planned; until then, create the type
+> by hand once against a fresh database:
+> ```sql
+> CREATE TYPE post_status AS ENUM ('draft', 'published', 'archived');
+> ```
+
+### Option B: Run locally with Maven
+
+**Prerequisites:** Java 21+, Maven 3.9+, PostgreSQL 15+ & MongoDB 6+ running locally, Git.
+
+```bash
+git clone https://github.com/MaveWRLD/blogging_platform.git
+cd blogging_platform
 ```
 
-### 3. Run the application
+Create a `.env` file in the project root (same variables as `.env.example`,
+values pointing at your local databases):
+
+```
+POSTGRES_URL=jdbc:postgresql://localhost:5432/blogdb
+POSTGRES_USERNAME=postgres
+POSTGRES_PASSWORD=yourpassword
+POSTGRES_DRIVER=org.postgresql.Driver
+MONGODB_URI=mongodb://localhost:27017
+MONGODB_DATABASE=blog_comments
+JWT_SECRET=change-me-to-a-long-random-string
+JWT_EXPIRATION=3600000
+GOOGLE_CLIENT_ID=dummy-client-id
+GOOGLE_CLIENT_SECRET=dummy-client-secret
+```
+
+Then run:
 
 ```bash
 # Development mode
 mvn spring-boot:run
 
-# Or build & run JAR
+# Or build & run the JAR
 mvn clean package
-java -jar target/blogging-platform-0.0.1-SNAPSHOT.jar
+java -jar target/blogging_platform-1.0-SNAPSHOT.jar
 ```
 
-### 4. Access the APIs
+### Access the APIs
 
 - REST + Swagger UI**: http://localhost:8080/swagger-ui.html
 - GraphQL Playground**: http://localhost:8080/playground
@@ -116,17 +139,25 @@ GraphQL API is available alongside REST; see the GraphQL schema and generated ty
 
 ## Project Structure
 
+Package-by-feature: each business feature owns its full stack (entity,
+repository, service, controller/resolver, DTOs). Only genuinely
+cross-cutting code sits outside a feature package.
+
 ```
 src/main/java/org/amalitech
-├── aspect               # AOP: logging, performance, caching
-├── controllers          # REST Controllers
-├── graphQLResolver      # GraphQL Query & Mutation resolvers
-├── service              # Business logic layer
-├── dao                  # Data access (JDBC / Mongo)
-├── dto                  # Data Transfer Objects
-├── models               # Domain entities
-├── util                 # Validators, exceptions, helpers
-└── algorithm            # Trending sort, cache manager
+├── post                 # Posts: entity, repo, service, REST + GraphQL, tags (post/tag)
+├── comment               # Comments: entity, repo, service, REST
+├── user                  # Users & roles: entity, repo, service, REST
+├── auth                  # JWT/OAuth2: login, tokens, filters
+├── performance            # Performance monitoring (AOP) + metrics endpoint
+├── common                # Shared code, not owned by one feature
+│   ├── dto               # Generic response envelopes (CustomApiResponse, etc.)
+│   ├── exception          # Global exception handling
+│   ├── security           # AuthenticatedUserProvider
+│   ├── validation        # Custom validation annotations
+│   ├── aspect             # LoggingAspect
+│   └── logging            # In-memory log capture + admin endpoint
+└── config                # Spring @Configuration classes (security, cache, async, GraphQL, ...)
 ```
 
 # AOP (Aspect-Oriented Programming) in Blogging Platform
@@ -238,12 +269,6 @@ AOP is enabled via the `@EnableAspectJAutoProxy` annotation on the application c
 - Integration tests (@SpringBootTest)
 - Aspect tests (logging, performance, caching)
 
-
-### How to Use It
-
-1. Create a file called `README.md` in your project root
-2. Replace `https://github.com/MaveWRLD/blogging_platform/tree/feature/module-5` with your actual repo URL
-3. Commit & push — GitHub will render it beautifully
 
 ## Repository Interfaces & Query Patterns
 
