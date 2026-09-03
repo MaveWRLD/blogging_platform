@@ -66,16 +66,20 @@ public class PerformanceMonitoringAspect {
         }
     }
 
-    @Pointcut("execution(* org.amalitech.service..*(..))")
+    // Package-by-feature moved Service/Controller/Resolver classes out of the
+    // old service../controllers../graphqlResolver.. packages into per-feature
+    // packages (post., comment., user., auth., ...), so these pointcuts match
+    // by class name suffix instead of by package.
+    @Pointcut("execution(* org.amalitech..*Service.*(..))")
     public void serviceMethods() {}
 
-    @Pointcut("execution(* org.amalitech.algorithm..*(..))")
+    @Pointcut("execution(* org.amalitech..algorithm..*(..))")
     public void algorithmMethods() {}
 
-    @Pointcut("execution(* org.amalitech.controllers..*(..))")
+    @Pointcut("execution(* org.amalitech..*Controller.*(..))")
     public void controllerMethods() {}
 
-    @Pointcut("execution(* org.amalitech.graphqlResolver..*(..))")
+    @Pointcut("execution(* org.amalitech..*Resolver.*(..))")
     public void resolverMethods() {}
 
     @Around("serviceMethods() || algorithmMethods() || controllerMethods() || resolverMethods()")
