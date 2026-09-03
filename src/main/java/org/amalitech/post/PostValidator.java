@@ -1,6 +1,6 @@
 package org.amalitech.post;
 
-import org.amalitech.exception.ValidationException;
+import org.amalitech.common.exception.ValidationException;
 import org.amalitech.post.Post;
 
 /**

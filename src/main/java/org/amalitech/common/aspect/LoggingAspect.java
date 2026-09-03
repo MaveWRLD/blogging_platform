@@ -1,11 +1,11 @@
-package org.amalitech.aspect;
+package org.amalitech.common.aspect;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.amalitech.logging.LogService;
+import org.amalitech.common.logging.LogService;
 
 import java.util.Arrays;
 

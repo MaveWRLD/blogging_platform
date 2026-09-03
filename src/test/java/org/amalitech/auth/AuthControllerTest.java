@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.amalitech.auth.dto.LoginRequest;
 import org.amalitech.user.User;
 import org.amalitech.auth.TokenType;
-import org.amalitech.exception.CustomExceptionHandler;
+import org.amalitech.common.exception.CustomExceptionHandler;
 import org.amalitech.auth.TokenFactory;
 import org.amalitech.user.UserService;
 import org.amalitech.auth.Jwt;

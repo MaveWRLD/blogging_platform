@@ -1,4 +1,4 @@
-package org.amalitech.exception;
+package org.amalitech.common.exception;
 
 public class DatabaseException extends RuntimeException {
 

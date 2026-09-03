@@ -5,7 +5,7 @@ import org.amalitech.post.dto.PagedPostsResponse;
 import org.amalitech.post.dto.PostDto;
 import org.amalitech.post.dto.PostFilter;
 import org.amalitech.post.dto.PostResponse;
-import org.amalitech.exception.ValidationException;
+import org.amalitech.common.exception.ValidationException;
 import org.amalitech.comment.CommentMapper;
 import org.amalitech.comment.CommentService;
 import org.amalitech.post.PostMapper;

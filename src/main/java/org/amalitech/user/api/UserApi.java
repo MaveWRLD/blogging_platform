@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import org.amalitech.dtos.CustomApiResponse;
+import org.amalitech.common.dto.CustomApiResponse;
 import org.amalitech.user.dto.CreateUserRequest;
 import org.amalitech.user.dto.UserDto;
 import org.springframework.http.ResponseEntity;

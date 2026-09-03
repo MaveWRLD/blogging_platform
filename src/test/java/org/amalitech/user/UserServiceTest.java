@@ -2,10 +2,9 @@ package org.amalitech.user;
 
 import org.amalitech.user.User;
 import org.amalitech.user.Role;
-import org.amalitech.exception.ResourceNotFoundException;
-import org.amalitech.exception.ValidationException;
+import org.amalitech.common.exception.ResourceNotFoundException;
+import org.amalitech.common.exception.ValidationException;
 import org.amalitech.user.UserRepository;
-import org.amalitech.util.PasswordHasher;
 import org.amalitech.user.UserValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -196,10 +195,8 @@ class UserServiceTest {
            when(userRepository.existsByEmail("john@example.com")).thenReturn(false);
            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
 
-           try (MockedStatic<PasswordHasher> hasherMock = mockStatic(PasswordHasher.class)) {
-               userService.createUser(sampleUser);
-               hasherMock.verifyNoInteractions();
-           }
+           userService.createUser(sampleUser);
+           verifyNoInteractions(passwordEncoder);
        }
 
        @Test
@@ -210,10 +207,8 @@ class UserServiceTest {
            when(userRepository.existsByEmail("john@example.com")).thenReturn(false);
            when(userRepository.save(any(User.class))).thenReturn(sampleUser);
 
-           try (MockedStatic<PasswordHasher> hasherMock = mockStatic(PasswordHasher.class)) {
-               userService.createUser(sampleUser);
-               hasherMock.verifyNoInteractions();
-           }
+           userService.createUser(sampleUser);
+           verifyNoInteractions(passwordEncoder);
        }
    }
 

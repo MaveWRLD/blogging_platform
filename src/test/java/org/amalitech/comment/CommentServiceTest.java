@@ -2,8 +2,8 @@ package org.amalitech.comment;
 
 import org.amalitech.comment.Comment;
 import org.amalitech.user.User;
-import org.amalitech.exception.ResourceNotFoundException;
-import org.amalitech.exception.ValidationException;
+import org.amalitech.common.exception.ResourceNotFoundException;
+import org.amalitech.common.exception.ValidationException;
 import org.amalitech.comment.CommentRepository;
 import org.amalitech.post.PostExistenceChecker;
 import org.amalitech.user.UserService;

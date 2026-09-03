@@ -2,14 +2,14 @@ package org.amalitech.user;
 
 import lombok.RequiredArgsConstructor;
 import org.amalitech.user.api.UserApi;
-import org.amalitech.dtos.CustomApiResponse;
+import org.amalitech.common.dto.CustomApiResponse;
 import org.amalitech.user.dto.CreateUserRequest;
 import org.amalitech.user.dto.UserDto;
 import org.amalitech.user.UserMapper;
 import org.amalitech.user.User;
 import org.amalitech.user.UserService;
 import org.amalitech.user.RoleService;
-import org.amalitech.exception.ResourceNotFoundException;
+import org.amalitech.common.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

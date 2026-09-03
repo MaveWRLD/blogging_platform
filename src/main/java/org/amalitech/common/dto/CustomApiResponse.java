@@ -1,4 +1,4 @@
-package org.amalitech.dtos;
+package org.amalitech.common.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

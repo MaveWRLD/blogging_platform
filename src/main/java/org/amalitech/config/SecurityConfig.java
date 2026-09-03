@@ -2,8 +2,8 @@ package org.amalitech.config;
 
 import lombok.AllArgsConstructor;
 import org.amalitech.auth.Oauth2SuccessHandler;
-import org.amalitech.exception.entryPointErrors.CustomAccessDeniedHandler;
-import org.amalitech.exception.entryPointErrors.CustomAuthenticationEntryPoint;
+import org.amalitech.common.exception.entryPointErrors.CustomAccessDeniedHandler;
+import org.amalitech.common.exception.entryPointErrors.CustomAuthenticationEntryPoint;
 import org.amalitech.auth.JwtAuthenticationFilter;
 import org.amalitech.user.CustomOAuth2UserService;
 import org.amalitech.user.UserDetailService;

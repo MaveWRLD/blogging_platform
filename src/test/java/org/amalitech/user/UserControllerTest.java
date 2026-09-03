@@ -6,7 +6,7 @@ import org.amalitech.user.dto.UpdateUserRequest;
 import org.amalitech.user.dto.UserDto;
 import org.amalitech.user.Role;
 import org.amalitech.user.User;
-import org.amalitech.exception.CustomExceptionHandler;
+import org.amalitech.common.exception.CustomExceptionHandler;
 import org.amalitech.user.UserMapper;
 import org.amalitech.user.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -153,7 +153,7 @@ class UserControllerTest {
 
     @Test
     void getUserById_WithNonExistentId_ShouldReturnNotFound() throws Exception {
-        when(userService.findByUserId(999L)).thenThrow(new org.amalitech.exception.ResourceNotFoundException("User not found"));
+        when(userService.findByUserId(999L)).thenThrow(new org.amalitech.common.exception.ResourceNotFoundException("User not found"));
 
         mockMvc.perform(get("/api/users/999"))
                 .andExpect(status().isNotFound());
@@ -202,7 +202,7 @@ class UserControllerTest {
 
     @Test
     void promoteUserToWriter_WithNonExistentUsername_ShouldReturnNotFound() throws Exception {
-        when(userService.promoteToWriter("nonexistent")).thenThrow(new org.amalitech.exception.ResourceNotFoundException("User not found"));
+        when(userService.promoteToWriter("nonexistent")).thenThrow(new org.amalitech.common.exception.ResourceNotFoundException("User not found"));
 
         mockMvc.perform(put("/api/users/promote/nonexistent"))
                 .andExpect(status().isNotFound());

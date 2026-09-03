@@ -1,4 +1,4 @@
-package org.amalitech.dtos;
+package org.amalitech.common.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
@@ -55,7 +55,7 @@ public class ErrorResponse {
     
     @Schema(
         description = "Additional error details or stack trace (in development mode only)",
-        example = "org.amalitech.exception.ResourceNotFoundException: Post not found"
+        example = "org.amalitech.common.exception.ResourceNotFoundException: Post not found"
     )
     private String details;
 }

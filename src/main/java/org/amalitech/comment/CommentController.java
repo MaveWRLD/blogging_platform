@@ -3,7 +3,7 @@ package org.amalitech.comment;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.amalitech.comment.api.CommentApi;
-import org.amalitech.dtos.CustomApiResponse;
+import org.amalitech.common.dto.CustomApiResponse;
 import org.amalitech.comment.dto.CommentDto;
 import org.amalitech.comment.dto.CreateCommentRequest;
 import org.amalitech.comment.dto.UpdateCommentRequest;

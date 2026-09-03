@@ -1,6 +1,6 @@
 package org.amalitech.post;
 
-import org.amalitech.dtos.*;
+import org.amalitech.common.dto.*;
 import org.amalitech.comment.dto.CommentDto;
 import org.amalitech.post.dto.*;
 import org.amalitech.post.Post;

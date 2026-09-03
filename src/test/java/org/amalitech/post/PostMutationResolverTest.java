@@ -6,7 +6,7 @@ import org.amalitech.post.dto.UpdatePostRequest;
 import org.amalitech.comment.Comment;
 import org.amalitech.post.Post;
 import org.amalitech.post.PostStatus;
-import org.amalitech.exception.ResourceNotFoundException;
+import org.amalitech.common.exception.ResourceNotFoundException;
 import org.amalitech.comment.CommentService;
 import org.amalitech.post.PostService;
 import org.amalitech.post.graphqlResolver.PostMutationResolver;

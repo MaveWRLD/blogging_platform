@@ -1,4 +1,4 @@
-package org.amalitech.dtos;
+package org.amalitech.common.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 

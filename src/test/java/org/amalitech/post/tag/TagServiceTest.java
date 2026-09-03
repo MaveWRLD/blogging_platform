@@ -1,7 +1,7 @@
 package org.amalitech.post.tag;
 
 import org.amalitech.post.tag.Tag;
-import org.amalitech.exception.ValidationException;
+import org.amalitech.common.exception.ValidationException;
 import org.amalitech.post.tag.TagRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;

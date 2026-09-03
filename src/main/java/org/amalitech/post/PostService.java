@@ -14,8 +14,8 @@ import org.amalitech.user.UserService;
 import org.amalitech.post.specifications.PostSpecification;
 import org.amalitech.post.PostValidator;
 import org.amalitech.post.tag.TagService;
-import org.amalitech.exception.ResourceNotFoundException;
-import org.amalitech.exception.ValidationException;
+import org.amalitech.common.exception.ResourceNotFoundException;
+import org.amalitech.common.exception.ValidationException;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;

@@ -1,8 +1,7 @@
-package org.amalitech.repositories;
+package org.amalitech.common.validation;
 
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
-import org.amalitech.util.PasswordConstraintValidator;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

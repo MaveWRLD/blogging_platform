@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
-import org.amalitech.dtos.CustomApiResponse;
+import org.amalitech.common.dto.CustomApiResponse;
 import org.amalitech.post.dto.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

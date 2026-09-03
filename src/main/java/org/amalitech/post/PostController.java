@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.amalitech.post.api.PostApi;
-import org.amalitech.dtos.*;
+import org.amalitech.common.dto.*;
 import org.amalitech.comment.dto.CommentDto;
 import org.amalitech.post.dto.*;
 import org.amalitech.comment.CommentMapper;

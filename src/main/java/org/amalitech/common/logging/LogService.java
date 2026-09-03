@@ -1,4 +1,4 @@
-package org.amalitech.logging;
+package org.amalitech.common.logging;
 
 import org.springframework.stereotype.Service;
 

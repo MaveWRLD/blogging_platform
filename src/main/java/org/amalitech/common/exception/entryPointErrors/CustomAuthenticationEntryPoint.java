@@ -1,4 +1,4 @@
-package org.amalitech.exception.entryPointErrors;
+package org.amalitech.common.exception.entryPointErrors;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

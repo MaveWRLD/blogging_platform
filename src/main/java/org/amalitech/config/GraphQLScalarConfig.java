@@ -1,4 +1,4 @@
-package org.amalitech.graphqlResolver;
+package org.amalitech.config;
 
 import graphql.GraphQLContext;
 import graphql.execution.CoercedVariables;

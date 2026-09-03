@@ -1,4 +1,4 @@
-package org.amalitech.util;
+package org.amalitech.common.util;
 
 public class CamelToSnake {
     public static String camelToSnake(String str) {

@@ -1,8 +1,7 @@
-package org.amalitech.util;
+package org.amalitech.common.validation;
 
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
-import org.amalitech.repositories.ValidPassword;
 
 public class PasswordConstraintValidator implements ConstraintValidator<ValidPassword, String> {
 
