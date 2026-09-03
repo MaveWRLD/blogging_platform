@@ -7,7 +7,6 @@ import org.amalitech.user.dto.CreateUserRequest;
 import org.amalitech.user.dto.UserDto;
 import org.amalitech.user.UserMapper;
 import org.amalitech.user.User;
-import org.amalitech.service.AuthorizationService;
 import org.amalitech.user.UserService;
 import org.amalitech.user.RoleService;
 import org.amalitech.exception.ResourceNotFoundException;
@@ -29,9 +28,6 @@ public class UserController implements UserApi {
         User user = userService.findByUserId(id);
         return ResponseEntity.ok(userMapper.toDto(user));
     }
-
-    private final AuthorizationService authorizationService;
-
 
     @Override
     public ResponseEntity<CustomApiResponse<UserDto>> register(CreateUserRequest request) {

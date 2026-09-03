@@ -1,4 +1,4 @@
-package org.amalitech.dtos.perf;
+package org.amalitech.performance.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

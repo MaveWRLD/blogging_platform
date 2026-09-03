@@ -1,8 +1,8 @@
-package org.amalitech.controllers;
+package org.amalitech.performance;
 
-import org.amalitech.api.doc.PerformanceApi;
-import org.amalitech.aspect.PerformanceMonitoringAspect;
-import org.amalitech.dtos.perf.PerformanceStatsDto;
+import org.amalitech.performance.api.PerformanceApi;
+import org.amalitech.performance.PerformanceMonitoringAspect;
+import org.amalitech.performance.dto.PerformanceStatsDto;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;

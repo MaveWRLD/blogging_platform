@@ -1,4 +1,4 @@
-package org.amalitech.aspect;
+package org.amalitech.performance;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
@@ -9,8 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import org.amalitech.dtos.perf.PerformanceMethodMetricsDto;
-import org.amalitech.dtos.perf.PerformanceStatsDto;
+import org.amalitech.performance.dto.PerformanceMethodMetricsDto;
+import org.amalitech.performance.dto.PerformanceStatsDto;
 
 import java.time.Instant;
 import java.util.ArrayList;

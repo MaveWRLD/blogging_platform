@@ -5,9 +5,9 @@ import org.springframework.stereotype.Service;
 
 /**
  * User-feature authorization checks, split out of the old cross-feature
- * AuthorizationService. Performance-related checks stay on
- * org.amalitech.service.AuthorizationService until Performance gets its
- * own package-by-feature pass.
+ * AuthorizationService (now deleted - its last remaining method,
+ * canAccessPerformanceMetrics, was dead code; PerformanceApi enforces
+ * access with a plain hasRole('admin') check).
  */
 @Service
 public class UserAuthorizationService {
